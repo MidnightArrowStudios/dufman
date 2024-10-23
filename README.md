@@ -10,18 +10,18 @@ Like the DSON format itself, DUFMan operates on URLs relative to Daz Studio's "/
 
 First, add a content directory.
 
-`
+```
 from dufman.file import add_content_directory
 add_content_directory("C:/My/Content/Directory/Daz 3D")
-`
+```
 
 Then use a relative URL to create a struct-like wrapper object around the DSON data.
 
-`
+```
 from dufman.library import get_asset_data_from_library
 asset_url:str = "/data/DAZ 3D/Genesis 8/Male/Genesis8Male.dsf#geometry"
 struct:DsonGeometry = get_asset_data_from_library(asset_url, "geometry_library")
-`
+```
 
 The DsonGeometry struct can then be passed to your application-specific code to create a mesh object.
 
