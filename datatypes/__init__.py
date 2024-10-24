@@ -184,9 +184,6 @@ class DsonVector:
 
         message:str = "DsonVector only accepts three floats or a collection of three floats."
 
-        # import pdb
-        # breakpoint()
-
         values:list[float] = []
         if len(arguments) == 1 and isinstance(arguments[0], (list, tuple, set)):
             values.extend(arguments[0])
