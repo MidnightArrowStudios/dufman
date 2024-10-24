@@ -73,16 +73,17 @@ def create_modifier_struct(dsf_filepath:Path, instance_data:dict=None) -> DsonMo
         morph_dictionary = instance_data["morph"]
 
     if morph_dictionary:
+
         struct.morph = DsonMorph()
         struct.morph.expected_vertices = morph_dictionary["vertex_count"]
         struct.morph.deltas = {}
 
         # Instead of "float3_indexed_array", store the data inside a dictionary
         #   using the vertex index as the key for easy lookup.
-        for delta in morph_dictionary["deltas"]:
+        for delta in morph_dictionary["deltas"]["values"]:
             index:int = delta[0]
             offset:DsonVector = DsonVector.create(delta[1:])
-            struct.morphs.deltas[index] = offset
+            struct.morph.deltas[index] = offset
 
     # ======================================================================== #
 
