@@ -4,7 +4,7 @@
 from pathlib import Path
 
 # pylint: disable=E0402
-from ..libraries import get_asset_data_from_library
+from ..library import get_asset_data_from_library
 from ..observers import _uv_set_struct_created
 from ..structs.uv_set import DsonUVSet
 from ..url import AssetURL, parse_url_string
