@@ -54,6 +54,9 @@ class DsonChannelVector:
         """Factory method to instantiate a DsonFloatVector from DSON dictionaries."""
 
         vector:DsonChannelVector = cls()
+        vector.x = DsonChannelFloat()
+        vector.y = DsonChannelFloat()
+        vector.z = DsonChannelFloat()
 
         # Library default
         vector.x.default = cls.parse_channels(library_data, vector_name, 'X', "value", default[0])
