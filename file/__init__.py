@@ -28,9 +28,7 @@ from ..utilities import check_path
 _dsf_cache:dict = {}
 
 # List of all content directories that Daz assets have been installed to.
-_content_directories:list[Path] = [
-    Path("F:/Daz3D"),
-]
+_content_directories:list[Path] = []
 
 # ============================================================================ #
 #                                                                              #
