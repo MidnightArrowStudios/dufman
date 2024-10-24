@@ -4,7 +4,7 @@
 from pathlib import Path
 
 # pylint: disable=E0402
-from ..datatypes import DsonSkinBinding, DsonVector
+from ..datatypes import DsonMorph, DsonSkinBinding, DsonVector
 from ..library import get_asset_data_from_library
 from ..observers import _modifier_struct_created
 from ..structs.modifier import DsonModifier
@@ -73,6 +73,7 @@ def create_modifier_struct(dsf_filepath:Path, instance_data:dict=None) -> DsonMo
         morph_dictionary = instance_data["morph"]
 
     if morph_dictionary:
+        struct.morph = DsonMorph()
         struct.morph.expected_vertices = morph_dictionary["vertex_count"]
         struct.morph.deltas = {}
 
