@@ -10,7 +10,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-# pylint: disable=E0402
 from ..datatypes import DsonVector, DsonPolygon
 from ..enums import EdgeInterpolation, GeometryType
 

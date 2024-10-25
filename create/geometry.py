@@ -7,7 +7,6 @@
 
 from pathlib import Path
 
-# pylint: disable=E0402
 from ..datatypes import DsonPolygon, DsonVector
 from ..enums import EdgeInterpolation, GeometryType
 from ..library import get_asset_data_from_library

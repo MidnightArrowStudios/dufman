@@ -7,7 +7,6 @@
 
 from pathlib import Path
 
-# pylint: disable=E0402
 from ..datatypes import DsonMorph, DsonSkinBinding, DsonVector
 from ..library import get_asset_data_from_library
 from ..observers import _modifier_struct_created

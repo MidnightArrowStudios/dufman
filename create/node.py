@@ -7,8 +7,6 @@
 
 from pathlib import Path
 
-# pylint: disable=E0402
-# pylint
 from ..datatypes import DsonChannelVector
 from ..enums import NodeType, RotationOrder
 from ..library import get_asset_data_from_library

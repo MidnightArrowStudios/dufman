@@ -7,7 +7,6 @@
 
 from pathlib import Path
 
-# pylint: disable=E0402
 from ..library import get_asset_data_from_library
 from ..observers import _uv_set_struct_created
 from ..structs.uv_set import DsonUVSet
