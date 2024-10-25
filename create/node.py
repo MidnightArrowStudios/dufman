@@ -84,7 +84,7 @@ def create_node_struct(dsf_filepath:Path, instance_data:dict=None) -> DsonNode:
         else:
             fp:str = str(dsf_filepath)
             ai:str = parent_address.asset_id
-            full_url = create_url_string(file_path=fp, asset_id=ai)
+            full_url = create_url_string(dsf_path=fp, asset_id=ai)
             parent_data = get_asset_data_from_library(full_url, "node_library")
 
         if parent_data and "type" in parent_data and parent_data["type"] == "bone":
