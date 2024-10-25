@@ -9,10 +9,11 @@ from pathlib import Path
 
 from ..datatypes import DsonChannelVector
 from ..enums import NodeType, RotationOrder
+from ..file import extract_single_property
 from ..library import get_asset_data_from_library
 from ..observers import _node_struct_created
 from ..structs.node import DsonNode
-from ..url import AssetURL, create_url_string, parse_url_string
+from ..url import AssetURL, parse_url_string
 from ..utilities import check_path
 
 # ============================================================================ #
@@ -72,22 +73,19 @@ def create_node_struct(dsf_filepath:Path, instance_data:dict=None) -> DsonNode:
         struct.instance_parent = instance_data["parent"]
 
     # Inherit scale
-    # Bones with bone parents do not inherit scale by default
-    # TODO: Use 'extract_single_property' here instead
+    # All nodes inherit scale by default, except bones with bone parents.
     default_inherits_scale:bool = True
     if struct.node_type == NodeType.BONE and struct.library_parent:
-        parent_address:AssetURL = parse_url_string(struct.library_parent)
-        parent_data:dict = None
+        parent_url:AssetURL = parse_url_string(struct.library_parent)
+        parent_path:list[str] = [ "node_library", parent_url.asset_id, "type" ]
+        parent_type:str = None
 
-        if parent_address.file_path:
-            parent_data = get_asset_data_from_library(struct.library_parent, "node_library")
+        if parent_url.file_path:
+            parent_type = extract_single_property(parent_url.file_path, parent_path)
         else:
-            fp:str = str(dsf_filepath)
-            ai:str = parent_address.asset_id
-            full_url = create_url_string(dsf_path=fp, asset_id=ai)
-            parent_data = get_asset_data_from_library(full_url, "node_library")
+            parent_type = extract_single_property(str(dsf_filepath), parent_path)
 
-        if parent_data and "type" in parent_data and parent_data["type"] == "bone":
+        if parent_type and parent_type == "bone":
             default_inherits_scale = False
 
     struct.inherits_scale = default_inherits_scale
