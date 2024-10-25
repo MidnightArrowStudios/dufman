@@ -1,4 +1,8 @@
 # ============================================================================ #
+# Copyright (c) 2024, Midnight Arrow.
+# https://github.com/MidnightArrowStudios/dufman
+# Licensed under the MIT license.
+# ============================================================================ #
 """Module containing functions to open DSON files using a Path-type URL value."""
 
 import gzip

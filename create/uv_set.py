@@ -1,4 +1,8 @@
 # ============================================================================ #
+# Copyright (c) 2024, Midnight Arrow.
+# https://github.com/MidnightArrowStudios/dufman
+# Licensed under the MIT license.
+# ============================================================================ #
 """Functions to instantiate a DsonUVSet object."""
 
 from pathlib import Path

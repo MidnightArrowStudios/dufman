@@ -1,4 +1,8 @@
 # ============================================================================ #
+# Copyright (c) 2024, Midnight Arrow.
+# https://github.com/MidnightArrowStudios/dufman
+# Licensed under the MIT license.
+# ============================================================================ #
 """Defines a wrapper struct for the DSON format's Node object."""
 
 from __future__ import annotations
@@ -9,6 +13,8 @@ from pathlib import Path
 from ..datatypes import DsonChannelVector
 from ..enums import NodeType, RotationOrder
 
+# ============================================================================ #
+#                                                                              #
 # ============================================================================ #
 
 @dataclass
@@ -40,6 +46,5 @@ class DsonNode:
 
     scale                   : DsonChannelVector     = None
     general_scale           : float                 = 1.0
-
 
 # ============================================================================ #

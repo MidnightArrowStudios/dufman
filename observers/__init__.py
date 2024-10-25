@@ -1,4 +1,8 @@
 # ============================================================================ #
+# Copyright (c) 2024, Midnight Arrow.
+# https://github.com/MidnightArrowStudios/dufman
+# Licensed under the MIT license.
+# ============================================================================ #
 """Module which provides a way to inspect data during loading."""
 
 from collections.abc import Callable

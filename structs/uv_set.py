@@ -1,4 +1,8 @@
 # ============================================================================ #
+# Copyright (c) 2024, Midnight Arrow.
+# https://github.com/MidnightArrowStudios/dufman
+# Licensed under the MIT license.
+# ============================================================================ #
 """Defines a wrapper struct for the DSON format's UVSet object."""
 
 
@@ -85,3 +89,5 @@ class DsonUVSet:
                 pass
 
         return copied_indices
+
+# ============================================================================ #

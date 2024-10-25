@@ -1,4 +1,8 @@
 # ============================================================================ #
+# Copyright (c) 2024, Midnight Arrow.
+# https://github.com/MidnightArrowStudios/dufman
+# Licensed under the MIT license.
+# ============================================================================ #
 """Defines a wrapper struct for the DSON format's Geometry object."""
 
 
@@ -11,6 +15,7 @@ from ..datatypes import DsonVector, DsonPolygon
 from ..enums import EdgeInterpolation, GeometryType
 
 from .uv_set import DsonUVSet
+
 
 # ============================================================================ #
 #                                                                              #
@@ -41,3 +46,5 @@ class DsonGeometry:
 
     default_uv_url          : str               = None
     default_uv_set          : DsonUVSet         = None
+
+# ============================================================================ #

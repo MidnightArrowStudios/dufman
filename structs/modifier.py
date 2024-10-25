@@ -1,4 +1,8 @@
 # ============================================================================ #
+# Copyright (c) 2024, Midnight Arrow.
+# https://github.com/MidnightArrowStudios/dufman
+# Licensed under the MIT license.
+# ============================================================================ #
 """Defines a wrapper struct for the DSON format's Modifier object."""
 
 from __future__ import annotations
@@ -30,3 +34,5 @@ class DsonModifier:
 
     has_formulas                : bool              = False
     formula_list                : list              = None
+
+# ============================================================================ #
