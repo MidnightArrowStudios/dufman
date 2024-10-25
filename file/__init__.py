@@ -64,9 +64,15 @@ def extract_single_property(dsf_filepath:Path, property_path:list[str]) -> Any:
     tokens:list[str] = list(property_path)
     dsf_pointer:Any = handle_dsf_file(dsf_filepath)
 
+    # The property path is split into components representing the hierarchy
+    #   of the asset's property.
+    # [ "geometry_library", "0", "polygon_material_groups", "values, "4" ]
+    #   will return the fifth surface's name in a geometry asset.
     while tokens:
+
         token = tokens.pop(0)
 
+        # Current layer is DSON object (i.e. dictionary)
         if isinstance(dsf_pointer, dict):
 
             if not token in dsf_pointer:
@@ -75,8 +81,25 @@ def extract_single_property(dsf_filepath:Path, property_path:list[str]) -> Any:
             dsf_pointer = dsf_pointer[token]
             continue
 
+        # Current layer is list.
         elif isinstance(dsf_pointer, list):
 
+            # Used for branching, since continue statement in loop will only
+            #   break out of one level.
+            was_found:bool = False
+
+            # First, see if the token matches an ID.
+            for entry in dsf_pointer:
+                if isinstance(entry, dict) and "id" in entry and entry["id"] == token:
+                    dsf_pointer = entry
+                    was_found = True
+                    continue
+            
+            # Restart top-level loop if ID was found.
+            if was_found:
+                continue
+
+            # If it doesn't match an ID, see if we can use it as an index.
             index:int = None
 
             try:
