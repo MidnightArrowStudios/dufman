@@ -7,6 +7,7 @@
 
 from pathlib import Path
 
+from ..exceptions import MissingRequiredProperty
 from ..library import get_asset_data_from_library
 from ..observers import _uv_set_struct_created
 from ..structs.uv_set import DsonUVSet
@@ -25,6 +26,19 @@ def create_uv_set_struct(dsf_filepath:Path, instance_data:dict=None) -> DsonUVSe
 
     # Load the DSON data from disk
     library_data:dict = get_asset_data_from_library(dsf_filepath, "uv_set_library")
+
+    # ======================================================================== #
+
+    if not "id" in library_data:
+        raise MissingRequiredProperty(str(dsf_filepath), "id")
+
+    if not "vertex_count" in library_data:
+        raise MissingRequiredProperty(str(dsf_filepath), "vertex_count")
+
+    if not "uvs" in library_data:
+        raise MissingRequiredProperty(str(dsf_filepath), "uvs")
+
+    # ======================================================================== #
 
     struct:DsonUVSet = DsonUVSet()
 

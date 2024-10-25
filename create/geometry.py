@@ -9,6 +9,7 @@ from pathlib import Path
 
 from ..datatypes import DsonPolygon, DsonVector
 from ..enums import EdgeInterpolation, GeometryType
+from ..exceptions import MissingRequiredProperty
 from ..library import get_asset_data_from_library
 from ..observers import _geometry_struct_created
 from ..structs.geometry import DsonGeometry
@@ -30,6 +31,27 @@ def create_geometry_struct(dsf_filepath:Path, instance_data:dict=None) -> DsonGe
 
     # Load the DSON dictionary from disk
     library_data:dict = get_asset_data_from_library(dsf_filepath, "geometry_library")
+
+    # ======================================================================== #
+
+    if not "id" in library_data:
+        raise MissingRequiredProperty(str(dsf_filepath), "id")
+
+    if not "vertices" in library_data:
+        raise MissingRequiredProperty(str(dsf_filepath), "vertices")
+
+    if not "polylist" in library_data:
+        raise MissingRequiredProperty(str(dsf_filepath), "polylist")
+
+    if not "polygon_groups" in library_data:
+        raise MissingRequiredProperty(str(dsf_filepath), "polygon_groups")
+
+    if not "polygon_material_groups" in library_data:
+        raise MissingRequiredProperty(str(dsf_filepath), "polygon_material_groups")
+
+    # TODO: Check instance properties
+
+    # ======================================================================== #
 
     struct:DsonGeometry = DsonGeometry()
 

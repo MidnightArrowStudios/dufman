@@ -9,6 +9,7 @@ from pathlib import Path
 
 from ..datatypes import DsonChannelVector
 from ..enums import NodeType, RotationOrder
+from ..exceptions import MissingRequiredProperty
 from ..file import extract_single_property
 from ..library import get_asset_data_from_library
 from ..observers import _node_struct_created
@@ -28,6 +29,19 @@ def create_node_struct(dsf_filepath:Path, instance_data:dict=None) -> DsonNode:
 
     # Load the DSON dictionary from disk
     library_data:dict = get_asset_data_from_library(dsf_filepath, "node_library")
+
+    # ======================================================================== #
+
+    if not "id" in library_data:
+        raise MissingRequiredProperty(str(dsf_filepath), "id")
+
+    if not "name" in library_data:
+        raise MissingRequiredProperty(str(dsf_filepath), "name")
+
+    if not "label" in library_data:
+        raise MissingRequiredProperty(str(dsf_filepath), "label")
+
+    # ======================================================================== #
 
     struct:DsonNode = DsonNode()
 

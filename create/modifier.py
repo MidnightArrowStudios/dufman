@@ -8,6 +8,7 @@
 from pathlib import Path
 
 from ..datatypes import DsonMorph, DsonSkinBinding, DsonVector
+from ..exceptions import MissingRequiredProperty
 from ..library import get_asset_data_from_library
 from ..observers import _modifier_struct_created
 from ..structs.modifier import DsonModifier
@@ -24,6 +25,15 @@ def create_modifier_struct(dsf_filepath:Path, instance_data:dict=None) -> DsonMo
     dsf_filepath = check_path(dsf_filepath)
 
     library_data:dict = get_asset_data_from_library(dsf_filepath, "modifier_library")
+
+    # ======================================================================== #
+
+    if not "id" in library_data:
+        raise MissingRequiredProperty(str(dsf_filepath), "id")
+
+    # TODO: Check instance properties
+
+    # ======================================================================== #
 
     struct:DsonModifier = DsonModifier()
 
