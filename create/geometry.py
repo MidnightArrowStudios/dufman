@@ -93,56 +93,8 @@ def create_geometry_struct(dsf_filepath:Path, instance_data:dict=None) -> DsonGe
     if instance_data and "edge_interpolation_mode" in instance_data:
         struct.edge_interpolation = EdgeInterpolation(instance_data["edge_interpolation_mode"])
 
-    # Vertices
-    vertex_data:list = library_data["vertices"]["values"]
-    if instance_data and "vertices" in instance_data:
-        vertex_data = instance_data["vertices"]["values"]
-
-    struct.vertices = [ DsonVector.create(vertex) for vertex in vertex_data ]
-
-    # Polygons
-    polygon_data:list = library_data["polylist"]["values"]
-    if instance_data and "polylist" in instance_data:
-        polygon_data = instance_data["polylist"]["values"]
-
-    struct.polygons = []
-    struct.material_indices = []
-    struct.facegroup_indices = []
-
-    for polygon in polygon_data:
-        struct.polygons.append( DsonPolygon.create(polygon[2:]) )
-        struct.material_indices.append( polygon[1] )
-        struct.facegroup_indices.append( polygon[0] )
-
-    # Material names
-    material_names:list = library_data["polygon_material_groups"]["values"]
-    if instance_data and "polygon_material_groups" in instance_data:
-        material_names = instance_data["polygon_material_groups"]["values"]
-
-    struct.material_names = list(material_names)
-
-    # Face group names
-    facegroup_names:list = library_data["polygon_groups"]["values"]
-    if instance_data and "polygon_groups" in instance_data:
-        facegroup_names = instance_data["polygon_groups"]["values"]
-
-    struct.facegroup_names = list(facegroup_names)
-
-    # Default UV Set
-    uv_url:str = None
-    if "default_uv_set" in library_data:
-        uv_url = library_data["default_uv_set"]
-    if instance_data and "default_uv_set" in instance_data:
-        uv_url = instance_data["default_uv_set"]
-
-    uv_struct:DsonUVSet = None
-    if uv_url:
-        uv_struct = create_uv_set_struct(uv_url)
-
-    struct.default_uv_url = uv_url
-    struct.default_uv_set = uv_struct
-
-    # Regions
+    _create_geometry(struct, library_data, instance_data)
+    _create_default_uv_set(struct, library_data, instance_data)
     _create_region(struct, library_data, instance_data)
 
     # ======================================================================== #
@@ -154,6 +106,85 @@ def create_geometry_struct(dsf_filepath:Path, instance_data:dict=None) -> DsonGe
 
 # ============================================================================ #
 #                                                                              #
+# ============================================================================ #
+
+def _create_default_uv_set(struct:DsonGeometry, library_data:dict, instance_data:dict) -> None:
+
+    uv_url:str = None
+
+    if library_data and "default_uv_set" in library_data:
+        uv_url = library_data["default_uv_set"]
+    if instance_data and "default_uv_set" in instance_data:
+        uv_url = instance_data["default_uv_set"]
+
+    if not uv_url:
+        return
+
+    uv_struct:DsonUVSet = create_uv_set_struct(uv_url)
+
+    struct.default_uv_url = uv_url
+    struct.default_uv_set = uv_struct
+
+    return
+
+# ============================================================================ #
+
+def _create_geometry(struct:DsonGeometry, library_data:dict, instance_data:dict) -> None:
+
+    # Vertices
+    vertex_list:list = None
+    if library_data and "vertices" in library_data:
+        vertex_list = library_data["vertices"]["values"]
+    if instance_data and "vertices" in instance_data:
+        vertex_list = instance_data["vertices"]["values"]
+
+    if vertex_list:
+        struct.vertices = [ DsonVector.create(vertex) for vertex in vertex_list ]
+    else:
+        struct.vertices = []
+
+    # Polygons
+    polygon_list:list = None
+    if library_data and "polylist" in library_data:
+        polygon_list = library_data["polylist"]["values"]
+    if instance_data and "polylist" in instance_data:
+        polygon_list = instance_data["polylist"]["values"]
+
+    struct.polygons = []
+    struct.material_indices = []
+    struct.facegroup_indices = []
+
+    for polygon in (polygon_list if polygon_list else []):
+        struct.polygons.append( DsonPolygon.create(polygon[2:]) )
+        struct.material_indices.append(polygon[1])
+        struct.facegroup_indices.append(polygon[0])
+
+    # Material names
+    material_names:list[str] = None
+    if library_data and "polygon_material_groups" in library_data:
+        material_names = library_data["polygon_material_groups"]["values"]
+    if instance_data and "polygon_material_groups" in instance_data:
+        material_names = instance_data["polygon_material_groups"]["values"]
+
+    if material_names:
+        struct.material_names = list(material_names)
+    else:
+        struct.material_names = []
+
+    # Face group names
+    facegroup_names:list[str] = None
+    if library_data and "polygon_groups" in library_data:
+        facegroup_names = library_data["polygon_groups"]["values"]
+    if instance_data and "polygon_groups" in instance_data:
+        facegroup_names = instance_data["polygon_groups"]["values"]
+
+    if facegroup_names:
+        struct.facegroup_names = list(facegroup_names)
+    else:
+        struct.facegroup_names = []
+
+    return
+
 # ============================================================================ #
 
 def _create_region(struct:DsonGeometry, library_data:dict, instance_data:dict) -> None:
