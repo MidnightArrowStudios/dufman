@@ -93,9 +93,9 @@ def create_geometry_struct(dsf_filepath:Path, instance_data:dict=None) -> DsonGe
     if instance_data and "edge_interpolation_mode" in instance_data:
         struct.edge_interpolation = EdgeInterpolation(instance_data["edge_interpolation_mode"])
 
-    _create_geometry(struct, library_data, instance_data)
-    _create_default_uv_set(struct, library_data, instance_data)
-    _create_region(struct, library_data, instance_data)
+    _geometry(struct, library_data, instance_data)
+    _default_uv_set(struct, library_data, instance_data)
+    _region(struct, library_data, instance_data)
 
     # ======================================================================== #
 
@@ -108,7 +108,7 @@ def create_geometry_struct(dsf_filepath:Path, instance_data:dict=None) -> DsonGe
 #                                                                              #
 # ============================================================================ #
 
-def _create_default_uv_set(struct:DsonGeometry, library_data:dict, instance_data:dict) -> None:
+def _default_uv_set(struct:DsonGeometry, library_data:dict, instance_data:dict) -> None:
 
     uv_url:str = None
 
@@ -129,7 +129,7 @@ def _create_default_uv_set(struct:DsonGeometry, library_data:dict, instance_data
 
 # ============================================================================ #
 
-def _create_geometry(struct:DsonGeometry, library_data:dict, instance_data:dict) -> None:
+def _geometry(struct:DsonGeometry, library_data:dict, instance_data:dict) -> None:
 
     # Vertices
     vertex_list:list = None
@@ -187,7 +187,7 @@ def _create_geometry(struct:DsonGeometry, library_data:dict, instance_data:dict)
 
 # ============================================================================ #
 
-def _create_region(struct:DsonGeometry, library_data:dict, instance_data:dict) -> None:
+def _region(struct:DsonGeometry, library_data:dict, instance_data:dict) -> None:
 
     region_root:dict = None
     if library_data and "root_region" in library_data:
@@ -226,3 +226,5 @@ def _create_region(struct:DsonGeometry, library_data:dict, instance_data:dict) -
     recursive(DsonRegion(), region_root)
 
     return
+
+# ============================================================================ #
