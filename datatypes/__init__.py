@@ -89,6 +89,20 @@ class DsonChannelVector:
 # ============================================================================ #
 
 @dataclass
+class DsonGraft:
+
+    expected_vertices   : int = 0
+    expected_polygons   : int = 0
+
+    vertex_pairs        : list[tuple[int, int]]     = None
+    hidden_polygons     : list[int]                 = None
+
+
+# ============================================================================ #
+#                                                                              #
+# ============================================================================ #
+
+@dataclass
 class DsonMorph:
     """An intermediate representation of DSON morph data."""
 

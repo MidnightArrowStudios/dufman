@@ -7,7 +7,7 @@
 
 from pathlib import Path
 
-from ..datatypes import DsonPolygon, DsonRegion, DsonVector
+from ..datatypes import DsonGraft, DsonPolygon, DsonRegion, DsonVector
 from ..enums import EdgeInterpolation, GeometryType
 from ..exceptions import MissingRequiredProperty
 from ..library import get_asset_data_from_library
@@ -54,6 +54,7 @@ def create_geometry_struct(dsf_filepath:Path, instance_data:dict=None) -> DsonGe
     _geometry(struct, library_data, instance_data)
     _default_uv_set(struct, library_data, instance_data)
     _region(struct, library_data, instance_data)
+    _graft(struct, library_data, instance_data)
 
     # Fire observer
     _geometry_struct_created(struct, library_data, instance_data)
@@ -66,6 +67,9 @@ def create_geometry_struct(dsf_filepath:Path, instance_data:dict=None) -> DsonGe
 # ============================================================================ #
 
 def _validate(dsf_filepath:str, library_data:dict, instance_data:dict) -> None:
+
+    # TODO: Check nested data structures
+    # TODO: How to handle instance_data validation?
 
     if library_data and not "id" in library_data:
         raise MissingRequiredProperty(dsf_filepath, "id")
@@ -81,8 +85,6 @@ def _validate(dsf_filepath:str, library_data:dict, instance_data:dict) -> None:
 
     if library_data and not "polygon_material_groups" in library_data:
         raise MissingRequiredProperty(dsf_filepath, "polygon_material_groups")
-
-    # TODO: How to handle instance_data validation?
 
     return
 
@@ -178,6 +180,30 @@ def _geometry(struct:DsonGeometry, library_data:dict, instance_data:dict) -> Non
         struct.facegroup_names = list(facegroup_names)
     else:
         struct.facegroup_names = []
+
+    return
+
+# ============================================================================ #
+
+def _graft(struct:DsonGeometry, library_data:dict, instance_data:dict) -> None:
+
+    graft_data:dict = None
+    if library_data and "graft" in library_data:
+        graft_data = library_data["graft"]
+    if instance_data and "graft" in instance_data:
+        graft_data = instance_data["graft"]
+
+    if not graft_data:
+        return
+
+    struct.graft:DsonGraft = DsonGraft()
+
+    # TODO: Validate nested data in _validate() function
+    struct.graft.expected_vertices = graft_data["vertex_count"]
+    struct.graft.expected_polygons = graft_data["poly_count"]
+
+    struct.graft.vertex_pairs = [ (e[0], e[1]) for e in graft_data["vertex_pairs"]["values"] ]
+    struct.graft.hidden_polygons = list(graft_data["hidden_polys"]["values"])
 
     return
 
