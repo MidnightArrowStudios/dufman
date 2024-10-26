@@ -63,36 +63,11 @@ def create_geometry_struct(dsf_filepath:Path, instance_data:dict=None) -> DsonGe
 
     # ======================================================================== #
 
-    # Name
-    if "name" in library_data:
-        struct.name = library_data["name"]
-    if instance_data and "name" in instance_data:
-        struct.name = instance_data["name"]
-
-    # Label
-    if "label" in library_data:
-        struct.label = library_data["label"]
-    if instance_data and "label" in instance_data:
-        struct.label = instance_data["label"]
-
-    # Source
-    if "source" in library_data:
-        struct.source = library_data["source"]
-    if instance_data and "source" in instance_data:
-        struct.source = instance_data["source"]
-
-    # Geometry type
-    if "type" in library_data:
-        struct.geometry_type = GeometryType(library_data["type"])
-    if instance_data and "type" in instance_data:
-        struct.geometry_type = GeometryType(instance_data["type"])
-
-    # Edge interpolation
-    if "edge_interpolation_mode" in library_data:
-        struct.edge_interpolation = EdgeInterpolation(library_data["edge_interpolation_mode"])
-    if instance_data and "edge_interpolation_mode" in instance_data:
-        struct.edge_interpolation = EdgeInterpolation(instance_data["edge_interpolation_mode"])
-
+    _name(struct, library_data, instance_data)
+    _label(struct, library_data, instance_data)
+    _source(struct, library_data, instance_data)
+    _type(struct, library_data, instance_data)
+    _edge_interpolation(struct, library_data, instance_data)
     _geometry(struct, library_data, instance_data)
     _default_uv_set(struct, library_data, instance_data)
     _region(struct, library_data, instance_data)
@@ -124,6 +99,19 @@ def _default_uv_set(struct:DsonGeometry, library_data:dict, instance_data:dict) 
 
     struct.default_uv_url = uv_url
     struct.default_uv_set = uv_struct
+
+    return
+
+# ============================================================================ #
+
+def _edge_interpolation(struct:DsonGeometry, library_data:dict, instance_data:dict) -> None:
+
+    prop:str = "edge_interpolation_mode"
+
+    if library_data and prop in library_data:
+        struct.edge_interpolation = EdgeInterpolation(library_data[prop])
+    if instance_data and prop in instance_data:
+        struct.edge_interpolation = EdgeInterpolation(instance_data[prop])
 
     return
 
@@ -187,6 +175,28 @@ def _geometry(struct:DsonGeometry, library_data:dict, instance_data:dict) -> Non
 
 # ============================================================================ #
 
+def _label(struct:DsonGeometry, library_data:dict, instance_data:dict) -> None:
+
+    if library_data and "label" in library_data:
+        struct.label = library_data["label"]
+    if instance_data and "label" in instance_data:
+        struct.label = instance_data["label"]
+
+    return
+
+# ============================================================================ #
+
+def _name(struct:DsonGeometry, library_data:dict, instance_data:dict) -> None:
+
+    if library_data and "name" in library_data:
+        struct.name = library_data["name"]
+    if instance_data and "name" in instance_data:
+        struct.name = instance_data["name"]
+
+    return
+
+# ============================================================================ #
+
 def _region(struct:DsonGeometry, library_data:dict, instance_data:dict) -> None:
 
     region_root:dict = None
@@ -224,6 +234,28 @@ def _region(struct:DsonGeometry, library_data:dict, instance_data:dict) -> None:
         return
 
     recursive(DsonRegion(), region_root)
+
+    return
+
+# ============================================================================ #
+
+def _source(struct:DsonGeometry, library_data:dict, instance_data:dict) -> None:
+
+    if library_data and "source" in library_data:
+        struct.source = library_data["source"]
+    if instance_data and "source" in instance_data:
+        struct.source = instance_data["source"]
+
+    return
+
+# ============================================================================ #
+
+def _type(struct:DsonGeometry, library_data:dict, instance_data:dict) -> None:
+
+    if library_data and "type" in library_data:
+        struct.geometry_type = GeometryType(library_data["type"])
+    if instance_data and "type" in instance_data:
+        struct.geometry_type = GeometryType(instance_data["type"])
 
     return
 
