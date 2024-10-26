@@ -9,6 +9,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from ..enums import RigidRotation, RigidScale
+
 # pylint: disable=C0301
 
 # ============================================================================ #
@@ -176,12 +178,40 @@ class DsonPolygon:
 
 @dataclass
 class DsonRegion:
+
     id              : str                   = None
     label           : str                   = None
     face_indices    : list[int]             = None
     parent          : DsonRegion            = None
     children        : list[DsonRegion]      = None
 
+
+# ============================================================================ #
+#                                                                              #
+# ============================================================================ #
+
+@dataclass
+class DsonRigidity:
+
+    # The key is a vertex indices. The value is a float representing a weight.
+    weights             : dict                      = None
+
+    rigidity_groups     : list[DsonRigidityGroup]   = None
+
+# ============================================================================ #
+
+@dataclass
+class DsonRigidityGroup:
+
+    id                      : str                   = None
+    rotation                : RigidRotation         = RigidRotation.NONE
+    scale_x                 : RigidScale            = None
+    scale_y                 : RigidScale            = None
+    scale_z                 : RigidScale            = None
+    reference_vertices      : list[int]             = None
+    participant_vertices    : list[int]             = None
+    reference               : str                   = None
+    transform_nodes         : list[str]             = None
 
 # ============================================================================ #
 #                                                                              #

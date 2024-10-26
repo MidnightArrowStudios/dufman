@@ -7,8 +7,15 @@
 
 from pathlib import Path
 
-from ..datatypes import DsonGraft, DsonPolygon, DsonRegion, DsonVector
-from ..enums import EdgeInterpolation, GeometryType
+from ..datatypes import (
+    DsonGraft,
+    DsonPolygon,
+    DsonRegion,
+    DsonRigidity,
+    DsonRigidityGroup,
+    DsonVector,
+)
+from ..enums import EdgeInterpolation, GeometryType, RigidRotation, RigidScale
 from ..exceptions import MissingRequiredProperty
 from ..library import get_asset_data_from_library
 from ..observers import _geometry_struct_created
@@ -55,6 +62,7 @@ def create_geometry_struct(dsf_filepath:Path, instance_data:dict=None) -> DsonGe
     _default_uv_set(struct, library_data, instance_data)
     _region(struct, library_data, instance_data)
     _graft(struct, library_data, instance_data)
+    _rigidity(struct, library_data, instance_data)
 
     # Fire observer
     _geometry_struct_created(struct, library_data, instance_data)
@@ -268,6 +276,55 @@ def _region(struct:DsonGeometry, library_data:dict, instance_data:dict) -> None:
         return
 
     recursive(DsonRegion(), region_root)
+
+    return
+
+# ============================================================================ #
+
+def _rigidity(struct:DsonGeometry, library_data:dict, instance_data:dict) -> None:
+
+    rigidity_data:dict = None
+    if library_data and "rigidity" in library_data:
+        rigidity_data = library_data["rigidity"]
+    if instance_data and "rigidity" in instance_data:
+        rigidity_data = instance_data["rigidity"]
+
+    if not rigidity_data:
+        return
+
+    struct.rigidity = DsonRigidity()
+
+    if "weights" in rigidity_data:
+        struct.rigidity.weights = { entry[0]: entry[1] for entry in rigidity_data["weights"] }
+
+    struct.rigidity.groups = []
+
+    for dictionary in rigidity_data["groups"]:
+        group:DsonRigidityGroup = DsonRigidityGroup()
+
+        group.id = dictionary["id"]
+
+        if "rotation_mode" in dictionary:
+            group.rotation = RigidRotation(dictionary["rotation_mode"])
+
+        # TODO: Check length of array?
+        group.scale_x = RigidScale(dictionary["scale_modes"][0])
+        group.scale_y = RigidScale(dictionary["scale_modes"][1])
+        group.scale_z = RigidScale(dictionary["scale_modes"][2])
+
+        if "reference_vertices" in dictionary:
+            group.reference_vertices = list(dictionary["reference_vertices"]["values"])
+
+        if "mask_vertices" in dictionary:
+            group.participant_vertices = list(dictionary["mask_vertices"]["values"])
+
+        if "reference" in dictionary:
+            group.reference = dictionary["reference"]
+
+        if "transform_nodes" in dictionary:
+            group.transform_nodes = list(dictionary["transform_nodes"])
+
+        struct.rigidity.groups.append(group)
 
     return
 

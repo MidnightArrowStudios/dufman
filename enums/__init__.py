@@ -28,6 +28,18 @@ class NodeType(Enum):
     CAMERA  = "camera"
     LIGHT   = "light"
 
+class RigidRotation(Enum):
+    NONE        = "none"
+    FULL        = "full"
+    PRIMARY     = "primary"
+    SECONDARY   = "secondary"
+
+class RigidScale(Enum):
+    NONE        = "none"
+    PRIMARY     = "primary"
+    SECONDARY   = "secondary"
+    TERTIARY    = "tertiary"
+
 class RotationOrder(Enum):
     """What order to apply Euler rotations in."""
     XYZ     = "XYZ"
