@@ -33,36 +33,19 @@ def create_geometry_struct(dsf_filepath:Path, instance_data:dict=None) -> DsonGe
     # Load the DSON dictionary from disk
     library_data:dict = get_asset_data_from_library(dsf_filepath, "geometry_library")
 
-    # ======================================================================== #
+    # Raise exceptions if required data is missing
+    _validate(dsf_filepath, library_data, instance_data)
 
-    if not "id" in library_data:
-        raise MissingRequiredProperty(str(dsf_filepath), "id")
-
-    if not "vertices" in library_data:
-        raise MissingRequiredProperty(str(dsf_filepath), "vertices")
-
-    if not "polylist" in library_data:
-        raise MissingRequiredProperty(str(dsf_filepath), "polylist")
-
-    if not "polygon_groups" in library_data:
-        raise MissingRequiredProperty(str(dsf_filepath), "polygon_groups")
-
-    if not "polygon_material_groups" in library_data:
-        raise MissingRequiredProperty(str(dsf_filepath), "polygon_material_groups")
-
-    # TODO: Check instance properties
-
-    # ======================================================================== #
-
+    # Instantiate the object to return
     struct:DsonGeometry = DsonGeometry()
 
+    # Header information
     asset_url:AssetURL = parse_url_string(str(dsf_filepath))
     struct.dsf_file = Path(asset_url.file_path)
     struct.library_id = library_data["id"]
     struct.instance_id = instance_data["id"] if instance_data else None
 
-    # ======================================================================== #
-
+    # Extract properties
     _name(struct, library_data, instance_data)
     _label(struct, library_data, instance_data)
     _source(struct, library_data, instance_data)
@@ -72,11 +55,36 @@ def create_geometry_struct(dsf_filepath:Path, instance_data:dict=None) -> DsonGe
     _default_uv_set(struct, library_data, instance_data)
     _region(struct, library_data, instance_data)
 
-    # ======================================================================== #
-
+    # Fire observer
     _geometry_struct_created(struct, library_data, instance_data)
 
     return struct
+
+
+# ============================================================================ #
+#                                                                              #
+# ============================================================================ #
+
+def _validate(dsf_filepath:str, library_data:dict, instance_data:dict) -> None:
+
+    if library_data and not "id" in library_data:
+        raise MissingRequiredProperty(dsf_filepath, "id")
+
+    if library_data and not "vertices" in library_data:
+        raise MissingRequiredProperty(dsf_filepath, "vertices")
+
+    if library_data and not "polylist" in library_data:
+        raise MissingRequiredProperty(dsf_filepath, "polylist")
+
+    if library_data and not "polygon_groups" in library_data:
+        raise MissingRequiredProperty(dsf_filepath, "polygon_groups")
+
+    if library_data and not "polygon_material_groups" in library_data:
+        raise MissingRequiredProperty(dsf_filepath, "polygon_material_groups")
+
+    # TODO: How to handle instance_data validation?
+
+    return
 
 
 # ============================================================================ #
