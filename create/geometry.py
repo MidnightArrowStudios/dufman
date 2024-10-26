@@ -7,7 +7,7 @@
 
 from pathlib import Path
 
-from ..datatypes import DsonPolygon, DsonVector
+from ..datatypes import DsonPolygon, DsonRegion, DsonVector
 from ..enums import EdgeInterpolation, GeometryType
 from ..exceptions import MissingRequiredProperty
 from ..library import get_asset_data_from_library
@@ -18,6 +18,7 @@ from ..url import AssetURL, parse_url_string
 from ..utilities import check_path
 
 from .uv_set import create_uv_set_struct
+
 
 # ============================================================================ #
 #                                                                              #
@@ -141,8 +142,56 @@ def create_geometry_struct(dsf_filepath:Path, instance_data:dict=None) -> DsonGe
     struct.default_uv_url = uv_url
     struct.default_uv_set = uv_struct
 
+    # Regions
+    _create_region(struct, library_data, instance_data)
+
     # ======================================================================== #
 
     _geometry_struct_created(struct, library_data, instance_data)
 
     return struct
+
+
+# ============================================================================ #
+#                                                                              #
+# ============================================================================ #
+
+def _create_region(struct:DsonGeometry, library_data:dict, instance_data:dict) -> None:
+
+    region_root:dict = None
+    if library_data and "root_region" in library_data:
+        region_root = library_data["root_region"]
+    if instance_data and "root_region" in instance_data:
+        region_root = instance_data["root_region"]
+
+    if not region_root:
+        return
+
+    struct.regions = []
+
+    def recursive(parent:DsonRegion, parent_dict:dict) -> None:
+
+        # TODO: Error handling for mandatory property
+        parent.id = parent_dict["id"]
+
+        struct.regions.append(parent)
+
+        if "label" in parent_dict:
+            parent.label = parent_dict["label"]
+
+        if "map" in parent_dict:
+            parent.face_indices = list(parent_dict["map"]["values"])
+
+        parent.children = []
+
+        for child_dict in parent_dict.get("children", []):
+            child:DsonRegion = DsonRegion()
+            child.parent = parent
+            parent.children.append(child)
+            recursive(child, child_dict)
+
+        return
+
+    recursive(DsonRegion(), region_root)
+
+    return

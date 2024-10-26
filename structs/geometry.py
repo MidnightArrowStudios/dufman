@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from ..datatypes import DsonVector, DsonPolygon
+from ..datatypes import DsonVector, DsonPolygon, DsonRegion
 from ..enums import EdgeInterpolation, GeometryType
 
 from .uv_set import DsonUVSet
@@ -45,5 +45,7 @@ class DsonGeometry:
 
     default_uv_url          : str               = None
     default_uv_set          : DsonUVSet         = None
+
+    regions                 : list[DsonRegion]  = None
 
 # ============================================================================ #

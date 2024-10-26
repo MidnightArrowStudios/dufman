@@ -161,6 +161,19 @@ class DsonPolygon:
 # ============================================================================ #
 
 @dataclass
+class DsonRegion:
+    id              : str                   = None
+    label           : str                   = None
+    face_indices    : list[int]             = None
+    parent          : DsonRegion            = None
+    children        : list[DsonRegion]      = None
+
+
+# ============================================================================ #
+#                                                                              #
+# ============================================================================ #
+
+@dataclass
 class DsonSkinBinding:
     """An intermediate representation of DSON weightmapping data."""
 
