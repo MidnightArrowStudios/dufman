@@ -15,6 +15,22 @@ class EdgeInterpolation(Enum):
     EDGES_AND_CORNERS = "edges_and_corners"
     EDGES_ONLY = "edges_only"
 
+class FormulaOperator(Enum):
+    PUSH            = "push"
+    ADD             = "add"
+    SUB             = "sub"
+    MULT            = "mult"
+    DIV             = "div"
+    INV             = "inv"
+    NEG             = "neg"
+    SPL_LINEAR      = "spline_linear"
+    SPL_CONSTANT    = "spline_constant"
+    SPL_TCB         = "spline_tcb"
+
+class FormulaStage(Enum):
+    MULTIPLY = "multiply"
+    SUM = "sum"
+
 class GeometryType(Enum):
     """Whether a mesh should have a SubSurf modifier applied."""
     POLYGON_MESH = "polygon_mesh"

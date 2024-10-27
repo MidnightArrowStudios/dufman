@@ -9,7 +9,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from ..enums import RigidRotation, RigidScale
+from ..enums import (
+    FormulaOperator,
+    FormulaStage,
+    RigidRotation,
+    RigidScale,
+)
 
 # pylint: disable=C0301
 
@@ -85,6 +90,27 @@ class DsonChannelVector:
         vector.z.current = cls.parse_channels(instance_data, vector_name, 'Z', "current_value", vector.z.current)
 
         return vector
+
+# ============================================================================ #
+#                                                                              #
+# ============================================================================ #
+
+@dataclass
+class DsonFormula:
+
+    output          : str                   = None
+    stage           : FormulaStage          = FormulaStage.SUM
+    operations      : list[DsonOperation]   = None
+
+# ============================================================================ #
+
+@dataclass
+class DsonOperation:
+
+    operator        : FormulaOperator       = None
+    url             : str                   = None
+    value           : Any                   = None
+
 
 # ============================================================================ #
 #                                                                              #

@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 # pylint: disable=E0402
-from ..datatypes import DsonChannelVector
+from ..datatypes import DsonChannelVector, DsonFormula
 from ..enums import NodeType, RotationOrder
 
 # ============================================================================ #
@@ -45,5 +45,7 @@ class DsonNode:
 
     scale                   : DsonChannelVector     = None
     general_scale           : float                 = 1.0
+
+    formulas                : list[DsonFormula]     = None
 
 # ============================================================================ #

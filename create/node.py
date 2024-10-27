@@ -7,14 +7,14 @@
 
 from pathlib import Path
 
-from ..datatypes import DsonChannelVector
-from ..enums import NodeType, RotationOrder
+from ..datatypes import DsonChannelVector, DsonFormula, DsonOperation
+from ..enums import FormulaStage, FormulaOperator, NodeType, RotationOrder
 from ..exceptions import MissingRequiredProperty
 from ..file import extract_single_property
 from ..library import get_asset_data_from_library
 from ..observers import _node_struct_created
 from ..structs.node import DsonNode
-from ..url import AssetURL, create_url_string, parse_url_string
+from ..url import AssetURL, parse_url_string
 from ..utilities import check_path
 
 # ============================================================================ #
@@ -56,6 +56,7 @@ def create_node_struct(dsf_filepath:Path, instance_data:dict=None) -> DsonNode:
     _rotation(struct, library_data, instance_data)
     _scale(struct, library_data, instance_data)
     _general_scale(struct, library_data, instance_data)
+    _formulas(struct, library_data, instance_data)
 
     # Fire observers
     _node_struct_created(struct, library_data, instance_data)
@@ -115,8 +116,49 @@ def _end_point(struct:DsonNode, library_data:dict, instance_data:dict) -> None:
 
 # ============================================================================ #
 
+def _formulas(struct:DsonNode, library_data:dict, instance_data:dict) -> None:
+
+    formula_list:dict = None
+    if library_data and "formulas" in library_data:
+        formula_list = library_data["formulas"]
+    if instance_data and "formulas" in instance_data:
+        formula_list = instance_data["formulas"]
+
+    if not formula_list:
+        return
+
+    struct.formulas = []
+
+    for dictionary in formula_list:
+        formula:DsonFormula = DsonFormula()
+        struct.formulas.append(formula)
+
+        formula.output = dictionary["output"]
+
+        if "stage" in dictionary:
+            formula.stage = FormulaStage(dictionary["stage"])
+
+        formula.operations = []
+
+        for op_dict in dictionary["operations"]:
+            operation:DsonOperation = DsonOperation()
+            formula.operations.append(operation)
+
+            operation.operator = FormulaOperator(op_dict["op"])
+
+            if "url" in op_dict:
+                operation.url = op_dict["url"]
+
+            if "val" in op_dict:
+                operation.value = op_dict["val"]
+
+    return
+
+# ============================================================================ #
+
 def _general_scale(struct:DsonNode, library_data:dict, instance_data:dict) -> None:
 
+    struct.general_scale = 1.0
     if library_data and "general_scale" in library_data:
         struct.general_scale = library_data["general_scale"]
     if instance_data and "general_scale" in instance_data:
@@ -128,27 +170,30 @@ def _general_scale(struct:DsonNode, library_data:dict, instance_data:dict) -> No
 
 def _inherits_scale(struct:DsonNode, library_data:dict, instance_data:dict) -> None:
 
-    # FIXME: Implement this
+    # TODO: Do we ever need to worry about instance parents here?
+
     # All nodes inherit scale by default, except bones with bone parents.
-    # default_inherits_scale:bool = True
-    # if struct.node_type == NodeType.BONE and struct.parent:
-    #     parent_url:AssetURL = parse_url_string(struct.parent)
-    #     parent_path:list[str] = [ "node_library", parent_url.asset_id, "type" ]
-    #     parent_type:str = None
+    default_inherits_scale:bool = True
 
-    #     if parent_url.file_path:
-    #         parent_type = extract_single_property(parent_url.file_path, parent_path)
-    #     else:
-    #         parent_type = extract_single_property(str(dsf_filepath), parent_path)
+    if struct.node_type == NodeType.BONE and struct.parent:
+        parent_url:AssetURL = parse_url_string(struct.parent)
+        prop_path:list[str] = [ "node_library", parent_url.asset_id, "type" ]
 
-    #     if parent_type and parent_type == "bone":
-    #         default_inherits_scale = False
+        parent_type:str = None
 
-    # struct.inherits_scale = default_inherits_scale
-    # if "inherits_scale" in library_data:
-    #     struct.inherits_scale = library_data["inherits_scale"]
-    # if instance_data and "inherits_scale" in instance_data:
-    #     struct.inherits_scale = instance_data["inherits_scale"]
+        if parent_url.file_path:
+            parent_type = extract_single_property(parent_url.file_path, prop_path)
+        else:
+            parent_type = extract_single_property(str(struct.dsf_file), prop_path)
+
+        if parent_type and parent_type == "bone":
+            default_inherits_scale = False
+
+    struct.inherits_scale = default_inherits_scale
+    if library_data and "inherits_scale" in library_data:
+        struct.inherits_scale = library_data["inherits_scale"]
+    if instance_data and "inherits_scale" in instance_data:
+        struct.inherits_scale = instance_data["inherits_scale"]
 
     return
 
@@ -199,7 +244,8 @@ def _orientation(struct:DsonNode, library_data:dict, instance_data:dict) -> None
 
 def _parent(struct:DsonNode, library_data:dict, instance_data:dict) -> None:
 
-    # TODO: Does instance parent overwrite library parent?
+    # TODO: Does instance parent overwrite library parent, or should that be
+    #   kept sepatate?
     if library_data and "parent" in library_data:
         struct.parent = library_data["parent"]
 
