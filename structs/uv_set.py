@@ -19,18 +19,18 @@ from pathlib import Path
 class DsonUVSet:
     """Struct-like object that encapsulates UV Set data from a DSON file."""
 
-    dsf_file                    : Path              = None
-    library_id                  : str               = None
-    instance_id                 : str               = None
+    dsf_file                    : Path                      = None
+    library_id                  : str                       = None
+    instance_id                 : str                       = None
 
-    name                        : str               = ""
-    label                       : str               = ""
-    source                      : str               = ""
+    name                        : str                       = ""
+    label                       : str                       = ""
+    source                      : str                       = ""
 
     # TODO: Custom datatypes?
-    expected_vertices           : int               = None
-    uv_coordinates              : list[list[int]]   = None
-    hotswap                     : dict              = None
+    expected_vertices           : int                       = None
+    uv_coordinates              : list[tuple[int, int]]     = None
+    hotswap                     : dict                      = None
 
 
     def hotswap_polygon(self:DsonUVSet, index:int, face_indices:list[int]) -> list[int]:

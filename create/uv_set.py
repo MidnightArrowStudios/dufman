@@ -27,7 +27,34 @@ def create_uv_set_struct(dsf_filepath:Path, instance_data:dict=None) -> DsonUVSe
     # Load the DSON data from disk
     library_data:dict = get_asset_data_from_library(dsf_filepath, "uv_set_library")
 
-    # ======================================================================== #
+    # Raise exceptions if required data is missing
+    _validate(dsf_filepath, library_data, instance_data)
+
+    # Instantiate the geometry to return
+    struct:DsonUVSet = DsonUVSet()
+
+    # Header information
+    asset_url:AssetURL = parse_url_string(str(dsf_filepath))
+    struct.dsf_file = asset_url.file_path
+    struct.library_id = library_data["id"]
+    struct.instance_id = instance_data["id"] if instance_data else None
+
+    # Extract properties
+    _name(struct, library_data, instance_data)
+    _label(struct, library_data, instance_data)
+    _source(struct, library_data, instance_data)
+    _uv_set(struct, library_data, instance_data)
+
+    # Fire observer
+    _uv_set_struct_created(struct, library_data, instance_data)
+
+    return struct
+
+# ============================================================================ #
+#                                                                              #
+# ============================================================================ #
+
+def _validate(dsf_filepath:str, library_data:dict, instance_data:dict) -> None:
 
     if not "id" in library_data:
         raise MissingRequiredProperty(str(dsf_filepath), "id")
@@ -38,52 +65,67 @@ def create_uv_set_struct(dsf_filepath:Path, instance_data:dict=None) -> DsonUVSe
     if not "uvs" in library_data:
         raise MissingRequiredProperty(str(dsf_filepath), "uvs")
 
-    # ======================================================================== #
+    return
 
-    struct:DsonUVSet = DsonUVSet()
 
-    asset_url:AssetURL = parse_url_string(str(dsf_filepath))
-    struct.dsf_file = asset_url.file_path
-    struct.library_id = library_data["id"]
-    struct.instance_id = instance_data["id"] if instance_data else None
+# ============================================================================ #
+#                                                                              #
+# ============================================================================ #
 
-    # ======================================================================== #
+def _label(struct:DsonUVSet, library_data:dict, instance_data:dict) -> None:
 
-    # Name
-    if "name" in library_data:
-        struct.name = library_data["name"]
-    if instance_data and "name" in instance_data:
-        struct.name = instance_data["name"]
-
-    # Label
-    if "label" in library_data:
+    if library_data and "label" in library_data:
         struct.label = library_data["label"]
     if instance_data and "label" in instance_data:
         struct.label = instance_data["label"]
 
-    # Source
-    if "source" in library_data:
+    return
+
+# ============================================================================ #
+
+def _name(struct:DsonUVSet, library_data:dict, instance_data:dict) -> None:
+
+    if library_data and "name" in library_data:
+        struct.name = library_data["name"]
+    if instance_data and "name" in instance_data:
+        struct.name = instance_data["name"]
+
+    return
+
+# ============================================================================ #
+
+def _source(struct:DsonUVSet, library_data:dict, instance_data:dict) -> None:
+
+    if library_data and "source" in library_data:
         struct.source = library_data["source"]
     if instance_data and "source" in instance_data:
         struct.source = instance_data["source"]
 
+    return
+
+# ============================================================================ #
+
+def _uv_set(struct:DsonUVSet, library_data:dict, instance_data:dict) -> None:
+
     # Expected vertices
-    vertex_count:int = library_data["vertex_count"]
+    if library_data and "vertex_count" in library_data:
+        struct.expected_vertices = library_data["vertex_count"]
     if instance_data and "vertex_count" in instance_data:
-        vertex_count = instance_data["vertex_count"]
+        struct.expected_vertices = instance_data["vertex_count"]
 
-    struct.expected_vertices = vertex_count
-
-    # UV Coordinates
-    uv_coordinates:list = library_data["uvs"]["values"]
+    # UV coordinates
+    co_list:list[tuple[int, int]] = None
+    if library_data and "uvs" in library_data:
+        co_list = library_data["uvs"]["values"]
     if instance_data and "uvs" in instance_data:
-        uv_coordinates = instance_data["uvs"]["values"]
+        co_list = instance_data["uvs"]["values"]
 
-    struct.uv_coordinates = list(uv_coordinates)
+    if co_list:
+        struct.uv_coordinates = [ (co[0], co[1]) for co in co_list ]
 
     # Hotswap data
     hotswap_list:list = None
-    if "polygon_vertex_indices" in library_data:
+    if library_data and "polygon_vertex_indices" in library_data:
         hotswap_list = library_data["polygon_vertex_indices"]
     if instance_data and "polygon_vertex_indices" in instance_data:
         hotswap_list = instance_data["polygon_vertex_indices"]
@@ -98,8 +140,6 @@ def create_uv_set_struct(dsf_filepath:Path, instance_data:dict=None) -> DsonUVSe
             struct.hotswap[polygon_index] = []
         struct.hotswap[polygon_index].append(list(hotswap_entry))
 
-    # ======================================================================== #
+    return
 
-    _uv_set_struct_created(struct, library_data, instance_data)
-
-    return struct
+# ============================================================================ #
