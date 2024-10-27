@@ -56,14 +56,14 @@ def create_uv_set_struct(dsf_filepath:Path, instance_data:dict=None) -> DsonUVSe
 
 def _validate(dsf_filepath:str, library_data:dict, instance_data:dict) -> None:
 
-    if not "id" in library_data:
-        raise MissingRequiredProperty(str(dsf_filepath), "id")
+    if library_data and not "id" in library_data:
+        raise MissingRequiredProperty(dsf_filepath, "id")
 
-    if not "vertex_count" in library_data:
-        raise MissingRequiredProperty(str(dsf_filepath), "vertex_count")
+    if library_data and not "vertex_count" in library_data:
+        raise MissingRequiredProperty(dsf_filepath, "vertex_count")
 
-    if not "uvs" in library_data:
-        raise MissingRequiredProperty(str(dsf_filepath), "uvs")
+    if library_data and not "uvs" in library_data:
+        raise MissingRequiredProperty(dsf_filepath, "uvs")
 
     return
 

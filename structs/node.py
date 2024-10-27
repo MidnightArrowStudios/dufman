@@ -32,8 +32,7 @@ class DsonNode:
     node_type               : NodeType              = NodeType.NODE
     content_type            : str                   = None
 
-    library_parent          : str                   = None
-    instance_parent         : str                   = None
+    parent                  : str                   = None
     inherits_scale          : bool                  = True
 
     center_point            : DsonChannelVector     = None
