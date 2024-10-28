@@ -135,7 +135,16 @@ def _formulas(struct:DsonNode, library_data:dict, instance_data:dict) -> None:
         formula.output = dictionary["output"]
 
         if "stage" in dictionary:
-            formula.stage = FormulaStage(dictionary["stage"])
+
+            stage_string:str = dictionary["stage"]
+
+            # DSON specs state the stage should be spelled "multiply", however
+            #   official Daz files spell it "mult", so we need to check.
+            # cf. "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf#lThigh"
+            if stage_string == "mult":
+                stage_string = "multiply"
+
+            formula.stage = FormulaStage(stage_string)
 
         formula.operations = []
 
