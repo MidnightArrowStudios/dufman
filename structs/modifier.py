@@ -22,7 +22,6 @@ class DsonModifier:
 
     dsf_file                    : Path              = None
     library_id                  : str               = None
-    instance_id                 : str               = None
 
     content_type                : str               = None
 

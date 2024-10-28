@@ -40,7 +40,6 @@ def create_modifier_struct(dsf_filepath:Path, instance_data:dict=None) -> DsonMo
     asset_url:AssetURL = parse_url_string(str(dsf_filepath))
     struct.dsf_file = asset_url.file_path
     struct.library_id = library_data["id"]
-    struct.instance_data = instance_data["id"] if instance_data else None
 
     # ======================================================================== #
 

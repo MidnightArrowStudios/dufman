@@ -26,7 +26,6 @@ class DsonGeometry:
 
     dsf_file                : Path              = None
     library_id              : str               = None
-    instance_id             : str               = None
 
     name                    : str               = None
     label                   : str               = None

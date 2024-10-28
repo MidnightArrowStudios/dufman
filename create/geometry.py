@@ -50,7 +50,6 @@ def create_geometry_struct(dsf_filepath:Path, instance_data:dict=None) -> DsonGe
     asset_url:AssetURL = parse_url_string(str(dsf_filepath))
     struct.dsf_file = Path(asset_url.file_path)
     struct.library_id = library_data["id"]
-    struct.instance_id = instance_data["id"] if instance_data else None
 
     # Extract properties
     _name(struct, library_data, instance_data)

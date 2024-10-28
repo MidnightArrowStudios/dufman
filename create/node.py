@@ -38,7 +38,6 @@ def create_node_struct(dsf_filepath:Path, instance_data:dict=None) -> DsonNode:
     asset_url:AssetURL = parse_url_string(str(dsf_filepath))
     struct.dsf_file = asset_url.file_path
     struct.library_id = library_data["id"]
-    struct.instance_id = instance_data["id"] if instance_data else None
 
     # Extract properties
     _name(struct, library_data, instance_data)

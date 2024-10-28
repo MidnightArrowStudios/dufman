@@ -38,3 +38,7 @@ class MultipleDsfFiles(Exception):
 
 class NotDsfFile(Exception):
     """Raised when a URL does not have a \".dsf\" file extension."""
+
+
+class SceneMissing(Exception):
+    """Raised when a DSON file does not have a \"scene\" property."""

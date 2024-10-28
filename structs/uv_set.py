@@ -21,7 +21,6 @@ class DsonUVSet:
 
     dsf_file                    : Path                      = None
     library_id                  : str                       = None
-    instance_id                 : str                       = None
 
     name                        : str                       = ""
     label                       : str                       = ""
