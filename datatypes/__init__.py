@@ -7,7 +7,7 @@
 
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Iterator
 
 from ..enums import (
     FormulaOperator,
@@ -150,6 +150,13 @@ class DsonPolygon:
     vertex_2:int = None
     vertex_3:int = None
     vertex_4:int = None
+
+    def __iter__(self:DsonPolygon) -> Iterator:
+        vertex_indices:list[int] = self.get_vertex_indices()
+        if vertex_indices:
+            return iter(vertex_indices)
+        else:
+            return iter([])
 
     @classmethod
     def create(cls:type, indices:list[int]) -> DsonPolygon:
