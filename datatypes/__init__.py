@@ -272,6 +272,9 @@ class DsonVector:
     y:float = 0.0
     z:float = 0.0
 
+    def __iter__(self:DsonVector) -> Iterator:
+        return iter([ self.x, self.y, self.z ])
+
     @classmethod
     def create(cls:type, *arguments) -> DsonVector:
         """Factory method to validate input data."""
