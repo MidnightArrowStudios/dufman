@@ -39,50 +39,25 @@ class DsonScene:
             raise SceneMissing
 
         self.duf_file:dict = opened_file
-        self.node_instances:OrderedDict = OrderedDict()
-        self.uv_set_instances:OrderedDict = OrderedDict()
-        self.modifier_instances:OrderedDict = OrderedDict()
-
-        scene:dict = opened_file["scene"]
-
-        # TODO: Property validation/error handling
-
-        # duf_file["scene"]["nodes"]
-        for node_instance_data in scene.get("nodes", []):
-
-            node_instance_id:str = node_instance_data["id"]
-            node_library_url:Path = Path(node_instance_data["url"])
-
-            node_struct:DsonNode = create_node_struct(node_library_url, node_instance_data)
-            self.node_instances[node_instance_id] = node_struct
-
-        # duf_file["scene"]["uvs"]
-        for uv_set_instance_data in scene.get("uvs", []):
-
-            uv_set_instance_id:str = uv_set_instance_data["id"]
-            uv_set_library_url:Path = Path(uv_set_instance_data["url"])
-
-            uv_set_struct:DsonUVSet = create_uv_set_struct(uv_set_library_url, uv_set_instance_data)
-            self.uv_set_instances[uv_set_instance_id] = uv_set_struct
-
-        # duf_file["scene"]["uvs"]
-        for modifier_instance_data in scene.get("modifiers", []):
-
-            modifier_instance_id:str = modifier_instance_data["id"]
-            modifier_library_url:Path = Path(modifier_instance_data["url"])
-
-            modifier_struct:DsonModifier = create_modifier_struct(modifier_library_url, modifier_instance_data)
-            self.modifier_instances[modifier_instance_id] = modifier_struct
 
         return
 
     # ======================================================================== #
 
     def get_node_instance_ids(self:DsonScene) -> list[str]:
-        return list(self.node_instances.keys())
+        if "nodes" in self.duf_file["scene"]:
+            return [ node["id"] for node in self.duf_file["scene"]["nodes"] ]
+        else:
+            return []
 
     def get_uv_set_instance_ids(self:DsonScene) -> list[str]:
-        return list(self.uv_set_instances.keys())
+        if "uvs" in self.duf_file["scene"]:
+            return [ uv_set["id"] for uv_set in self.duf_file["scene"]["uvs"] ]
+        else:
+            return []
 
     def get_modifier_instance_ids(self:DsonScene) -> list[str]:
-        return list(self.modifier_instances.keys())
+        if "modifiers" in self.duf_file["scene"]:
+            return [ modifier["id"] for modifier in self.duf_file["scene"]["modifiers"] ]
+        else:
+            return []
