@@ -128,12 +128,16 @@ def _formulas(struct:DsonNode, library_data:dict, instance_data:dict) -> None:
 
     struct.formulas = []
 
+    # Loop through formula array.
     for dictionary in formula_list:
         formula:DsonFormula = DsonFormula()
         struct.formulas.append(formula)
 
+        # "Output" is the URL to send the property to.
         formula.output = dictionary["output"]
 
+        # "Stage" is whether to add or multiply the value. "sum" is done first,
+        #   followed by "multiply", according to the DSON specs.
         if "stage" in dictionary:
 
             stage_string:str = dictionary["stage"]
@@ -146,17 +150,23 @@ def _formulas(struct:DsonNode, library_data:dict, instance_data:dict) -> None:
 
             formula.stage = FormulaStage(stage_string)
 
+        # "Operations" is a list of assembly-like instructions indicating how
+        #   the values should be computed.
         formula.operations = []
 
         for op_dict in dictionary["operations"]:
             operation:DsonOperation = DsonOperation()
             formula.operations.append(operation)
 
+            # Operation type is stored as an Enum. This defines how values are
+            #   calculated.
             operation.operator = FormulaOperator(op_dict["op"])
 
+            # This is the URL to retrieve a value from.
             if "url" in op_dict:
                 operation.url = op_dict["url"]
 
+            # This is a hardcoded value.
             if "val" in op_dict:
                 operation.value = op_dict["val"]
 
