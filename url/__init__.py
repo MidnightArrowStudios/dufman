@@ -91,13 +91,16 @@ def create_url_string(node_path:str="", dsf_path:str="", asset_id:str="",
 
     check_for_errors(property_path)
 
-    scheme:str = quote(node_path)
-    path:str = quote(dsf_path)
+    # Characters which won't be encoded by quote().
+    safe_characters:str = '/\\'
+
+    scheme:str = quote(node_path, safe=safe_characters)
+    path:str = quote(dsf_path, safe=safe_characters)
     fragment:str = None
 
     if property_path:
-        fragment = f"{ quote(asset_id) }?{ quote(property_path) }"
+        fragment = f"{ quote(asset_id, safe=safe_characters) }?{ quote(property_path, safe=safe_characters) }"
     else:
-        fragment = quote(asset_id)
+        fragment = quote(asset_id, safe=safe_characters)
 
     return urlunparse((scheme, "", path, "", "", fragment))
