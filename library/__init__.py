@@ -90,7 +90,7 @@ def get_all_asset_ids_from_library(asset_path:Path, library_name:str) -> list[st
 #                                                                              #
 # ============================================================================ #
 
-def get_bone_hierarchy_ids_from_library(asset_path:Path, figure_name:str) -> list[str]:
+def get_hierarchy_from_library(asset_path:Path) -> list[str]:
     """Returns a list of IDs for every bone which is part of a figure's armature."""
 
     # Ensure type safety
@@ -115,7 +115,7 @@ def get_bone_hierarchy_ids_from_library(asset_path:Path, figure_name:str) -> lis
     result:list[str] = []
 
     # Get all direct children of figure node
-    all_children:list[dict] = [ *_get_child_node_data(nodes, figure_name) ]
+    all_children:list[dict] = [ *_get_child_node_data(nodes, asset_url.asset_id) ]
 
     # Test each child to see if it's a bone. If not, discard it. If so, add
     #   its own children to the list of nodes to be parsed.
