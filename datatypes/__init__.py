@@ -45,6 +45,9 @@ class DsonChannelVector:
     y:DsonChannelFloat = None
     z:DsonChannelFloat = None
 
+    def __iter__(self:DsonChannelVector) -> Iterator:
+        return iter([ self.x.current, self.y.current, self.z.current ])
+
     @classmethod
     def parse_channels(cls:type, dson_data:dict, vector_name:str, axis:str,
             property_name:str, default:float=0.0) -> float:
