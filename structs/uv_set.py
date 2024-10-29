@@ -35,9 +35,6 @@ class DsonUVSet:
     def hotswap_polygon(self:DsonUVSet, index:int, face_indices:list[int]) -> list[int]:
         """Swaps a face's vertex indices so they can index into a UVSet's UV array."""
 
-        if not index in self.hotswap:
-            return None
-
         # ==================================================================== #
         # The DSON format's UV handling is weird. For reference, we'll use
         #   Stonemason's Urban Sprawl 3 asset "us03Bldg09" for demonstation.
@@ -47,6 +44,9 @@ class DsonUVSet:
         #   of their indices. For us03Bldg09, face #587 is [ 922, 934, 924 ].
         copied_indices:list[int] = list(face_indices)
 
+        # Nothing to hotswap, return original vertices.
+        if not index in self.hotswap:
+            return copied_indices
 
         # Daz Studio allows a face to use the same index multiple times,
         #   but Blender does not. These duplicates are culled when geometry
