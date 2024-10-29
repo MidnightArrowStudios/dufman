@@ -6,6 +6,7 @@
 """Defines custom data types which represent DSON dictionaries."""
 
 from __future__ import annotations
+from collections import OrderedDict
 from dataclasses import dataclass
 from typing import Any, Iterator
 
@@ -257,10 +258,12 @@ class DsonRigidityGroup:
 class DsonSkinBinding:
     """An intermediate representation of DSON weightmapping data."""
 
-    target_node                 : str       = None
-    target_geometry             : str       = None
-    expected_vertices           : int       = 0
-    bone_weights                : dict      = None
+    target_node                 : str           = None
+    target_geometry             : str           = None
+    expected_vertices           : int           = 0
+    weighted_joints             : OrderedDict   = None
+
+    # TODO: Implement named_string_map later
 
 
 # ============================================================================ #
@@ -302,3 +305,16 @@ class DsonVector:
                 raise ValueError(message) from ve
 
         return cls(x=values[0], y=values[1], z=values[2])
+
+# ============================================================================ #
+#                                                                              #
+# ============================================================================ #
+
+@dataclass
+class DsonWeightedJoint:
+
+    id              : str           = None
+    node_target     : str           = None
+    node_weights    : OrderedDict   = None
+
+    # TODO: Implement other kinds of weighting

@@ -7,7 +7,7 @@
 
 from pathlib import Path
 
-from ..datatypes import DsonMorph, DsonSkinBinding, DsonVector
+from ..datatypes import DsonMorph, DsonSkinBinding, DsonVector, DsonWeightedJoint
 from ..exceptions import MissingRequiredProperty
 from ..library import get_asset_data_from_library
 from ..observers import _modifier_struct_created
@@ -54,28 +54,7 @@ def create_modifier_struct(dsf_filepath:Path, instance_data:dict=None) -> DsonMo
     if instance_data and "parent" in instance_data:
         struct.instance_parent = instance_data["parent"]
 
-    # Skin binding
-    skin_dictionary:dict = None
-    if "skin" in library_data:
-        skin_dictionary = library_data["skin"]
-    if instance_data and "skin" in instance_data:
-        skin_dictionary = instance_data["skin"]
-
-    if skin_dictionary:
-        struct.skin_binding = DsonSkinBinding()
-        struct.skin_binding.target_node = skin_dictionary["node"]
-        struct.skin_binding.target_geometry = skin_dictionary["geometry"]
-        struct.skin_binding.expected_vertices = skin_dictionary["vertex_count"]
-        struct.skin_binding.bone_weights = {}
-
-        for joint in skin_dictionary.get("joints", []):
-            bone_url:str = joint["node"]
-            bone_weights:list = []
-
-            if "node_weights" in joint:
-                bone_weights = [ (weight[0], weight[1]) for weight in joint["node_weights"] ]
-
-            struct.skin_binding.bone_weights[bone_url] = bone_weights
+    _skin_binding(struct, library_data, instance_data)
 
     # Morph data
     morph_dictionary:dict = None
@@ -102,3 +81,44 @@ def create_modifier_struct(dsf_filepath:Path, instance_data:dict=None) -> DsonMo
     _modifier_struct_created(struct, library_data, instance_data)
 
     return struct
+
+
+# ============================================================================ #
+#                                                                              #
+# ============================================================================ #
+
+def _skin_binding(struct:DsonModifier, library_data:dict, instance_data:dict) -> None:
+
+    skin_dictionary:dict = None
+    if "skin" in library_data:
+        skin_dictionary = library_data["skin"]
+    if instance_data and "skin" in instance_data:
+        skin_dictionary = instance_data["skin"]
+
+    if not skin_dictionary:
+        return
+
+    struct.skin_binding = DsonSkinBinding()
+
+    # TODO: Should URLs have their pound sign stripped off?
+    struct.skin_binding.target_node = skin_dictionary["node"]
+    struct.skin_binding.target_geometry = skin_dictionary["geometry"]
+    struct.skin_binding.expected_vertices = skin_dictionary["vertex_count"]
+    struct.skin_binding.weighted_joints = {}
+
+    for dictionary in skin_dictionary.get("joints", []):
+        joint:DsonWeightedJoint = DsonWeightedJoint()
+
+        joint.id = dictionary["id"]
+        joint.node_target = dictionary["node"]
+
+        # In DSON, weights are stored as a "float_indexed_array", meaning the
+        #   first value is a vertex index and the second is the weight. We flip
+        #   this so they are stored in a dictionary by their vertex index.
+        if "node_weights" in dictionary:
+            joint.node_weights = { v[0]: v[1] for v in dictionary["node_weights"]["values"] }
+
+        # Store weight by ID, rather than 
+        struct.skin_binding.weighted_joints[joint.id] = joint
+
+    return
