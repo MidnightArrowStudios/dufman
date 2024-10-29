@@ -10,7 +10,7 @@ from pathlib import Path
 from ..enums import NodeType
 from ..file import handle_dsf_file
 from ..exceptions import IncorrectArgument, LibraryNotFound
-from ..url import AssetURL, parse_url_string
+from ..url import AssetURL, create_url_string, parse_url_string
 from ..utilities import check_path
 
 # ============================================================================ #
@@ -62,7 +62,7 @@ def get_asset_data_from_library(asset_path:Path, library_name:str, duf_file:dict
 #                                                                              #
 # ============================================================================ #
 
-def get_all_asset_ids_from_library(asset_path:Path, library_name:str) -> list[str]:
+def get_all_asset_urls_from_library(asset_path:Path, library_name:str) -> list[str]:
     """Returns a list of all IDs from a designated DSF file's library."""
 
     asset_path = check_path(asset_path)
@@ -81,7 +81,8 @@ def get_all_asset_ids_from_library(asset_path:Path, library_name:str) -> list[st
     result:list[str] = []
 
     for entry in dsf_file[library_name]:
-        result.append(entry["id"])
+        full_url:str = create_url_string(dsf_path=asset_url.file_path, asset_id=entry["id"])
+        result.append(full_url)
 
     return result
 
@@ -90,7 +91,7 @@ def get_all_asset_ids_from_library(asset_path:Path, library_name:str) -> list[st
 #                                                                              #
 # ============================================================================ #
 
-def get_node_hierarchy_ids_from_library(asset_path:Path) -> list[str]:
+def get_node_hierarchy_urls_from_library(asset_path:Path) -> list[str]:
     """Returns a list of IDs for every bone which is part of a figure's armature."""
 
     # Ensure type safety
@@ -123,7 +124,8 @@ def get_node_hierarchy_ids_from_library(asset_path:Path) -> list[str]:
         potential_bone:dict = all_children.pop(0)
         if NodeType(potential_bone["type"]) == NodeType.BONE:
             bone_id:str = potential_bone["id"]
-            result.append(bone_id)
+            full_url:str = create_url_string(dsf_path=asset_url.file_path, asset_id=bone_id)
+            result.append(full_url)
             all_children.extend( _get_child_node_data(nodes, bone_id) )
 
     return result
