@@ -90,7 +90,7 @@ def get_all_asset_ids_from_library(asset_path:Path, library_name:str) -> list[st
 #                                                                              #
 # ============================================================================ #
 
-def get_node_hierarchy_from_library(asset_path:Path) -> list[str]:
+def get_node_hierarchy_ids_from_library(asset_path:Path) -> list[str]:
     """Returns a list of IDs for every bone which is part of a figure's armature."""
 
     # Ensure type safety
