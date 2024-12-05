@@ -7,7 +7,22 @@
 
 from enum import Enum
 
+
 # ============================================================================ #
+#                                                                              #
+# ============================================================================ #
+
+class ChannelType(Enum):
+    """What kind of data a channel stores."""
+    ALIAS           = "alias"
+    BOOL            = "bool"
+    COLOR           = "color"
+    ENUM            = "enum"
+    FLOAT           = "float"
+    IMAGE           = "image"
+    INT             = "int"
+    STRING          = "string"
+
 
 class EdgeInterpolation(Enum):
     """How subdivision surface should affect a mesh."""
@@ -15,7 +30,9 @@ class EdgeInterpolation(Enum):
     EDGES_AND_CORNERS = "edges_and_corners"
     EDGES_ONLY = "edges_only"
 
+
 class FormulaOperator(Enum):
+    """Which operation to perform on a formula's inputs."""
     PUSH            = "push"
     ADD             = "add"
     SUB             = "sub"
@@ -27,14 +44,18 @@ class FormulaOperator(Enum):
     SPL_CONSTANT    = "spline_constant"
     SPL_TCB         = "spline_tcb"
 
+
 class FormulaStage(Enum):
+    """How a formula contributes to a final value."""
     MULTIPLY = "multiply"
     SUM = "sum"
+
 
 class GeometryType(Enum):
     """Whether a mesh should have a SubSurf modifier applied."""
     POLYGON_MESH = "polygon_mesh"
     SUBDIVISION_SURFACE = "subdivision_surface"
+
 
 class NodeType(Enum):
     """What kind of node-object should be added to the scene."""
@@ -44,17 +65,20 @@ class NodeType(Enum):
     CAMERA  = "camera"
     LIGHT   = "light"
 
+
 class RigidRotation(Enum):
     NONE        = "none"
     FULL        = "full"
     PRIMARY     = "primary"
     SECONDARY   = "secondary"
 
+
 class RigidScale(Enum):
     NONE        = "none"
     PRIMARY     = "primary"
     SECONDARY   = "secondary"
     TERTIARY    = "tertiary"
+
 
 class RotationOrder(Enum):
     """What order to apply Euler rotations in."""
@@ -64,5 +88,6 @@ class RotationOrder(Enum):
     YZX     = "YZX"
     ZXY     = "ZXY"
     ZYX     = "ZYX"
+
 
 # ============================================================================ #

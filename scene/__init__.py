@@ -8,20 +8,6 @@ from __future__ import annotations
 from collections import OrderedDict
 from pathlib import Path
 
-from ..create.geometry import create_geometry_struct
-from ..create.modifier import create_modifier_struct
-from ..create.node import create_node_struct
-from ..create.uv_set import create_uv_set_struct
-from ..enums import NodeType
-from ..exceptions import SceneMissing
-from ..file import open_dson_file
-from ..structs.geometry import DsonGeometry
-from ..structs.modifier import DsonModifier
-from ..structs.node import DsonNode
-from ..structs.uv_set import DsonUVSet
-from ..url import AssetURL, parse_url_string
-from ..utilities import check_path
-
 
 # ============================================================================ #
 #                                                                              #
@@ -53,14 +39,14 @@ class DsonScene:
         if not "nodes" in self.duf_file["scene"]:
             return None
 
-        node_data:dict = None
+        node_json:dict = None
 
         for node in self.duf_file["scene"]["nodes"]:
             if node["id"] == node_instance_id:
-                node_data = node
+                node_json = node
                 break
 
-        return node_data
+        return node_json
 
     # ======================================================================== #
     #                                                                          #
@@ -71,19 +57,19 @@ class DsonScene:
         if not "nodes" in self.duf_file["scene"]:
             return []
 
-        node_data:dict = None
+        node_json:dict = None
 
         for node in self.duf_file["scene"]["nodes"]:
             if node["id"] == node_instance_id:
-                node_data = node
+                node_json = node
                 break
 
-        if not (node_data and "geometries" in node_data):
+        if not (node_json and "geometries" in node_json):
             return []
 
         geometry_ids:list[str] = []
 
-        for geometry in node_data["geometries"]:
+        for geometry in node_json["geometries"]:
             geometry_ids.append(geometry["id"])
 
         return geometry_ids

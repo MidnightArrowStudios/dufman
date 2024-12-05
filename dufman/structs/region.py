@@ -1,0 +1,49 @@
+# ============================================================================ #
+# Copyright (c) 2024, Midnight Arrow.
+# https://github.com/MidnightArrowStudios/dufman
+# Licensed under the MIT license.
+# ============================================================================ #
+
+from __future__ import annotations
+from dataclasses import dataclass
+
+@dataclass
+class DsonRegion:
+
+    id                      : str                   = None
+    label                   : str                   = None
+    display_hint            : str                   = None
+    face_indices            : list[int]             = None
+    parent                  : DsonRegion            = None
+    children                : list[DsonRegion]      = None
+
+    @classmethod
+    def load(cls:type, root_region_json:dict) -> list[DsonRegion]:
+
+        all_structs:list[DsonRegion] = []
+
+        def recursive(parent:DsonRegion, parent_json:dict) -> None:
+
+            parent.id = parent_json["id"]
+            all_structs.append(parent)
+
+            if "label" in parent_json:
+                parent.label = parent_json["label"]
+
+            if "display_hint" in parent_json:
+                parent.display_hint = parent_json["display_hint"]
+
+            if "map" in parent_json:
+                parent.face_indices = list(parent_json["map"]["values"])
+
+            parent.children = []
+
+            for child_dict in parent_json.get("children", []):
+                child:DsonRegion = DsonRegion()
+                child.parent = parent
+                parent.children.append(child)
+                recursive(child, child_dict)
+
+        recursive(DsonRegion(), root_region_json)
+
+        return all_structs

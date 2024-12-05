@@ -10,14 +10,13 @@ import json
 
 from io import TextIOWrapper
 from pathlib import Path
-from typing import Any
 from urllib.parse import unquote
 
-from .. import observers
-from ..exceptions import IncorrectArgument, MultipleDsfFiles, NotDsfFile
-from ..utilities import check_path
+from .exceptions import IncorrectArgument, MultipleDsfFiles, NotDsfFile
+from .observers import _dson_file_opened, _dson_file_loaded
 
 # pylint: disable=W0212
+
 
 # ============================================================================ #
 #                                                                              #
@@ -34,6 +33,7 @@ _dsf_cache:dict = {}
 # List of all content directories that Daz assets have been installed to.
 _content_directories:list[Path] = []
 
+
 # ============================================================================ #
 #                                                                              #
 # ============================================================================ #
@@ -45,6 +45,23 @@ def add_content_directory(directory_path:Path) -> None:
         _content_directories.append(content_directory)
     return
 
+
+# ============================================================================ #
+
+def check_path(potential_path:Path) -> Path:
+    """Validates function arguments that accept pathlib Paths."""
+
+    if isinstance(potential_path, str):
+        potential_path = Path(unquote(potential_path))
+
+    if not isinstance(potential_path, Path):
+        # pylint: disable=C0301
+        message:str = f"Argument \"{repr(potential_path)}\" is not Path or string."
+        raise IncorrectArgument(message)
+
+    return potential_path
+
+
 # ============================================================================ #
 
 def clear_dsf_cache() -> None: # pylint: disable=R1711
@@ -52,71 +69,6 @@ def clear_dsf_cache() -> None: # pylint: disable=R1711
     _dsf_cache.clear()
     return
 
-# ============================================================================ #
-
-def extract_single_property(dsf_filepath:Path, property_path:list[str]) -> Any:
-    """Gets a single piece of data from a DSF file based on its path."""
-
-    invalid:Exception = Exception("Property could not be retrieved. Ensure property_path is valid.")
-
-    dsf_filepath = check_path(dsf_filepath)
-
-    tokens:list[str] = list(property_path)
-    dsf_pointer:Any = handle_dsf_file(dsf_filepath)
-
-    # The property path is split into components representing the hierarchy
-    #   of the asset's property.
-    # [ "geometry_library", "0", "polygon_material_groups", "values, "4" ]
-    #   will return the fifth surface's name in a geometry asset.
-    while tokens:
-
-        token = tokens.pop(0)
-
-        # Current layer is DSON object (i.e. dictionary)
-        if isinstance(dsf_pointer, dict):
-
-            if not token in dsf_pointer:
-                raise invalid
-
-            dsf_pointer = dsf_pointer[token]
-            continue
-
-        # Current layer is list.
-        elif isinstance(dsf_pointer, list):
-
-            # Used for branching, since continue statement in loop will only
-            #   break out of one level.
-            was_found:bool = False
-
-            # First, see if the token matches an ID.
-            for entry in dsf_pointer:
-                if isinstance(entry, dict) and "id" in entry and entry["id"] == token:
-                    dsf_pointer = entry
-                    was_found = True
-                    continue
-            
-            # Restart top-level loop if ID was found.
-            if was_found:
-                continue
-
-            # If it doesn't match an ID, see if we can use it as an index.
-            index:int = None
-
-            try:
-                index = int(token)
-            except ValueError as ve:
-                raise invalid from ve
-
-            if not 0 <= index < len(dsf_pointer):
-                raise IndexError
-
-            dsf_pointer = dsf_pointer[index]
-            continue
-
-        else:
-            raise invalid
-
-    return dsf_pointer
 
 # ============================================================================ #
 
@@ -220,19 +172,19 @@ def open_dson_file(filepath:Path) -> dict:
         file:TextIOWrapper = gzip.open(filepath, "rt")
         text = file.read()
         file.close()
-        observers._dson_file_opened(filepath, text)
+        _dson_file_opened(filepath, text)
 
         data = json.loads(text)
-        observers._dson_file_loaded(filepath, data)
+        _dson_file_loaded(filepath, data)
 
     except gzip.BadGzipFile:
         file:TextIOWrapper = open(filepath, "rt", encoding="utf-8")
         text = file.read()
         file.close()
-        observers._dson_file_opened(filepath, text)
+        _dson_file_opened(filepath, text)
 
         data = json.loads(text)
-        observers._dson_file_loaded(filepath, data)
+        _dson_file_loaded(filepath, data)
 
     return data
 

@@ -3,14 +3,15 @@
 # https://github.com/MidnightArrowStudios/dufman
 # Licensed under the MIT license.
 # ============================================================================ #
-"""Utility module for working with asset URLs in DSON files."""
+"""Utility module for working with DSON asset URLs."""
 
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 from urllib.parse import ParseResult, quote, unquote, urlparse, urlunparse
 
-from ..exceptions import IncorrectArgument
+from .exceptions import IncorrectArgument
+
 
 # ============================================================================ #
 #                                                                              #
@@ -72,6 +73,9 @@ def create_url_string(node_path:str="", dsf_path:str="", asset_id:str="",
                         property_path:Any=None) -> str:
     """Takes the components of a DSON-formatted URL and returns a complete URL string."""
 
+    # Ensures slashes are correct, per DSON format
+    dsf_path = Path(dsf_path).as_posix()
+
     def check_for_errors(argument:str):
         if argument and not isinstance(argument, str):
             message:str = f"Could not create URL. Argument \"{repr(argument)}\" is not a string."
@@ -98,9 +102,28 @@ def create_url_string(node_path:str="", dsf_path:str="", asset_id:str="",
     path:str = quote(dsf_path, safe=safe_characters)
     fragment:str = None
 
+    # Ensure path is formatted how DSON expects it to be.
+    if not path.startswith("/"):
+        path = f"/{path}"
+
+    # DSON puts the query after the fragment, so we need to swap them if it is
+    #   present.
     if property_path:
         fragment = f"{ quote(asset_id, safe=safe_characters) }?{ quote(property_path, safe=safe_characters) }"
     else:
         fragment = quote(asset_id, safe=safe_characters)
 
     return urlunparse((scheme, "", path, "", "", fragment))
+
+# ============================================================================ #
+
+def get_valid_url_string(current_file:str, url:str) -> str:
+    """Helper function which strips out the non-filepath parts of a DSON URL."""
+
+    address:AssetURL = parse_url_string(url)
+
+    file_path:str = address.file_path
+    if not file_path:
+        file_path = current_file
+
+    return create_url_string(dsf_path=file_path, asset_id=address.asset_id)

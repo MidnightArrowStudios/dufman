@@ -4,7 +4,6 @@
 # Licensed under the MIT license.
 # ============================================================================ #
 
-from . import geometry
-from . import modifier
-from . import node
-from . import uv_set
+from .color import DsonColor
+from .polygon import DsonPolygon
+from .vector import DsonVector
