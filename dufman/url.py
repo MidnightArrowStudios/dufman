@@ -26,8 +26,21 @@ class AssetURL:
     asset_id                : str       = None
     property_path           : str       = None
 
-    # Same as property_path, but the path has been pre-split.
+    # Same as property_path, but the path has been tokenized.
     property_tokens         : list[str] = None
+
+
+    def has_filepath(self:AssetURL) -> bool:
+        return not (filepath is None)
+    
+    
+    def get_valid_url(self:AssetURL, fallback_url:str=None) -> str:
+        if self.filepath:
+            return create_url_string(filepath=self.filepath, asset_id=self.asset_id)
+        elif fallback_url:
+            return create_url_string(filepath=fallback_url, asset_id=self.asset_id)
+        else:
+            return None
 
 
 # ============================================================================ #
@@ -117,14 +130,3 @@ def create_url_string(node_name:str="", filepath:str="", asset_id:str="",
     return urlunparse((scheme, "", path, "", "", fragment))
 
 # ============================================================================ #
-
-def get_valid_url_string(current_file:str, url:str) -> str:
-    """Helper function which strips out the non-filepath parts of a DSON URL."""
-
-    address:AssetURL = parse_url_string(url)
-
-    filepath:str = address.filepath
-    if not filepath:
-        filepath = current_file
-
-    return create_url_string(filepath=filepath, asset_id=address.asset_id)
