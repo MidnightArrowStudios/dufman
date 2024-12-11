@@ -53,22 +53,36 @@ def add_content_directory(directory_path:Path) -> None:
 def add_content_directories_automatically() -> None:
     """Attempts to find and add filepath anchors based on user's operating system."""
 
-    match platform.system():
+    os_name:str = platform.system()
+
+    match os_name:
         case "Windows":
 
+            # Creates a readonly path to the Daz Studio registry entry.
             registry_path = winreg.OpenKeyEx(winreg.HKEY_CURRENT_USER, r"SOFTWARE\DAZ\Studio4", access=winreg.KEY_READ)
+            
+            # Tuple with number of sub-keys, number of values, and last time
+            #   registry was edited.
             info:tuple = winreg.QueryInfoKey(registry_path)
             
-            filepaths:list[str] = []
+            # The list of content directories that will be added.
+            directories:list[str] = []
             
+            # Loop through values, check to ensure they are zero-terminated
+            #   strings ("winreg.REG_SZ") and that their names begin with
+            #   "ContentDir", and add them to the filepath list.
             for index in range(info[1]):
                 value:tuple = winreg.EnumValue(registry_path, index)
                 if (value[2] == winreg.REG_SZ) and (value[0].startswith("ContentDir")):
-                    filepaths.append(value[1])
+                    directories.append(value[1])
 
-            for filepath in filepaths:
-                add_content_directory(filepath)
+            # Add content directory filepaths.
+            for directory in directories:
+                add_content_directory(directory)
     
+            # Clean up.
+            winreg.CloseKey(registry_path)
+
         case _:
             raise Exception("Unsupported OS. Content directories must be added manually.")
 
