@@ -41,7 +41,10 @@ class AssetURL:
 
 
     def has_filepath(self:AssetURL) -> bool:
-        return not (self.filepath is None)
+        result:bool = False
+        if self.filepath:
+            result = True
+        return result
 
 
 # ============================================================================ #
