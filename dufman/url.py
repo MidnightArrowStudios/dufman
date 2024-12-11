@@ -5,6 +5,7 @@
 # ============================================================================ #
 """Utility module for working with DSON asset URLs."""
 
+from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -28,12 +29,8 @@ class AssetURL:
 
     # Same as property_path, but the path has been tokenized.
     property_tokens         : list[str] = None
-
-
-    def has_filepath(self:AssetURL) -> bool:
-        return not (filepath is None)
     
-    
+
     def get_valid_url(self:AssetURL, fallback_url:str=None) -> str:
         if self.filepath:
             return create_url_string(filepath=self.filepath, asset_id=self.asset_id)
@@ -41,6 +38,10 @@ class AssetURL:
             return create_url_string(filepath=fallback_url, asset_id=self.asset_id)
         else:
             return None
+
+
+    def has_filepath(self:AssetURL) -> bool:
+        return not (filepath is None)
 
 
 # ============================================================================ #
