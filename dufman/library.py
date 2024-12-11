@@ -25,11 +25,11 @@ def get_all_asset_urls_from_library(asset_path:Path, library_name:str) -> list[s
 
     asset_url:AssetURL = parse_url_string(str(asset_path))
 
-    if not asset_url.file_path:
+    if not asset_url.filepath:
         # TODO: Exception?
         return
 
-    dsf_file:dict = handle_dsf_file(asset_url.file_path)
+    dsf_file:dict = handle_dsf_file(asset_url.filepath)
 
     if not library_name in dsf_file:
         raise LibraryNotFound(f"DSF file \"{ asset_path }\" does not contain { library_name }.")
@@ -37,7 +37,7 @@ def get_all_asset_urls_from_library(asset_path:Path, library_name:str) -> list[s
     result:list[str] = []
 
     for entry in dsf_file[library_name]:
-        full_url:str = create_url_string(dsf_path=asset_url.file_path, asset_id=entry["id"])
+        full_url:str = create_url_string(filepath=asset_url.filepath, asset_id=entry["id"])
         result.append(full_url)
 
     return result
@@ -67,8 +67,8 @@ def get_asset_json_from_library(asset_path:Path, library_name:str, duf_file:dict
 
     file_with_asset:dict = None
 
-    if asset_url.file_path:
-        file_with_asset = handle_dsf_file(asset_url.file_path)
+    if asset_url.filepath:
+        file_with_asset = handle_dsf_file(asset_url.filepath)
     elif duf_file:
         file_with_asset = duf_file
     else:
@@ -101,11 +101,11 @@ def get_node_hierarchy_urls_from_library(asset_path:Path) -> list[str]:
     # Encapsulate URL into object
     asset_url:AssetURL = parse_url_string(str(asset_path))
 
-    if not asset_url.file_path:
+    if not asset_url.filepath:
         # TODO: Exception?
         return
 
-    dsf_file:dict = handle_dsf_file(asset_url.file_path)
+    dsf_file:dict = handle_dsf_file(asset_url.filepath)
 
     if not "node_library" in dsf_file:
         raise LibraryNotFound(f"DSF file \"{ asset_path }\" does not contain node_library.")
@@ -125,7 +125,7 @@ def get_node_hierarchy_urls_from_library(asset_path:Path) -> list[str]:
         potential_bone:dict = all_children.pop(0)
         if NodeType(potential_bone["type"]) == NodeType.BONE:
             bone_id:str = potential_bone["id"]
-            full_url:str = create_url_string(dsf_path=asset_url.file_path, asset_id=bone_id)
+            full_url:str = create_url_string(filepath=asset_url.filepath, asset_id=bone_id)
             result.append(full_url)
             all_children.extend( _get_child_node_json(nodes, bone_id) )
 
@@ -221,7 +221,7 @@ def _get_child_node_json(node_library:list[dict], parent_id:str) -> list[dict]:
 
         # TODO: Can a node have a parent in a different file? Doubtful, but it
         #   might be an edge case.
-        if not parent_url.file_path and parent_url.asset_id == parent_id:
+        if not parent_url.filepath and parent_url.asset_id == parent_id:
             result.append(node)
 
     return result

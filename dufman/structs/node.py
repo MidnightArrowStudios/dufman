@@ -234,7 +234,7 @@ def _inherits_scale_default(struct:DsonNode) -> bool:
     property_path:list[Any] = [ "node_library", address.asset_id, "type" ]
 
     # Get type as string
-    parent_type:str = get_single_property_from_library(address.file_path, property_path)
+    parent_type:str = get_single_property_from_library(address.filepath, property_path)
 
     # Convert string to enum and compare. If bone w/ bone parent, then
     #   inherits scale is false.

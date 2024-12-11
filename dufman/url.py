@@ -21,13 +21,14 @@ from .exceptions import IncorrectArgument
 class AssetURL:
     """Dataclass which wraps all the elements of a DSON URL."""
 
-    node_path               : str       = None
-    file_path               : str       = None
+    node_name               : str       = None
+    filepath                : str       = None
     asset_id                : str       = None
     property_path           : str       = None
 
     # Same as property_path, but the path has been pre-split.
     property_tokens         : list[str] = None
+
 
 # ============================================================================ #
 
@@ -51,8 +52,8 @@ def parse_url_string(url_string:str) -> AssetURL:
     result:ParseResult = urlparse(unquote(url_string))
 
     asset_url:AssetURL = AssetURL()
-    asset_url.node_path = scheme
-    asset_url.file_path = result.path
+    asset_url.node_name = scheme
+    asset_url.filepath = result.path
 
     # DSON puts the query after the fragment, for some reason. This doesn't
     #   play nice with urllib.
@@ -69,12 +70,12 @@ def parse_url_string(url_string:str) -> AssetURL:
 
 # ============================================================================ #
 
-def create_url_string(node_path:str="", dsf_path:str="", asset_id:str="",
+def create_url_string(node_name:str="", filepath:str="", asset_id:str="",
                         property_path:Any=None) -> str:
     """Takes the components of a DSON-formatted URL and returns a complete URL string."""
 
     # Ensures slashes are correct, per DSON format
-    dsf_path = Path(dsf_path).as_posix()
+    filepath = Path(filepath).as_posix()
 
     def check_for_errors(argument:str):
         if argument and not isinstance(argument, str):
@@ -82,8 +83,8 @@ def create_url_string(node_path:str="", dsf_path:str="", asset_id:str="",
             raise IncorrectArgument(message)
         return
 
-    check_for_errors(node_path)
-    check_for_errors(dsf_path)
+    check_for_errors(node_name)
+    check_for_errors(filepath)
     check_for_errors(asset_id)
 
     if property_path and isinstance(property_path, list):
@@ -98,8 +99,8 @@ def create_url_string(node_path:str="", dsf_path:str="", asset_id:str="",
     # Characters which won't be encoded by quote().
     safe_characters:str = '/\\'
 
-    scheme:str = quote(node_path, safe=safe_characters)
-    path:str = quote(dsf_path, safe=safe_characters)
+    scheme:str = quote(node_name, safe=safe_characters)
+    path:str = quote(filepath, safe=safe_characters)
     fragment:str = None
 
     # Ensure path is formatted how DSON expects it to be.
@@ -122,8 +123,8 @@ def get_valid_url_string(current_file:str, url:str) -> str:
 
     address:AssetURL = parse_url_string(url)
 
-    file_path:str = address.file_path
-    if not file_path:
-        file_path = current_file
+    filepath:str = address.filepath
+    if not filepath:
+        filepath = current_file
 
-    return create_url_string(dsf_path=file_path, asset_id=address.asset_id)
+    return create_url_string(filepath=filepath, asset_id=address.asset_id)
