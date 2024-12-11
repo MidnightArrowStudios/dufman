@@ -7,6 +7,8 @@
 
 import gzip
 import json
+import platform
+import winreg
 
 from io import TextIOWrapper
 from pathlib import Path
@@ -45,6 +47,32 @@ def add_content_directory(directory_path:Path) -> None:
         _content_directories.append(content_directory)
     return
 
+
+# ============================================================================ #
+
+def add_content_directories_automatically() -> None:
+    """Attempts to find and add filepath anchors based on user's operating system."""
+
+    match platform.system():
+        case "Windows":
+
+            registry_path = winreg.OpenKeyEx(winreg.HKEY_CURRENT_USER, r"SOFTWARE\DAZ\Studio4", access=winreg.KEY_READ)
+            info:tuple = winreg.QueryInfoKey(registry_path)
+            
+            filepaths:list[str] = []
+            
+            for index in range(info[1]):
+                value:tuple = winreg.EnumValue(registry_path, index)
+                if (value[2] == winreg.REG_SZ) and (value[0].startswith("ContentDir")):
+                    filepaths.append(value[1])
+
+            for filepath in filepaths:
+                add_content_directory(filepath)
+    
+        case _:
+            raise Exception("Unsupported OS. Content directories must be added manually.")
+
+    return
 
 # ============================================================================ #
 
@@ -198,3 +226,9 @@ def remove_content_directory(directory_path:Path) -> None:
     return
 
 # ============================================================================ #
+
+def remove_all_content_directories() -> None:
+    """Removes all filepath anchors that have previously been loaded."""
+    for directory in get_content_directories():
+        remove_content_directory(directory)
+    return
