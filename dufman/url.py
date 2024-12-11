@@ -31,6 +31,10 @@ class AssetURL:
     property_tokens         : list[str] = None
     
 
+    def get_posix_filepath(self:AssetURL) -> str:
+        return Path(filepath).as_posix()
+
+
     def get_valid_url_string(self:AssetURL, fallback_url:str=None) -> str:
         if self.filepath:
             return create_url_string(filepath=self.filepath, asset_id=self.asset_id)
