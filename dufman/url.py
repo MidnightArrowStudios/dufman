@@ -31,7 +31,7 @@ class AssetURL:
     property_tokens         : list[str] = None
     
 
-    def get_valid_url(self:AssetURL, fallback_url:str=None) -> str:
+    def get_valid_url_string(self:AssetURL, fallback_url:str=None) -> str:
         if self.filepath:
             return create_url_string(filepath=self.filepath, asset_id=self.asset_id)
         elif fallback_url:
