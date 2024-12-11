@@ -32,7 +32,7 @@ class AssetURL:
     
 
     def get_posix_filepath(self:AssetURL) -> str:
-        return Path(filepath).as_posix()
+        return Path(self.filepath).as_posix()
 
 
     def get_valid_url_string(self:AssetURL, fallback_url:str=None) -> str:
