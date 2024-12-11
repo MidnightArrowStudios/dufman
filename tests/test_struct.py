@@ -22,8 +22,9 @@ from dufman.enums import (
 
 from dufman.file import (
     add_content_directory,
+    add_content_directories_automatically,
     clear_dsf_cache,
-    remove_content_directory,
+    remove_all_content_directories,
 )
 
 from dufman.library import (
@@ -65,11 +66,20 @@ class TestStruct(TestCase):
     """Unit testing for the DUFMan package's data structs."""
 
     def setUp(self:TestStruct) -> None:
-        add_content_directory("F:/Daz3D")
+
+        # NOTE: Adding content directories automatically is only supported on
+        #   Windows at present. On other OSes, they must be added manually.
+        try:
+            add_content_directories_automatically()
+        except Exception:
+            content_directories:list[str] = [ "F:/Daz3D" ]
+            for directory in content_directories:
+                add_content_directory(directory)
+        
         return
 
     def tearDown(self:TestStruct) -> None:
-        remove_content_directory("F:/Daz3D")
+        remove_all_content_directories()
         clear_dsf_cache()
         return
 
