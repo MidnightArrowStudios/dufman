@@ -204,29 +204,32 @@ def open_dson_file(filepath:Path) -> dict:
     # Ensure type safety
     filepath = check_path(filepath)
 
-    if not filepath.is_absolute():
-        filepath = get_absolute_filepath(filepath)
+    absolute_filepath:Path = None
+    if filepath.is_absolute():
+        absolute_filepath = filepath
+    else:
+        absolute_filepath = get_absolute_filepath(filepath)
 
     # Return value
     data:dict = None
 
     try:
-        file:TextIOWrapper = gzip.open(filepath, "rt")
+        file:TextIOWrapper = gzip.open(absolute_filepath, "rt")
         text = file.read()
         file.close()
-        _dson_file_opened(filepath, text)
+        _dson_file_opened(filepath, absolute_filepath, text)
 
         data = json.loads(text)
-        _dson_file_loaded(filepath, data)
+        _dson_file_loaded(filepath, absolute_filepath, data)
 
     except gzip.BadGzipFile:
-        file:TextIOWrapper = open(filepath, "rt", encoding="utf-8")
+        file:TextIOWrapper = open(absolute_filepath, "rt", encoding="utf-8")
         text = file.read()
         file.close()
-        _dson_file_opened(filepath, text)
+        _dson_file_opened(filepath, absolute_filepath, text)
 
         data = json.loads(text)
-        _dson_file_loaded(filepath, data)
+        _dson_file_loaded(filepath, absolute_filepath, data)
 
     return data
 
