@@ -8,7 +8,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Self
 from urllib.parse import ParseResult, quote, unquote, urlparse, urlunparse
 
 from .exceptions import IncorrectArgument
@@ -29,7 +29,7 @@ class AssetURL:
 
     # Same as property_path, but the path has been tokenized.
     property_tokens         : list[str] = None
-    
+
 
     def get_posix_filepath(self:AssetURL) -> str:
         return Path(self.filepath).as_posix()
@@ -49,6 +49,108 @@ class AssetURL:
         if self.filepath:
             result = True
         return result
+
+
+# ============================================================================ #
+
+@dataclass
+class AssetAddress:
+    """Dataclass which wraps all the components of a DSON URL."""
+
+    node_name:str = None
+    filepath:str = None
+    asset_id:str = None
+    property_path:str = None
+
+
+    @staticmethod
+    def format_filepath(filepath:str) -> str:
+
+        if not filepath:
+            return None
+
+        # Ensure filepath has forward slashes and is quoted
+        result:str = quote(Path(unquote(str(filepath))).as_posix(), safe="/\\")
+
+        # Ensure filepath starts with forward slash
+        if not result.startswith("/"):
+            result = "/" + result
+
+        return result
+
+
+    @classmethod
+    def create_from_components(cls:type, *, node_name:str=None, filepath:str=None, asset_id:str=None, property_path:str=None) -> AssetAddress:
+        """Factory method to create an AssetAddress from a DSON-formatted URL's parts."""
+
+        filepath = cls.format_filepath(filepath)
+
+        return cls(node_name=node_name, filepath=filepath, asset_id=asset_id, property_path=property_path)
+
+
+    @classmethod
+    def create_from_url(cls:type, url_string:Any) -> AssetAddress:
+        """Factory method to create an AssetAddress from a DSON-formatted URL."""
+
+        # Force-convert Path object to string, using as_posix() to ensure it
+        #   has forward slashes.
+        if isinstance(url_string, Path):
+            url_string = url_string.as_posix()
+
+        # Ensure type safety.
+        if not isinstance(url_string, str):
+            message:str = f"Could not create AssetAddress. Argument \"{url_string}\" is a {type(url_string)}, not a string or a Path object."
+            raise IncorrectArgument(message)
+
+        # urllib sucks at handling Scheme. Doesn't preserve capitalization and
+        #   makes it a path if it has an underscore. If there is a Scheme, we
+        #   need to handle it ourselves.
+        scheme:str = None
+        if url_string.find(":") >= 0:
+            split_on_colon:tuple = url_string.partition(":")
+            scheme = split_on_colon[0]
+            url_string = split_on_colon[2]
+
+        # Break URL into components and store them inside object.
+        result:ParseResult = urlparse(unquote(url_string))
+
+        node_name:str = scheme
+        filepath:str = cls.format_filepath(result.path)
+        asset_id:str = None
+        property_path:str = None
+
+        # DSON puts the query after the fragment, for some reason. urllib
+        #   doesn't like this.
+        if result.fragment.find("?") == -1:
+            asset_id = result.fragment
+            property_path = None
+        else:
+            split_on_qmark:tuple = result.fragment.partition("?")
+            asset_id = split_on_qmark[0]
+            property_path = Path(split_on_qmark[2]).as_posix()
+
+        # Convert empty strings to None
+        node_name = node_name if node_name else None
+        asset_id = asset_id if asset_id else None
+        property_path = property_path if property_path else None
+
+        return cls(node_name=node_name, filepath=filepath, asset_id=asset_id, property_path=property_path)
+
+
+    def get_valid_asset_url(self:AssetAddress, fallback:str = None) -> str:
+        """Returns a URL suitable for retrieving data from a DSF file."""
+
+        if not self.asset_id:
+            return None
+
+        fallback = self.format_filepath(fallback)
+
+        if self.filepath:
+            return f"{self.filepath}#{self.asset_id}"
+        if fallback:
+            return f"{fallback}#{self.asset_id}"
+
+        return None
 
 
 # ============================================================================ #
