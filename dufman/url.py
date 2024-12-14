@@ -8,7 +8,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Self
+from typing import Any
 from urllib.parse import ParseResult, quote, unquote, urlparse, urlunparse
 
 from .exceptions import IncorrectArgument
