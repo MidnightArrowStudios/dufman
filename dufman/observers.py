@@ -11,12 +11,13 @@ struct dataclasses lead to circular import errors.
 
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any, NamedTuple
+from typing import NamedTuple
 
 
 # ============================================================================ #
 
 class Callback(NamedTuple):
+    """Struct-like object for storing an observer's properties."""
     function:Callable
     userdata:dict
 
@@ -64,7 +65,7 @@ def register_on_geometry_struct_created(callback:Callable, userdata:dict) -> Non
     _on_geometry_struct_created.append(Callback(callback, userdata))
     return
 
-def _geometry_struct_created(struct:Any, geometry_json:dict) -> None:
+def _geometry_struct_created(struct:"DsonGeometry", geometry_json:dict) -> None:
     for callback in _on_geometry_struct_created:
         callback.function(callback.userdata, struct, geometry_json)
     return
@@ -81,7 +82,7 @@ def register_on_modifier_struct_created(callback:Callable, userdata:dict) -> Non
     _on_modifier_struct_created.append(Callback(callback, userdata))
     return
 
-def _modifier_struct_created(struct:Any, modifier_json:dict) -> None:
+def _modifier_struct_created(struct:"DsonModifier", modifier_json:dict) -> None:
     for callback in _on_modifier_struct_created:
         callback.function(callback.userdata, struct, modifier_json)
     return
@@ -98,7 +99,7 @@ def register_on_node_struct_created(callback:Callable, userdata:dict) -> None:
     _on_node_struct_created.append(Callback(callback, userdata))
     return
 
-def _node_struct_created(struct:Any, node_json:dict) -> None:
+def _node_struct_created(struct:"DsonNode", node_json:dict) -> None:
     for callback in _on_node_struct_created:
         callback.function(callback.userdata, struct, node_json)
     return
@@ -115,7 +116,7 @@ def register_on_uv_set_struct_created(callback:Callable, userdata:dict) -> None:
     _on_uv_set_struct_created.append(Callback(callback, userdata))
     return
 
-def _uv_set_struct_created(struct:Any, uv_set_json:dict) -> None:
+def _uv_set_struct_created(struct:"DsonUVSet", uv_set_json:dict) -> None:
     for callback in _on_uv_set_struct_created:
         callback.function(callback.userdata, struct, uv_set_json)
     return
