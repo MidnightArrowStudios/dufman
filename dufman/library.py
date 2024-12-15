@@ -34,7 +34,7 @@ def get_all_asset_urls_from_library(asset_path:Path, library_name:str) -> list[s
     # Open the DSF file
     dsf_file:dict = handle_dsf_file(asset_address.filepath)
 
-    # Ensure we have the required library type
+    # Ensure the library actually exists inside the DSON file
     if not library_name in dsf_file:
         raise LibraryNotFound(f"DSF file \"{ asset_path }\" does not contain { library_name }.")
 
@@ -55,45 +55,51 @@ def get_all_asset_urls_from_library(asset_path:Path, library_name:str) -> list[s
 #                                                                              #
 # ============================================================================ #
 
-def get_asset_json_from_library(asset_path:Path, library_name:str, duf_file:dict=None) -> dict:
+def get_asset_json_from_library(asset_path:Path, library_name:str, *, duf_file:dict=None) -> dict:
     """Returns a dictionary object from the designated DSF file library."""
 
+    # Ensure type safety
     asset_path = check_path(asset_path)
 
-    asset_url:AssetURL = parse_url_string(str(asset_path))
+    # Convert URL from string to object
+    asset_address:AssetAddress = AssetAddress.create_from_url(asset_path)
 
     # ======================================================================== #
-    # Assets can either be in a DSF file on disk, or the DUF file that is
-    #   being parsed. The following code switches between the two based on
-    #   the asset's DSON-formatted URL.
-    #
-    # DSF File:
-    #   "/data/path/to/asset.dsf#asset_id"
-    # DUF File:
-    #   "#asset_id"
-    # ======================================================================== #
+    # Assets can either be in the file we are currently parsing, in which case
+    #   they will have no filepath (i.e. "#asset_id"), or they can be in
+    #   another file on disk (i.e. "/data/path/to/asset.dsf#asset_id"). The
+    #   following code switches between the two based on the URL.
 
     file_with_asset:dict = None
 
-    if asset_url.filepath:
-        file_with_asset = handle_dsf_file(asset_url.filepath)
+    # "/data/path/to/asset.dsf#asset_id"
+    if asset_address.filepath:
+        file_with_asset = handle_dsf_file(asset_address.filepath)
+
+    # "#asset_id"
     elif duf_file:
         file_with_asset = duf_file
+    
+    # No URL, failure
     else:
         message:str = "Could not get asset data. URL was invalid or DUF argument was None."
         raise IncorrectArgument(message)
+    # ======================================================================== #
 
+    # Ensure the library actually exists inside the DSON file
     if not library_name in file_with_asset:
         raise LibraryNotFound(f"DSF file \"{ asset_path }\" does not contain { library_name }.")
 
-    library_json:dict = None
+    # Return value
+    result:dict = None
 
+    # Loop through the library and search for the requested ID
     for asset in file_with_asset[library_name]:
-        if asset["id"] == asset_url.asset_id:
-            library_json = asset
+        if asset["id"] == asset_address.asset_id:
+            result = asset
             break
 
-    return library_json
+    return result
 
 
 # ============================================================================ #
