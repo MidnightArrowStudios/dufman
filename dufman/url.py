@@ -65,6 +65,7 @@ class AssetAddress:
 
     @staticmethod
     def format_filepath(filepath:str) -> str:
+        """Helper method to ensure filepaths are formatted according to DSON standards."""
 
         if not filepath:
             return None
@@ -238,5 +239,6 @@ def create_url_string(node_name:str="", filepath:str="", asset_id:str="",
         fragment = quote(asset_id, safe=safe_characters)
 
     return urlunparse((scheme, "", path, "", "", fragment))
+
 
 # ============================================================================ #
