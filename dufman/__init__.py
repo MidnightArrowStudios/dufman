@@ -3,6 +3,7 @@
 # https://github.com/MidnightArrowStudios/dufman
 # Licensed under the MIT license.
 # ============================================================================ #
+"""Python package for working with Daz Studio's DSON files."""
 
 from . import enums
 from . import exceptions
