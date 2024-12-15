@@ -18,7 +18,7 @@ from ..library import (
     get_single_property_from_library,
 )
 
-from ..url import AssetURL, parse_url_string
+from ..url import AssetAddress
 
 from .channel import DsonChannelFloat, DsonChannelVector
 from .formula import DsonFormula
@@ -230,7 +230,7 @@ def _inherits_scale_default(struct:DsonNode) -> bool:
         return True
 
     # Create variables to access property.
-    address:AssetURL = parse_url_string(struct.parent)
+    address:AssetAddress = AssetAddress.create_from_url(struct.parent)
     property_path:list[Any] = [ "node_library", address.asset_id, "type" ]
 
     # Get type as string
