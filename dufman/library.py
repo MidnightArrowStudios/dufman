@@ -79,7 +79,7 @@ def get_asset_json_from_library(asset_path:Path, library_name:str, *, duf_file:d
     # "#asset_id"
     elif duf_file:
         file_with_asset = duf_file
-    
+
     # No URL, failure
     else:
         message:str = "Could not get asset data. URL was invalid or DUF argument was None."
