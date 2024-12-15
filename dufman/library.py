@@ -11,7 +11,7 @@ from typing import Any
 from .enums import NodeType
 from .file import check_path, handle_dsf_file
 from .exceptions import IncorrectArgument, LibraryNotFound
-from .url import AssetAddress, AssetURL, create_url_string, parse_url_string
+from .url import AssetAddress
 
 
 # ============================================================================ #
@@ -112,36 +112,40 @@ def get_node_hierarchy_urls_from_library(asset_path:Path) -> list[str]:
     # Ensure type safety
     asset_path = check_path(asset_path)
 
-    # Encapsulate URL into object
-    asset_url:AssetURL = parse_url_string(str(asset_path))
+    # Convert URL from string to object
+    asset_address:AssetAddress = AssetAddress.create_from_url(asset_path)
 
-    if not asset_url.filepath:
-        # TODO: Exception?
-        return
+    # Ensure we have something to open
+    if not asset_address.filepath:
+        raise Exception(f"Asset URL \"{ asset_path }\" does not have a valid filepath.")
 
-    dsf_file:dict = handle_dsf_file(asset_url.filepath)
+    # Open the DSF file
+    dsf_file:dict = handle_dsf_file(asset_address.filepath)
 
+    # Ensure the DSF file has nodes in it
     if not "node_library" in dsf_file:
         raise LibraryNotFound(f"DSF file \"{ asset_path }\" does not contain node_library.")
 
-    # List of all nodes in DSF file
-    nodes:list[dict] = dsf_file["node_library"]
+    # Get list of all nodes contained in file for parsing
+    all_nodes:list[dict] = dsf_file["node_library"]
 
-    # Return value (IDs of figure's child bones)
+    # Return value
     result:list[str] = []
 
-    # Get all direct children of figure node
-    all_children:list[dict] = [ *_get_child_node_json(nodes, asset_url.asset_id) ]
+    # Loop through nodes, get all direct children
+    dsf_url:str = asset_address.filepath
+    sought_id:str = asset_address.asset_id
+    working_list:list[dict] = [ *_get_child_node_json(all_nodes, sought_id) ]
 
-    # Test each child to see if it's a bone. If not, discard it. If so, add
-    #   its own children to the list of nodes to be parsed.
-    while all_children:
-        potential_bone:dict = all_children.pop(0)
-        if NodeType(potential_bone["type"]) == NodeType.BONE:
-            bone_id:str = potential_bone["id"]
-            full_url:str = create_url_string(filepath=asset_url.filepath, asset_id=bone_id)
-            result.append(full_url)
-            all_children.extend( _get_child_node_json(nodes, bone_id) )
+    # As long as working list has something in it, test it to see if it's a
+    #   bone. If so, add it to the working list. If not, discard it.
+    while working_list:
+        potential_child:dict = working_list.pop(0)
+        if NodeType(potential_child["type"]) == NodeType.BONE:
+            bone_id:str = potential_child["id"]
+            bone_address:AssetAddress = AssetAddress.create_from_components(filepath=dsf_url, asset_id=bone_id)
+            result.append(bone_address.get_valid_asset_url())
+            working_list.extend( _get_child_node_json(all_nodes, bone_id) )
 
     return result
 
@@ -223,19 +227,26 @@ def get_single_property_from_library(dsf_filepath:Path, property_path:list[str])
 def _get_child_node_json(node_library:list[dict], parent_id:str) -> list[dict]:
     """Returns a list of dictionary objects for a node's immediate children."""
 
+    # Return value
     result:list[dict] = []
 
+    # Loop through all nodes in file searching for children
     for node in node_library:
 
         if not "parent" in node:
             continue
 
-        # Parent URLs are stored with a pound sign. This strips them off.
-        parent_url:AssetURL = parse_url_string(node["parent"])
+        # Parent URLs are stored with a pound sign. This will strip them off.
+        parent_address:AssetAddress = AssetAddress.create_from_url(node["parent"])
 
-        # TODO: Can a node have a parent in a different file? Doubtful, but it
-        #   might be an edge case.
-        if not parent_url.filepath and parent_url.asset_id == parent_id:
+        # TODO: Can a node have a parent in a different file? It's doubtful,
+        #   but it might be an edge case worth handling.
+
+        if parent_address.filepath:
+            node_id:str = node["id"]
+            raise Exception(f"Node \"{node_id}\" has parent with filepath")
+
+        if parent_address.asset_id == parent_id:
             result.append(node)
 
     return result

@@ -3,6 +3,7 @@ from __future__ import annotations
 from dufman.library import (
     get_all_asset_urls_from_library,
     get_asset_json_from_library,
+    get_node_hierarchy_urls_from_library,
 )
 
 from .test_directory import TestDirectory
@@ -56,5 +57,25 @@ class TestLibrary(TestDirectory):
         # Type
         self.assertIn("type", json)
         self.assertEqual(json["type"], "figure")
+
+        return
+
+
+    # ======================================================================== #
+    #                                                                          #
+    # ======================================================================== #
+
+    def test_get_node_hierarchy_urls(self:TestLibrary) -> None:
+
+        url_string:str = "/data/DAZ%203D/Genesis%208/Female/Genesis8Female.dsf"
+        asset_id:str = "Genesis8Female"
+
+        bone_nodes:list[str] = get_node_hierarchy_urls_from_library(f"{url_string}#{asset_id}")
+
+        self.assertIsNotNone(bone_nodes)
+        self.assertEqual(len(bone_nodes), 170)
+        self.assertEqual(bone_nodes[0], f"{url_string}#hip")
+        self.assertEqual(bone_nodes[-5], f"{url_string}#lPinky3")
+        self.assertEqual(bone_nodes[-1], f"{url_string}#rPinky3")
 
         return
