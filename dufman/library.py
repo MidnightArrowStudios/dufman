@@ -11,7 +11,7 @@ from typing import Any
 from .enums import NodeType
 from .file import check_path, handle_dsf_file
 from .exceptions import IncorrectArgument, LibraryNotFound
-from .url import AssetURL, create_url_string, parse_url_string
+from .url import AssetAddress, AssetURL, create_url_string, parse_url_string
 
 
 # ============================================================================ #
@@ -21,23 +21,31 @@ from .url import AssetURL, create_url_string, parse_url_string
 def get_all_asset_urls_from_library(asset_path:Path, library_name:str) -> list[str]:
     """Returns a list of all IDs from a designated DSF file's library."""
 
+    # Ensure type safety
     asset_path = check_path(asset_path)
 
-    asset_url:AssetURL = parse_url_string(str(asset_path))
+    # Convert URL from string to object
+    asset_address:AssetAddress = AssetAddress.create_from_url(asset_path)
 
-    if not asset_url.filepath:
-        # TODO: Exception?
-        return
+    # Ensure we have something to open
+    if not asset_address.filepath:
+        raise Exception(f"Asset URL \"{ asset_path }\" does not have a valid filepath.")
 
-    dsf_file:dict = handle_dsf_file(asset_url.filepath)
+    # Open the DSF file
+    dsf_file:dict = handle_dsf_file(asset_address.filepath)
 
+    # Ensure we have the required library type
     if not library_name in dsf_file:
         raise LibraryNotFound(f"DSF file \"{ asset_path }\" does not contain { library_name }.")
 
+    # Return value
     result:list[str] = []
 
+    # Loop through library and compile list of quoted asset URLs for each one
     for entry in dsf_file[library_name]:
-        full_url:str = create_url_string(filepath=asset_url.filepath, asset_id=entry["id"])
+        fp:str = asset_address.filepath
+        ai:str = entry["id"]
+        full_url:str = AssetAddress.create_from_components(filepath=fp, asset_id=ai).get_valid_asset_url()
         result.append(full_url)
 
     return result
