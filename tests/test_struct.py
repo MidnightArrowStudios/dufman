@@ -6,7 +6,6 @@
 """Unit testing functions for the DUFMan package."""
 
 from __future__ import annotations
-from unittest import TestCase
 
 from dufman.enums import (
     ChannelType,
@@ -18,13 +17,6 @@ from dufman.enums import (
     RigidRotation,
     RigidScale,
     RotationOrder,
-)
-
-from dufman.file import (
-    add_content_directory,
-    add_content_directories_automatically,
-    clear_dsf_cache,
-    remove_all_content_directories,
 )
 
 from dufman.library import (
@@ -61,27 +53,11 @@ from dufman.structs import (
     DsonWeightedJoint,
 )
 
+from .test_directory import TestDirectory
 
-class TestStruct(TestCase):
+
+class TestStruct(TestDirectory):
     """Unit testing for the DUFMan package's data structs."""
-
-    def setUp(self:TestStruct) -> None:
-
-        # NOTE: Adding content directories automatically is only supported on
-        #   Windows at present. On other OSes, they must be added manually.
-        try:
-            add_content_directories_automatically()
-        except Exception:
-            content_directories:list[str] = [ "F:/Daz3D" ]
-            for directory in content_directories:
-                add_content_directory(directory)
-        
-        return
-
-    def tearDown(self:TestStruct) -> None:
-        remove_all_content_directories()
-        clear_dsf_cache()
-        return
 
 
     # ======================================================================== #
