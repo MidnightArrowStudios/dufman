@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from dufman.enums import LibraryType
+
 from dufman.library import (
     get_all_asset_urls_from_library,
     get_asset_json_from_library,
@@ -40,7 +42,7 @@ class TestLibrary(TestDirectory):
         url_string:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf"
         asset_id:str = "Genesis8Female"
 
-        json:dict = get_asset_json_from_library(f"{url_string}#{asset_id}", "node_library")
+        json:dict = get_asset_json_from_library(f"{url_string}#{asset_id}", LibraryType.NODE)
 
         # JSON object
         self.assertIsNotNone(json)

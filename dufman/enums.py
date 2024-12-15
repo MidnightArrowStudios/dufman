@@ -57,6 +57,16 @@ class GeometryType(Enum):
     SUBDIVISION_SURFACE = "subdivision_surface"
 
 
+class LibraryType(Enum):
+    """What kind of asset library a DSON dictionary belongs to."""
+    GEOMETRY = "geometry_library"
+    IMAGE = "image_library"
+    MATERIAL = "material_library"
+    MODIFIER = "modifier_library"
+    NODE = "node_library"
+    UV_SET = "uv_set_library"
+
+
 class NodeType(Enum):
     """What kind of node-object should be added to the scene."""
     NODE    = "node"

@@ -12,7 +12,7 @@ from .. import observers
 
 from ..datatypes.vector import DsonVector
 from ..datatypes.polygon import DsonPolygon
-from ..enums import EdgeInterpolation, GeometryType
+from ..enums import EdgeInterpolation, GeometryType, LibraryType
 from ..file import check_path
 from ..library import get_asset_json_from_library
 
@@ -61,7 +61,7 @@ class DsonGeometry:
         dsf_filepath = check_path(dsf_filepath)
 
         # Load DSON data from disk
-        geometry_json:dict = get_asset_json_from_library(dsf_filepath, "geometry_library")
+        geometry_json:dict = get_asset_json_from_library(dsf_filepath, LibraryType.GEOMETRY)
 
         # TODO: Validate mandatory properties
 

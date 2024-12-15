@@ -11,6 +11,7 @@ from typing import NamedTuple
 
 from .. import observers
 
+from ..enums import LibraryType
 from ..file import check_path
 from ..library import get_asset_json_from_library
 
@@ -56,7 +57,7 @@ class DsonUVSet:
         dsf_filepath:Path = check_path(dsf_filepath)
 
         # Load DSON data from disk
-        uv_set_json:dict = get_asset_json_from_library(dsf_filepath, "uv_set_library")
+        uv_set_json:dict = get_asset_json_from_library(dsf_filepath, LibraryType.UV_SET)
 
         # TODO: Validate mandatory properties
 

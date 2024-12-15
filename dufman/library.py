@@ -8,10 +8,63 @@
 from pathlib import Path
 from typing import Any
 
-from .enums import NodeType
+from .enums import LibraryType, NodeType
 from .file import check_path, handle_dsf_file
 from .exceptions import IncorrectArgument, LibraryNotFound
 from .url import AssetAddress
+
+
+
+# ============================================================================ #
+#                                                                              #
+# ============================================================================ #
+
+def find_library_containing_asset_id(asset_path:Path) -> LibraryType:
+
+    # Ensure type safety
+    asset_path = check_path(asset_path)
+
+    # Convert URL from string to object
+    asset_address:AssetAddress = AssetAddress.create_from_url(asset_path)
+
+    # Ensure we have something to open
+    if not asset_address.filepath:
+        raise Exception(f"Asset URL \"{ asset_path }\" does not have a valid filepath.")
+
+    # Open the DSF file
+    dsf_file:dict = handle_dsf_file(asset_address.filepath)
+
+    # geometry_library
+    for geometry_json in dsf_file.get(LibraryType.GEOMETRY.value, []):
+        if geometry_json["id"] == asset_address.asset_id:
+            return LibraryType.GEOMETRY
+
+    # image_library
+    for image_json in dsf_file.get(LibraryType.IMAGE.value, []):
+        if image_json["id"] == asset_address.asset_id:
+            return LibraryType.IMAGE
+
+    # material_library
+    for material_json in dsf_file.get(LibraryType.MATERIAL.value, []):
+        if material_json["id"] == asset_address.asset_id:
+            return LibraryType.MATERIAL
+
+    # modifier_library
+    for modifier_json in dsf_file.get(LibraryType.MODIFIER.value, []):
+        if modifier_json["id"] == asset_address.asset_id:
+            return LibraryType.MODIFIER
+
+    # node_library
+    for node_json in dsf_file.get(LibraryType.NODE.value, []):
+        if node_json["id"] == asset_address.asset_id:
+            return LibraryType.NODE
+
+    # uv_set_library
+    for uv_set_json in dsf_file.get(LibraryType.UV_SET.value, []):
+        if uv_set_json["id"] == asset_address.asset_id:
+            return LibraryType.UV_SET
+
+    return None
 
 
 # ============================================================================ #
@@ -55,7 +108,7 @@ def get_all_asset_urls_from_library(asset_path:Path, library_name:str) -> list[s
 #                                                                              #
 # ============================================================================ #
 
-def get_asset_json_from_library(asset_path:Path, library_name:str, *, duf_file:dict=None) -> dict:
+def get_asset_json_from_library(asset_path:Path, library_type:LibraryType, *, duf_file:dict=None) -> dict:
     """Returns a dictionary object from the designated DSF file library."""
 
     # Ensure type safety
@@ -86,15 +139,15 @@ def get_asset_json_from_library(asset_path:Path, library_name:str, *, duf_file:d
         raise IncorrectArgument(message)
     # ======================================================================== #
 
-    # Ensure the library actually exists inside the DSON file
-    if not library_name in file_with_asset:
-        raise LibraryNotFound(f"DSF file \"{ asset_path }\" does not contain { library_name }.")
+    # Ensure the DSON file contains a library of the requested type
+    if not library_type.value in file_with_asset:
+        raise LibraryNotFound(f"DSF file \"{ asset_path }\" does not contain { library_type.value }.")
 
     # Return value
     result:dict = None
 
-    # Loop through the library and search for the requested ID
-    for asset in file_with_asset[library_name]:
+    # Loop through the designated library and search for the requested ID
+    for asset in file_with_asset[library_type.value]:
         if asset["id"] == asset_address.asset_id:
             result = asset
             break

@@ -10,6 +10,7 @@ from pathlib import Path
 
 from .. import observers
 
+from ..enums import LibraryType
 from ..file import check_path
 from ..library import get_asset_json_from_library
 
@@ -54,7 +55,7 @@ class DsonModifier:
         dsf_filepath = check_path(dsf_filepath)
 
         # Load DSON data from disk
-        modifier_json:dict = get_asset_json_from_library(dsf_filepath, "modifier_library")
+        modifier_json:dict = get_asset_json_from_library(dsf_filepath, LibraryType.MODIFIER)
 
         struct:DsonModifier = cls()
         struct.dsf_file = dsf_filepath

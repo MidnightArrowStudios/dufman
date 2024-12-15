@@ -12,7 +12,7 @@ from typing import Any
 from .. import observers
 
 from ..datatypes import DsonColor
-from ..enums import NodeType, RotationOrder
+from ..enums import LibraryType, NodeType, RotationOrder
 from ..file import check_path
 
 from ..library import (
@@ -118,7 +118,7 @@ class DsonNode:
         dsf_filepath = check_path(dsf_filepath)
 
         # Load DSON data from disk
-        node_json:dict = get_asset_json_from_library(dsf_filepath, "node_library")
+        node_json:dict = get_asset_json_from_library(dsf_filepath, LibraryType.NODE)
 
         struct:DsonNode = cls()
         struct.dsf_file = dsf_filepath
