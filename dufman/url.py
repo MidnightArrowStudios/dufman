@@ -119,6 +119,19 @@ class AssetAddress:
         return None
 
 
+    def get_valid_formula_url(self:AssetAddress) -> str:
+        result:str = ""
+        if self.node_name:
+            result += f"{self.node_name}:"
+        if self.filepath:
+            result += f"{self.filepath}"
+        if self.asset_id:
+            result += f"#{self.asset_id}"
+        if self.property_path:
+            result += f"?{self.property_path}"
+        return result
+
+
 # ============================================================================ #
 
 # def parse_url_string(url_string:str) -> AssetURL:
