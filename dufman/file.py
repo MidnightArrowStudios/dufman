@@ -60,14 +60,14 @@ def add_content_directories_automatically() -> None:
 
             # Creates a readonly path to the Daz Studio registry entry.
             registry_path = winreg.OpenKeyEx(winreg.HKEY_CURRENT_USER, r"SOFTWARE\DAZ\Studio4", access=winreg.KEY_READ)
-            
+
             # Tuple with number of sub-keys, number of values, and last time
             #   registry was edited.
             info:tuple = winreg.QueryInfoKey(registry_path)
-            
+
             # The list of content directories that will be added.
             directories:list[str] = []
-            
+
             # Loop through values, check to ensure they are zero-terminated
             #   strings ("winreg.REG_SZ") and that their names begin with
             #   "ContentDir", and add them to the filepath list.
@@ -79,7 +79,7 @@ def add_content_directories_automatically() -> None:
             # Add content directory filepaths.
             for directory in directories:
                 add_content_directory(directory)
-    
+
             # Clean up.
             winreg.CloseKey(registry_path)
 
