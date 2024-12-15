@@ -8,8 +8,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from ..datatypes import DsonVector
-from ..datatypes import DsonPolygon
+from .. import observers
+
+from ..datatypes.vector import DsonVector
+from ..datatypes.polygon import DsonPolygon
 from ..enums import EdgeInterpolation, GeometryType
 from ..file import check_path
 from ..library import get_asset_json_from_library
@@ -112,8 +114,7 @@ class DsonGeometry:
             struct.rigidity = DsonRigidity.load(geometry_json["rigidity"])
 
         # Fire observer update.
-        from ..observers import _geometry_struct_created
-        _geometry_struct_created(struct, geometry_json)
+        observers._geometry_struct_created(struct, geometry_json)
 
         return struct
 

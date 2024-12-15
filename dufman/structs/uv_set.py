@@ -9,6 +9,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import NamedTuple
 
+from .. import observers
+
 from ..file import check_path
 from ..library import get_asset_json_from_library
 
@@ -115,8 +117,7 @@ class DsonUVSet:
                 )
 
         # Fire observer update.
-        from ..observers import _uv_set_struct_created
-        _uv_set_struct_created(struct, uv_set_json)
+        observers._uv_set_struct_created(struct, uv_set_json)
 
         return struct
 

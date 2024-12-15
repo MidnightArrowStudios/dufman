@@ -8,6 +8,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
+from .. import observers
+
 from ..file import check_path
 from ..library import get_asset_json_from_library
 
@@ -108,7 +110,6 @@ class DsonModifier:
             struct.skin_binding = DsonSkinBinding.load(modifier_json["skin"])
 
         # Fire observer update.
-        from ..observers import _modifier_struct_created
-        _modifier_struct_created(struct, modifier_json)
+        observers._modifier_struct_created(struct, modifier_json)
 
         return struct

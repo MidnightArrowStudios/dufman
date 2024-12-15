@@ -9,6 +9,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from .. import observers
+
 from ..datatypes import DsonColor
 from ..enums import NodeType, RotationOrder
 from ..file import check_path
@@ -212,8 +214,7 @@ class DsonNode:
             struct.formulas = DsonFormula.load(node_json["formulas"])
 
         # Fire observer update.
-        from ..observers import _node_struct_created
-        _node_struct_created(struct, node_json)
+        observers._node_struct_created(struct, node_json)
 
         return struct
 
