@@ -119,10 +119,17 @@ class AssetAddress:
         return None
 
 
+    def get_property_tokens(self:AssetAddress) -> list[str]:
+        if self.property_path:
+            return self.property_path.split("/")
+        else:
+            return []
+
+
     def get_valid_formula_url(self:AssetAddress) -> str:
         result:str = ""
-        if self.node_name:
-            result += f"{self.node_name}:"
+        # if self.node_name:
+        #     result += f"{self.node_name}:"
         if self.filepath:
             result += f"{self.filepath}"
         if self.asset_id:
