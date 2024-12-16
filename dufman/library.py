@@ -207,6 +207,8 @@ def get_node_hierarchy_urls_from_library(asset_path:Path) -> list[str]:
 #                                                                              #
 # ============================================================================ #
 
+# TODO: Break the file loading and the file parsing into separate functions,
+#   so we can parse already-opened files.
 def get_single_property_from_library(dsf_filepath:Path, property_path:list[str]) -> Any:
     """Gets a single piece of data from a DSF file based on its path."""
 
@@ -219,7 +221,7 @@ def get_single_property_from_library(dsf_filepath:Path, property_path:list[str])
 
     # The property path is split into components representing the hierarchy
     #   of the asset's property.
-    # [ "geometry_library", 0, "polygon_material_groups", "values, 4 ]
+    # [ "geometry_library", 0, "polygon_material_groups", "values", 4 ]
     #   will return the fifth surface's name in the first geometry asset.
     while tokens:
 
