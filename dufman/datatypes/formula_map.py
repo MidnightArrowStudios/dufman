@@ -15,9 +15,6 @@ class FormulaMap:
     def __init__(self:FormulaMap, figure_id:str, url:str) -> Self:
         self.property_map:dict = {}
         self._create_property_map(figure_id, url)
-        for (key, obj) in self.property_map.items():
-            channel_id:str = obj["id"]
-            print(f"{key}: {channel_id}")
         return
 
 
@@ -28,7 +25,7 @@ class FormulaMap:
         library_type:LibraryType = find_library_containing_asset_id(asset_url)
 
         # Ensure object is either a modifier or a node.
-        if not (library_type == LibraryType.MODIFIER or library_type == LibraryType.NODE):
+        if library_type not in {LibraryType.MODIFIER, LibraryType.NODE}:
             raise Exception(f"\"{url_string}\" has unexpected library_type: \"{library_type}\"")
 
         # If we are dealing with a root URL (passed in by user), it won't have
@@ -36,8 +33,7 @@ class FormulaMap:
         if (library_type == LibraryType.MODIFIER) and not address.property_path:
             address.property_path = "value"
 
-        # This is the object that holds the formulas -- either a modifier or a
-        #   node.
+        # This is the JSON with the formulas -- either a modifier or a node.
         json:dict = get_asset_json_from_library(asset_url, library_type)
         if not json:
             raise Exception(f"Could not retrieve JSON object from DSF file.")
