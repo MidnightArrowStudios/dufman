@@ -98,7 +98,7 @@ def get_all_asset_urls_from_library(asset_path:Path, library_name:str) -> list[s
     for entry in dsf_file[library_name]:
         fp:str = asset_address.filepath
         ai:str = entry["id"]
-        full_url:str = AssetAddress.create_from_components(filepath=fp, asset_id=ai).get_valid_asset_url()
+        full_url:str = AssetAddress.create_from_components(filepath=fp, asset_id=ai).get_url_to_asset()
         result.append(full_url)
 
     return result
@@ -197,7 +197,7 @@ def get_node_hierarchy_urls_from_library(asset_path:Path) -> list[str]:
         if NodeType(potential_child["type"]) == NodeType.BONE:
             bone_id:str = potential_child["id"]
             bone_address:AssetAddress = AssetAddress.create_from_components(filepath=dsf_url, asset_id=bone_id)
-            result.append(bone_address.get_valid_asset_url())
+            result.append(bone_address.get_url_to_asset())
             working_list.extend( _get_child_node_json(all_nodes, bone_id) )
 
     return result

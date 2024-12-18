@@ -103,7 +103,7 @@ class AssetAddress:
         return cls(node_name=node_name, filepath=filepath, asset_id=asset_id, property_path=property_path)
 
 
-    def get_valid_asset_url(self:AssetAddress, fallback:str = None) -> str:
+    def get_url_to_asset(self:AssetAddress, fallback:str = None) -> str:
         """Returns a URL suitable for retrieving data from a DSF file."""
 
         if not self.asset_id:
@@ -126,7 +126,7 @@ class AssetAddress:
             return []
 
 
-    def get_valid_formula_url(self:AssetAddress) -> str:
+    def get_url_to_property(self:AssetAddress) -> str:
         result:str = ""
         # if self.node_name:
         #     result += f"{self.node_name}:"
