@@ -12,6 +12,10 @@ from __future__ import annotations
 #                                                                              #
 # ============================================================================ #
 
+class ChannelCannotBeClamped(TypeError):
+    """Raised when a channel does not support clamping, minimum, or maximum."""
+
+
 class IncorrectArgument(Exception):
     """Raised when the argument to a function is the wrong datatype."""
 
