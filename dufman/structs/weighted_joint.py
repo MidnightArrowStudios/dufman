@@ -49,15 +49,15 @@ class DsonWeightedJoint:
 
         # Scale weights
         if "scale_weights" in joint_json:
-            raise Exception("Scale weights have not been implemented yet.")
+            raise NotImplementedError
 
         # Local weights
         if "local_weights" in joint_json:
-            raise Exception("Local weights have not been implemented yet.")
+            raise NotImplementedError
 
         # Bulge weights
         if "bulge_weights" in joint_json:
-            raise Exception("Bulge weights have not been implemented yet.")
+            raise NotImplementedError
 
         # Weighted joint is not valid
         if not has_weights:
