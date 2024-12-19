@@ -6,6 +6,7 @@ from dufman.library import (
     get_all_asset_urls_from_library,
     get_asset_json_from_library,
     get_node_hierarchy_urls_from_library,
+    get_single_property_from_library,
 )
 
 from .test_directory import TestDirectory
@@ -79,5 +80,22 @@ class TestLibrary(TestDirectory):
         self.assertEqual(bone_nodes[0], f"{url_string}#hip")
         self.assertEqual(bone_nodes[-5], f"{url_string}#lPinky3")
         self.assertEqual(bone_nodes[-1], f"{url_string}#rPinky3")
+
+        return
+
+
+    # ======================================================================== #
+    #                                                                          #
+    # ======================================================================== #
+
+    def test_general_scale_property(self:TestLibrary) -> None:
+
+        url_string:str = "/data/DAZ%203D/Genesis%208/Female/Genesis8Female.dsf"
+        property_path:list[str] = [ "node_library", "lThighTwist", "scale", "general" ]
+
+        json:dict = get_single_property_from_library(url_string, property_path)
+
+        self.assertIsNotNone(json)
+        self.assertEqual(json["id"], "general_scale")
 
         return
