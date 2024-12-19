@@ -233,6 +233,13 @@ def get_single_property_from_library(dsf_filepath:Path, property_path:list[str])
             if not token in dsf_pointer:
                 raise invalid
 
+            # NOTE: This is a dirty hack, to get around some Daz Studio
+            #   stupidity. For some reason, formulas refer to "scale/general",
+            #   but under the hood it's converted to "general_scale".
+            if token == "scale" and len(tokens) == 1 and tokens[0] == "general":
+                tokens.pop(0)
+                token = "general_scale"
+
             dsf_pointer = dsf_pointer[token]
             continue
 
