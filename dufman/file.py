@@ -233,6 +233,7 @@ def open_dson_file(filepath:Path) -> dict:
 
     return data
 
+
 # ============================================================================ #
 
 def remove_content_directory(directory_path:Path) -> None:
@@ -242,10 +243,50 @@ def remove_content_directory(directory_path:Path) -> None:
         _content_directories.remove(content_directory)
     return
 
+
 # ============================================================================ #
 
 def remove_all_content_directories() -> None:
     """Removes all filepath anchors that have previously been loaded."""
     for directory in get_content_directories():
         remove_content_directory(directory)
+    return
+
+
+# ============================================================================ #
+
+def save_uncompressed_dson_file(filepath:Path, output_folder:Path=None, *, suffix:str="", overwrite:bool=False) -> None:
+
+    # Ensure filepath argument is formatted correctly.
+    filepath = check_path(filepath)
+    if not filepath.is_file():
+        raise ValueError("Filepath must point to a file, not a directory")
+
+    # Load file from disk.
+    dson_file:dict = open_dson_file(filepath)
+
+    # If output folder is not passed in, save the file in the same directory
+    #   as the original.
+    if not output_folder:
+        output_folder = filepath.parent
+
+    # Ensure output filepath is formatted correctly.
+    output_folder = check_path(output_folder)
+
+    # Ensure output folder path is not a file.
+    if not output_folder.is_dir():
+        output_folder = output_folder.parent
+
+    # Handle the name of the file.
+    file_name:str = f"{filepath.stem}{suffix}{filepath.suffix}"
+    output_filepath:str = output_folder.joinpath(Path(file_name))
+
+    # Check if a file will be overwritten.
+    if output_filepath.exists() and not overwrite:
+        raise ValueError("File already exists. Pass \"overwrite=True\" to enable overwriting.")
+
+    # Open file and save contents to disk.
+    with open(output_filepath, mode='w', encoding='utf-8') as output_file:
+        json.dump(dson_file, output_file, indent='\t')
+
     return
