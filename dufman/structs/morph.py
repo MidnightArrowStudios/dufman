@@ -26,6 +26,8 @@ class DsonMorph:
         struct:DsonMorph = cls()
 
         # Vertex count
+        # NOTE: This property actually doesn't matter, since some assets like
+        #   iSourceTextures's Evangeliya have a value of -1.
         if "vertex_count" in morph_json:
             struct.expected_vertices = morph_json["vertex_count"]
         else:
