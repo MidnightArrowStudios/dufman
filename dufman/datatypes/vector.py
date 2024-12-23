@@ -39,3 +39,6 @@ class DsonVector:
 
     def __iter__(self:DsonVector) -> Iterator:
         return iter([ self.x, self.y, self.z ])
+
+    def __str__(self:DsonVector) -> str:
+        return f"DsonVector({self.x}, {self.y}, {self.z})"
