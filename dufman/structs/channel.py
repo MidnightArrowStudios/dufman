@@ -6,7 +6,7 @@
 
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Iterator
+from typing import Any, Iterator
 
 from ..enums import ChannelType
 
@@ -125,6 +125,11 @@ class DsonChannel:
         return struct
 
 
+    def get_value(self:DsonChannel) -> Any:
+        raise NotImplementedError
+
+
+
 # ============================================================================ #
 #                                                                              #
 # ============================================================================ #
@@ -143,6 +148,10 @@ class DsonChannelFloat(DsonChannel):
     can_use_image_map:bool = False
 
     def __float__(self:DsonChannelFloat) -> float:
+        return self.get_value()
+
+
+    def get_value(self:DsonChannelFloat) -> float:
         return float(self.current_value)
 
 
