@@ -6,7 +6,7 @@
 
 from .asset_info import DsonAssetInfo
 from .bulge_binding import DsonBulgeBinding, DsonBulgeWeights
-from .channel import DsonChannelFloat, DsonChannelVector
+from .channel import DsonChannel, DsonChannelFloat, DsonChannelVector
 from .contributor import DsonContributor
 from .formula import DsonFormula, DsonOperation
 from .geometry import DsonGeometry
