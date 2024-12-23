@@ -55,13 +55,14 @@ class DsonGeometry:
 
 
     @classmethod
-    def load(cls:type, dsf_filepath:Path) -> DsonGeometry:
+    def load(cls:type, dsf_filepath:Path, geometry_json:dict=None) -> DsonGeometry:
 
         # Ensure type safety
         dsf_filepath = check_path(dsf_filepath)
 
-        # Load DSON data from disk
-        geometry_json:dict = get_asset_json_from_library(dsf_filepath, LibraryType.GEOMETRY)
+        # Load DSON data from disk if it wasn't passed in.
+        if not geometry_json:
+            geometry_json = get_asset_json_from_library(dsf_filepath, LibraryType.GEOMETRY)
 
         # TODO: Validate mandatory properties
 

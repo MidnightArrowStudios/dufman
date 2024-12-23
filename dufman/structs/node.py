@@ -112,13 +112,14 @@ class DsonNode:
     # ======================================================================== #
 
     @classmethod
-    def load(cls:type, dsf_filepath:Path) -> DsonNode:
+    def load(cls:type, dsf_filepath:Path, node_json:dict=None) -> DsonNode:
 
         # Ensure type safety
         dsf_filepath = check_path(dsf_filepath)
 
-        # Load DSON data from disk
-        node_json:dict = get_asset_json_from_library(dsf_filepath, LibraryType.NODE)
+        # Load DSON data from disk if it wasn't passed in.
+        if not node_json:
+            node_json = get_asset_json_from_library(dsf_filepath, LibraryType.NODE)
 
         struct:DsonNode = cls()
         struct.dsf_file = dsf_filepath

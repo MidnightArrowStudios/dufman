@@ -49,13 +49,14 @@ class DsonModifier:
 
 
     @classmethod
-    def load(cls:type, dsf_filepath:Path) -> DsonModifier:
+    def load(cls:type, dsf_filepath:Path, modifier_json:dict=None) -> DsonModifier:
 
         # Ensure type safety
         dsf_filepath = check_path(dsf_filepath)
 
-        # Load DSON data from disk
-        modifier_json:dict = get_asset_json_from_library(dsf_filepath, LibraryType.MODIFIER)
+        # Load DSON data from disk if it wasn't passed in.
+        if not modifier_json:
+            modifier_json = get_asset_json_from_library(dsf_filepath, LibraryType.MODIFIER)
 
         struct:DsonModifier = cls()
         struct.dsf_file = dsf_filepath
