@@ -3,7 +3,7 @@
 # https://github.com/MidnightArrowStudios/dufman
 # Licensed under the MIT license.
 # ============================================================================ #
-"""Module containing functions to open DSON files using a Path-type URL value."""
+"""This module provides I/O functions for loading DSON files from disk."""
 
 import gzip
 import json
@@ -17,8 +17,6 @@ from urllib.parse import unquote
 from .exceptions import IncorrectArgument, MultipleDsfFiles, NotDsfFile
 from .observers import _dson_file_opened, _dson_file_loaded
 
-# pylint: disable=W0212
-
 
 # ============================================================================ #
 #                                                                              #
@@ -29,10 +27,10 @@ from .observers import _dson_file_opened, _dson_file_loaded
 #   be cached. However, DSF files may be opened potentially dozens of times to
 #   extract assets, thus it is useful to keep those loaded.
 # Assets are keyed by a Path object, which wraps the DSON-formatted relative
-#   path, i.e. Path("/data/path/to/asset.dsf")
+#   path, i.e. Path("/data/path/to/asset.dsf").
 _dsf_cache:dict = {}
 
-# List of all content directories that Daz assets have been installed to.
+# List of all content directories that Daz assets may have been installed to.
 _content_directories:list[Path] = []
 
 
@@ -41,7 +39,18 @@ _content_directories:list[Path] = []
 # ============================================================================ #
 
 def add_content_directory(directory_path:Path) -> None:
-    """Adds a filepath anchor to the internal array of valid content directories."""
+    """Add a root directory that DUFMan will use to search for asset files.
+    
+    These directories should match the content directories created and used by
+    the Daz Studio application itself. Each content directory should have a 
+    '/data' and a '/runtime' directory directly inside them.
+    
+    On some platforms, the function 'add_content_directories_automatically()'
+    can be used to extract the directories from the Daz Studio installation.
+
+    :param directory_path: The root directory
+    :types directory_path: A string or a pathlib.Path object
+    """
     content_directory:Path = check_path(directory_path)
     if content_directory not in _content_directories:
         _content_directories.append(content_directory)
@@ -51,7 +60,14 @@ def add_content_directory(directory_path:Path) -> None:
 # ============================================================================ #
 
 def add_content_directories_automatically() -> None:
-    """Attempts to find and add filepath anchors based on user's operating system."""
+    """Attempt to add content directories using Daz Studio's install files.
+
+    This function is operating system-dependent. Currently, it is only imple-
+    mented on Windows.
+
+    :raises NotImplementedError: If the OS is not supported, the function does
+        nothing.
+    """
 
     os_name:str = platform.system()
 
@@ -84,20 +100,26 @@ def add_content_directories_automatically() -> None:
             winreg.CloseKey(registry_path)
 
         case _:
-            raise Exception("Unsupported OS. Content directories must be added manually.")
+            raise NotImplementedError("Operating system is not supported. Add content directories manually.")
 
     return
 
 # ============================================================================ #
 
 def check_path(potential_path:Path) -> Path:
-    """Validates function arguments that accept pathlib Paths."""
+    """Validate function arguments to ensure they are Path objects.
+    
+    If the value can be converted into a Path, the function will do so rather
+    then fail.
+
+    :param potential_path: The path to inspect
+    :types potential_path: pathlib.Path object or string
+    """
 
     if isinstance(potential_path, str):
         potential_path = Path(unquote(potential_path))
 
     if not isinstance(potential_path, Path):
-        # pylint: disable=C0301
         message:str = f"Argument \"{repr(potential_path)}\" is not Path or string."
         raise IncorrectArgument(message)
 
@@ -106,7 +128,7 @@ def check_path(potential_path:Path) -> Path:
 
 # ============================================================================ #
 
-def clear_dsf_cache() -> None: # pylint: disable=R1711
+def clear_dsf_cache() -> None:
     """Removes all DSF files which have been cached, freeing up memory."""
     _dsf_cache.clear()
     return
@@ -133,7 +155,7 @@ def get_absolute_filepath(relative_path:Path) -> Path:
 
     count:int = len(absolute_filepaths)
 
-    if count <= 0: # pylint: disable=R1720
+    if count <= 0:
         raise FileNotFoundError
     elif count == 1:
         return absolute_filepaths[0]
@@ -167,8 +189,7 @@ def get_content_directories() -> list[str]:
 
 # ============================================================================ #
 
-# pylint: disable-next=W0613
-def handle_dsf_file(dsf_filepath:Path, should_cache:bool=True, memory_limit:int=0) -> dict:
+def handle_dsf_file(dsf_filepath:Path, should_cache:bool=True, _memory_limit:int=0) -> dict:
     """Opens and caches the DSF file located at the (relative) filepath."""
 
     dsf_filepath = check_path(dsf_filepath)
@@ -189,7 +210,6 @@ def handle_dsf_file(dsf_filepath:Path, should_cache:bool=True, memory_limit:int=
     if dsf_filepath in _dsf_cache:
         return _dsf_cache[dsf_filepath]
 
-    # pylint: disable=W0511
     # TODO: Add memory size checks
 
     # Add file to cache and return it.
@@ -256,6 +276,7 @@ def remove_all_content_directories() -> None:
 # ============================================================================ #
 
 def save_uncompressed_dson_file(filepath:Path, output_folder:Path=None, *, suffix:str="", overwrite:bool=False) -> None:
+    """Open a compressed DSON file and save it back to disk uncompressed."""
 
     # Ensure filepath argument is formatted correctly.
     filepath = check_path(filepath)
