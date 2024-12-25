@@ -16,7 +16,7 @@ from typing import NamedTuple
 
 # ============================================================================ #
 
-class Callback(NamedTuple):
+class _Callback(NamedTuple):
     """Struct-like object for storing an observer's properties."""
     function:Callable
     userdata:dict
@@ -26,11 +26,11 @@ class Callback(NamedTuple):
 #                                                                              #
 # ============================================================================ #
 
-_on_dson_file_opened:list[Callback] = []
+_on_dson_file_opened:list[_Callback] = []
 
 def register_on_dson_file_opened(callback:Callable, userdata:dict) -> None:
     """Registers a callback after a DSON file is opened as a plaintext document."""
-    _on_dson_file_opened.append(Callback(callback, userdata))
+    _on_dson_file_opened.append(_Callback(callback, userdata))
     return
 
 def _dson_file_opened(filepath:Path, absolute_filepath:Path, dson_file:str) -> None:
@@ -42,11 +42,11 @@ def _dson_file_opened(filepath:Path, absolute_filepath:Path, dson_file:str) -> N
 #                                                                              #
 # ============================================================================ #
 
-_on_dson_file_loaded:list[Callback] = []
+_on_dson_file_loaded:list[_Callback] = []
 
 def register_on_dson_file_loaded(callback:Callable, userdata:dict) -> None:
     """Registers a callback after a DSON file is instantiated as a DSON dictionary."""
-    _on_dson_file_loaded.append(Callback(callback, userdata))
+    _on_dson_file_loaded.append(_Callback(callback, userdata))
     return
 
 def _dson_file_loaded(filepath:Path, absolute_filepath:Path, dson_file:dict) -> None:
@@ -58,11 +58,11 @@ def _dson_file_loaded(filepath:Path, absolute_filepath:Path, dson_file:dict) -> 
 #                                                                              #
 # ============================================================================ #
 
-_on_geometry_struct_created:list[Callback] = []
+_on_geometry_struct_created:list[_Callback] = []
 
 def register_on_geometry_struct_created(callback:Callable, userdata:dict) -> None:
     """Registers a callback after a geometry asset is instantiated from a DSON library."""
-    _on_geometry_struct_created.append(Callback(callback, userdata))
+    _on_geometry_struct_created.append(_Callback(callback, userdata))
     return
 
 def _geometry_struct_created(struct:"DsonGeometry", geometry_json:dict) -> None:
@@ -75,11 +75,11 @@ def _geometry_struct_created(struct:"DsonGeometry", geometry_json:dict) -> None:
 #                                                                              #
 # ============================================================================ #
 
-_on_modifier_struct_created:list[Callback] = []
+_on_modifier_struct_created:list[_Callback] = []
 
 def register_on_modifier_struct_created(callback:Callable, userdata:dict) -> None:
     """Registers a callback after a modifier asset is instantiated from a DSON library."""
-    _on_modifier_struct_created.append(Callback(callback, userdata))
+    _on_modifier_struct_created.append(_Callback(callback, userdata))
     return
 
 def _modifier_struct_created(struct:"DsonModifier", modifier_json:dict) -> None:
@@ -92,11 +92,11 @@ def _modifier_struct_created(struct:"DsonModifier", modifier_json:dict) -> None:
 #                                                                              #
 # ============================================================================ #
 
-_on_node_struct_created:list[Callback] = []
+_on_node_struct_created:list[_Callback] = []
 
 def register_on_node_struct_created(callback:Callable, userdata:dict) -> None:
     """Registers a callback after a node asset is instantiated from a DSON library."""
-    _on_node_struct_created.append(Callback(callback, userdata))
+    _on_node_struct_created.append(_Callback(callback, userdata))
     return
 
 def _node_struct_created(struct:"DsonNode", node_json:dict) -> None:
@@ -109,11 +109,11 @@ def _node_struct_created(struct:"DsonNode", node_json:dict) -> None:
 #                                                                              #
 # ============================================================================ #
 
-_on_uv_set_struct_created:list[Callback] = []
+_on_uv_set_struct_created:list[_Callback] = []
 
 def register_on_uv_set_struct_created(callback:Callable, userdata:dict) -> None:
     """Registers a callback after a UV Set asset is instantiated from a DSON library."""
-    _on_uv_set_struct_created.append(Callback(callback, userdata))
+    _on_uv_set_struct_created.append(_Callback(callback, userdata))
     return
 
 def _uv_set_struct_created(struct:"DsonUVSet", uv_set_json:dict) -> None:
