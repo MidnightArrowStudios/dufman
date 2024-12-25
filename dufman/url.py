@@ -28,6 +28,37 @@ class AssetAddress:
     property_path:str = None
 
 
+    @classmethod
+    def format_url_as_string(cls:type, node_name:str=None, filepath:str=None, asset_id:str=None, property_path:str=None) -> str:
+
+        result:str = ""
+
+        # For the following documentation, we will use the following example:
+        #   Genesis8Female:/data/DAZ 3D/Genesis 8/Female/Genesis8Female#Genesis8Female?translation/x
+        #   |             ||                                          ||             ||            |
+        #      node_name                    filepath                      asset_id    property_path
+
+        # Node name
+        if node_name:
+            result += f"{node_name}:"
+
+        # Filepath
+        if filepath:
+            filepath = cls.format_filepath(filepath)
+            result += f"{filepath}"
+
+        # Asset ID
+        if asset_id:
+            result += f"#{asset_id}"
+
+        # Property path
+        if property_path:
+            property_path = Path(filepath).as_posix()
+            result += f"?{property_path}"
+
+        return result
+
+
     @staticmethod
     def format_filepath(filepath:str) -> str:
         """Helper method to ensure filepaths are formatted according to DSON standards."""
@@ -112,9 +143,9 @@ class AssetAddress:
         fallback = self.format_filepath(fallback)
 
         if self.filepath:
-            return f"{self.filepath}#{self.asset_id}"
+            return self.format_url_as_string(filepath=self.filepath, asset_id=self.asset_id)
         if fallback:
-            return f"{fallback}#{self.asset_id}"
+            return self.format_url_as_string(filepath=fallback, asset_id=self.asset_id)
 
         return None
 
@@ -127,16 +158,7 @@ class AssetAddress:
 
 
     def get_url_to_property(self:AssetAddress) -> str:
-        result:str = ""
-        # if self.node_name:
-        #     result += f"{self.node_name}:"
-        if self.filepath:
-            result += f"{self.filepath}"
-        if self.asset_id:
-            result += f"#{self.asset_id}"
-        if self.property_path:
-            result += f"?{self.property_path}"
-        return result
+        return self.format_url_as_string(filepath=self.filepath, asset_id=self.asset_id, property_path=self.property_path)
 
 
 # ============================================================================ #
