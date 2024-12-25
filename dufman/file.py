@@ -14,8 +14,8 @@ from io import TextIOWrapper
 from pathlib import Path
 from urllib.parse import unquote
 
-from .exceptions import IncorrectArgument, MultipleDsfFiles, NotDsfFile
-from .observers import _dson_file_opened, _dson_file_loaded
+from dufman.exceptions import IncorrectArgument, MultipleDsfFiles, NotDsfFile
+from dufman.observers import _dson_file_opened, _dson_file_loaded
 
 
 # ============================================================================ #

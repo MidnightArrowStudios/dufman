@@ -8,10 +8,10 @@
 from pathlib import Path
 from typing import Any
 
-from .enums import LibraryType, NodeType
-from .file import check_path, handle_dsf_file
-from .exceptions import IncorrectArgument, LibraryNotFound
-from .url import AssetAddress
+from dufman.enums import LibraryType, NodeType
+from dufman.file import check_path, handle_dsf_file
+from dufman.exceptions import IncorrectArgument, LibraryNotFound
+from dufman.url import AssetAddress
 
 
 

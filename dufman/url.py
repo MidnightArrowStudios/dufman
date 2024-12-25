@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import ParseResult, quote, unquote, urlparse
 
-from .exceptions import IncorrectArgument
+from dufman.exceptions import IncorrectArgument
 
 
 # ============================================================================ #
@@ -53,7 +53,6 @@ class AssetAddress:
 
         # Property path
         if property_path:
-            property_path = Path(filepath).as_posix()
             result += f"?{property_path}"
 
         return result
