@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from dufman.datatypes import DsonColor
+from dufman.datatypes.color import DsonColor
 from dufman.enums import LibraryType, NodeType, RotationOrder
 from dufman.file import check_path
 
