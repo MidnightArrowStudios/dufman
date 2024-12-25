@@ -18,40 +18,32 @@ from dufman.enums import (
     RigidScale,
     RotationOrder,
 )
-
-from dufman.library import (
-    get_single_property_from_library,
-)
-
+from dufman.library import get_single_property_from_library
 from dufman.observers import (
     register_on_geometry_struct_created,
     register_on_modifier_struct_created,
     register_on_node_struct_created,
     register_on_uv_set_struct_created,
 )
+from dufman.datatypes.color import DsonColor
+from dufman.structs.asset_info import DsonAssetInfo
+from dufman.structs.bulge_binding import DsonBulgeWeights
+from dufman.structs.channel import DsonChannelFloat, DsonChannelVector
+from dufman.structs.contributor import DsonContributor
+from dufman.structs.formula import DsonFormula
+from dufman.structs.graft import DsonGraft
+from dufman.structs.geometry import DsonGeometry
+from dufman.structs.modifier import DsonModifier
+from dufman.structs.morph import DsonMorph
+from dufman.structs.named_string_map import DsonNamedStringMap
+from dufman.structs.node import DsonNode
+from dufman.structs.presentation import DsonPresentation
+from dufman.structs.region import DsonRegion
+from dufman.structs.rigidity import DsonRigidity
+from dufman.structs.skin_binding import DsonSkinBinding
+from dufman.structs.uv_set import DsonUVSet
+from dufman.structs.weighted_joint import DsonWeightedJoint
 
-from dufman.datatypes import DsonColor
-
-from dufman.structs import (
-    DsonAssetInfo,
-    DsonBulgeWeights,
-    DsonChannelFloat,
-    DsonChannelVector,
-    DsonContributor,
-    DsonFormula,
-    DsonGraft,
-    DsonGeometry,
-    DsonModifier,
-    DsonMorph,
-    DsonNamedStringMap,
-    DsonNode,
-    DsonPresentation,
-    DsonRegion,
-    DsonRigidity,
-    DsonSkinBinding,
-    DsonUVSet,
-    DsonWeightedJoint,
-)
 
 from .test_directory import TestDirectory
 
