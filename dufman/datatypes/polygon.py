@@ -8,10 +8,6 @@ from __future__ import annotations
 from typing import Any, Iterator
 
 
-# ============================================================================ #
-#                                                                              #
-# ============================================================================ #
-
 class DsonPolygon:
     """A wrapper for the vertex indices which constitute a mesh's face."""
 

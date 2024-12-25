@@ -7,6 +7,7 @@
 from __future__ import annotations
 from typing import Any, Iterator
 
+
 class DsonColor:
     """A wrapper for three floats which define a color."""
 

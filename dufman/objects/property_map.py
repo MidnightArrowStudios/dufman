@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from math import isclose
 from typing import Any, Self
 
-from dufman.datatypes import DsonVector
+from dufman.datatypes.vector import DsonVector
 from dufman.enums import (
     ChannelType,
     FormulaOperator,
@@ -12,14 +12,11 @@ from dufman.enums import (
     LibraryType,
 )
 from dufman.library import find_library_containing_asset_id
-from dufman.structs import (
-    DsonChannel,
-    DsonChannelFloat,
-    DsonFormula,
-    DsonModifier,
-    DsonMorph,
-    DsonNode,
-)
+from dufman.structs.channel import DsonChannel, DsonChannelFloat
+from dufman.structs.formula import DsonFormula
+from dufman.structs.modifier import DsonModifier
+from dufman.structs.morph import DsonMorph
+from dufman.structs.node import DsonNode
 from dufman.url import AssetAddress
 
 

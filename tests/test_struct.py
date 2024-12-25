@@ -45,7 +45,7 @@ from dufman.structs.uv_set import DsonUVSet
 from dufman.structs.weighted_joint import DsonWeightedJoint
 
 
-from .test_directory import TestDirectory
+from tests.abstract.test_directory import TestDirectory
 
 
 class TestStruct(TestDirectory):

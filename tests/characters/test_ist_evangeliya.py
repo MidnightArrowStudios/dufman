@@ -2,9 +2,12 @@ from __future__ import annotations
 
 from dufman.enums import ChannelType
 from dufman.objects.property_map import PropertyMap
-from dufman.structs import DsonModifier, DsonMorph, DsonNode
+from dufman.structs.modifier import DsonModifier
+from dufman.structs.morph import DsonMorph
+from dufman.structs.node import DsonNode
 
-from ..test_directory import TestDirectory
+from tests.abstract.test_directory import TestDirectory
+
 
 class TestISTEvangeliya(TestDirectory):
 

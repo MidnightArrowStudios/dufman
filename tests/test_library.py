@@ -9,7 +9,7 @@ from dufman.library import (
     get_single_property_from_library,
 )
 
-from .test_directory import TestDirectory
+from tests.abstract.test_directory import TestDirectory
 
 
 class TestLibrary(TestDirectory):
