@@ -81,7 +81,7 @@ class AssetAddress:
 
         filepath = cls.format_filepath(filepath)
 
-        return cls(node_name=node_name, filepath=filepath, asset_id=asset_id, property_path=property_path)
+        return cls(node_name, filepath, asset_id, property_path)
 
 
     @classmethod
@@ -130,8 +130,25 @@ class AssetAddress:
         asset_id = asset_id if asset_id else None
         property_path = property_path if property_path else None
 
-        return cls(node_name=node_name, filepath=filepath, asset_id=asset_id, property_path=property_path)
+        return cls(node_name, filepath, asset_id, property_path)
 
+
+    # ------------------------------------------------------------------------ #
+
+    def get_property_tokens(self:AssetAddress) -> list[str]:
+        """Break the property path into a list of tokens.
+
+        :returns: The path to the property
+        :rtype: List of strings
+        """
+        if not self.property_path:
+            return []
+        return self.property_path.split("/")
+
+
+    # ======================================================================== #
+    #                                                                          #
+    # ======================================================================== #
 
     def get_url_to_asset(self:AssetAddress, fallback:str = None) -> str:
         """Returns a URL suitable for retrieving data from a DSF file."""
@@ -149,12 +166,7 @@ class AssetAddress:
         return None
 
 
-    def get_property_tokens(self:AssetAddress) -> list[str]:
-        if self.property_path:
-            return self.property_path.split("/")
-        else:
-            return []
-
+    # ------------------------------------------------------------------------ #
 
     def get_url_to_property(self:AssetAddress) -> str:
         return self.format_url_as_string(filepath=self.filepath, asset_id=self.asset_id, property_path=self.property_path)
