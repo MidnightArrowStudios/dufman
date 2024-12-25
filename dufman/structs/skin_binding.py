@@ -7,8 +7,8 @@
 from __future__ import annotations
 from dataclasses import dataclass
 
-from .named_string_map import DsonNamedStringMap
-from .weighted_joint import DsonWeightedJoint
+from dufman.structs.named_string_map import DsonNamedStringMap
+from dufman.structs.weighted_joint import DsonWeightedJoint
 
 @dataclass
 class DsonSkinBinding:

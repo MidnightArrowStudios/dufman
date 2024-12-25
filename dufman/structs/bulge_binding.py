@@ -7,7 +7,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 
-from .channel import DsonChannelFloat
+from dufman.structs.channel import DsonChannelFloat
 
 @dataclass
 class DsonBulgeBinding:

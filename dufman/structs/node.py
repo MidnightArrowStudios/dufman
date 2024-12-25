@@ -9,22 +9,20 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from .. import observers
+from dufman.datatypes import DsonColor
+from dufman.enums import LibraryType, NodeType, RotationOrder
+from dufman.file import check_path
 
-from ..datatypes import DsonColor
-from ..enums import LibraryType, NodeType, RotationOrder
-from ..file import check_path
-
-from ..library import (
+from dufman.library import (
     get_asset_json_from_library,
     get_single_property_from_library,
 )
+from dufman.observers import _node_struct_created
+from dufman.url import AssetAddress
 
-from ..url import AssetAddress
-
-from .channel import DsonChannelFloat, DsonChannelVector
-from .formula import DsonFormula
-from .presentation import DsonPresentation
+from dufman.structs.channel import DsonChannelFloat, DsonChannelVector
+from dufman.structs.formula import DsonFormula
+from dufman.structs.presentation import DsonPresentation
 
 
 # ============================================================================ #
@@ -215,7 +213,7 @@ class DsonNode:
             struct.formulas = DsonFormula.load(node_json["formulas"])
 
         # Fire observer update.
-        observers._node_struct_created(struct, node_json)
+        _node_struct_created(struct, node_json)
 
         return struct
 

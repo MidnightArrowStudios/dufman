@@ -8,17 +8,16 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from .. import observers
+from dufman.enums import LibraryType
+from dufman.file import check_path
+from dufman.library import get_asset_json_from_library
+from dufman.observers import _modifier_struct_created
 
-from ..enums import LibraryType
-from ..file import check_path
-from ..library import get_asset_json_from_library
-
-from .channel import DsonChannel
-from .formula import DsonFormula
-from .morph import DsonMorph
-from .presentation import DsonPresentation
-from .skin_binding import DsonSkinBinding
+from dufman.structs.channel import DsonChannel
+from dufman.structs.formula import DsonFormula
+from dufman.structs.morph import DsonMorph
+from dufman.structs.presentation import DsonPresentation
+from dufman.structs.skin_binding import DsonSkinBinding
 
 
 # ============================================================================ #
@@ -112,6 +111,6 @@ class DsonModifier:
             struct.skin_binding = DsonSkinBinding.load(modifier_json["skin"])
 
         # Fire observer update.
-        observers._modifier_struct_created(struct, modifier_json)
+        _modifier_struct_created(struct, modifier_json)
 
         return struct

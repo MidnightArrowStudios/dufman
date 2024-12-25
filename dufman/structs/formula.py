@@ -8,7 +8,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from ..enums import FormulaOperator, FormulaStage
+from dufman.enums import FormulaOperator, FormulaStage
 
 @dataclass
 class DsonFormula:

@@ -7,7 +7,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 
-from ..enums import RigidRotation, RigidScale
+from dufman.enums import RigidRotation, RigidScale
 
 @dataclass
 class DsonRigidity:

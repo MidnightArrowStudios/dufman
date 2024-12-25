@@ -9,11 +9,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import NamedTuple
 
-from .. import observers
-
-from ..enums import LibraryType
-from ..file import check_path
-from ..library import get_asset_json_from_library
+from dufman.enums import LibraryType
+from dufman.file import check_path
+from dufman.library import get_asset_json_from_library
+from dufman.observers import _uv_set_struct_created
 
 
 # ============================================================================ #
@@ -119,7 +118,7 @@ class DsonUVSet:
                 )
 
         # Fire observer update.
-        observers._uv_set_struct_created(struct, uv_set_json)
+        _uv_set_struct_created(struct, uv_set_json)
 
         return struct
 

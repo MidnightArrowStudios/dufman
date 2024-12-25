@@ -7,7 +7,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 
-from .contributor import DsonContributor
+from dufman.structs.contributor import DsonContributor
 
 @dataclass
 class DsonAssetInfo:
