@@ -202,7 +202,7 @@ class DsonNode:
         general_scale_json:dict = None
         if "general_scale" in node_json:
             general_scale_json = node_json["general_scale"]
-        struct.general_scale = DsonChannelFloat.load(general_scale_json, default_float_value=1.0)
+        struct.general_scale = DsonChannelFloat.load(general_scale_json, default_value=1.0)
 
         # Presentation
         if "presentation" in node_json:

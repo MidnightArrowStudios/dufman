@@ -29,8 +29,8 @@ class DsonChannel:
     auto_follow             : bool          = False
 
 
-    @classmethod
-    def load(cls:type, channel_json:dict, default_float_value:float = 0.0) -> DsonChannel:
+    @staticmethod
+    def _create_basic(struct:DsonChannel, channel_json:dict) -> None:
 
         # Verify channel's type is valid
         if not "type" in channel_json:
@@ -42,15 +42,6 @@ class DsonChannel:
             channel_type = ChannelType(chstr)
         except Exception as e:
             raise Exception(f"Channel type \"{chstr}\" is not valid") from e
-
-        # Instantiate struct based on type
-        struct:DsonChannel = None
-        match channel_type:
-            case ChannelType.FLOAT:
-                struct = DsonChannelFloat()
-            # Shouldn't need a default case, since it was verified above.
-            # case _:
-            #     raise Exception()
 
         # ID
         if "id" in channel_json:
@@ -80,54 +71,89 @@ class DsonChannel:
         if "auto_follow" in channel_json:
             struct.auto_follow = channel_json["auto_follow"]
 
-        # Channel type properties
+        return
+
+
+    @classmethod
+    def load(cls:type, channel_json:dict, **kwargs) -> DsonChannel:
+        channel_type:ChannelType = ChannelType(channel_json["type"])
         match channel_type:
-
-            # Float
+            case ChannelType.BOOL:
+                return DsonChannelBool.load(channel_json, **kwargs)
             case ChannelType.FLOAT:
-
-                # Default value
-                if "value" in channel_json:
-                    struct.default_value = channel_json["value"]
-                else:
-                    struct.default_value = default_float_value
-
-                # Current value
-                if "current_value" in channel_json:
-                    struct.current_value = channel_json["current_value"]
-                else:
-                    struct.current_value = struct.default_value
-
-                # Minimum value
-                if "min" in channel_json:
-                    struct.minimum_value = channel_json["min"]
-
-                # Maximum value
-                if "max" in channel_json:
-                    struct.maximum_value = channel_json["max"]
-
-                # Clamp values
-                if "clamped" in channel_json:
-                    struct.clamp_values = channel_json["clamped"]
-
-                # Display as percent
-                if "display_as_percent" in channel_json:
-                    struct.display_as_percent = channel_json["display_as_percent"]
-
-                # Value increment
-                if "step_size" in channel_json:
-                    struct.value_increment = channel_json["step_size"]
-
-                # Can use image map
-                if "mappable" in channel_json:
-                    struct.can_use_image_map = channel_json["mappable"]
-
-        return struct
+                return DsonChannelFloat.load(channel_json, **kwargs)
+            case _:
+                raise NotImplementedError(channel_type)
 
 
     def get_value(self:DsonChannel) -> Any:
         raise NotImplementedError
 
+
+# ============================================================================ #
+#                                                                              #
+# ============================================================================ #
+
+@dataclass
+class DsonChannelBool(DsonChannel):
+
+    default_value:bool = False
+    current_value:bool = False
+    minimum_value:int = 0
+    maximum_value:int = 1
+
+    clamp_values:bool = False
+    value_increment:int = 1
+    can_use_image_map:bool = False
+
+
+    @classmethod
+    def load(cls:type, channel_json, default_value:bool=False) -> DsonChannelBool:
+
+        struct:DsonChannelBool = cls()
+        DsonChannel._create_basic(struct, channel_json)
+
+        # Default value
+        if "value" in channel_json:
+            struct.default_value = channel_json["value"]
+        else:
+            struct.default_value = default_value
+
+        # Current value
+        if "current_value" in channel_json:
+            struct.current_value = channel_json["current_value"]
+        else:
+            struct.current_value = struct.default_value
+
+        # Minimum value
+        if "min" in channel_json:
+            struct.minimum_value = channel_json["min"]
+
+        # Maximum value
+        if "max" in channel_json:
+            struct.maximum_value = channel_json["max"]
+
+        # Clamp values
+        if "clamped" in channel_json:
+            struct.clamp_values = channel_json["clamped"]
+
+        # Value increment
+        if "step_size" in channel_json:
+            struct.value_increment = channel_json["step_size"]
+
+        # Can use image map
+        if "mappable" in channel_json:
+            struct.can_use_image_map = channel_json["mappable"]
+
+        return struct
+
+
+    def __bool__(self:DsonChannelBool) -> bool:
+        return bool(self.current_value)
+
+
+    def get_value(self:DsonChannelBool) -> bool:
+        return bool(self)
 
 
 # ============================================================================ #
@@ -147,12 +173,58 @@ class DsonChannelFloat(DsonChannel):
     value_increment:float = 1.0
     can_use_image_map:bool = False
 
+
+    @classmethod
+    def load(cls:type, channel_json:dict, default_value:float=0.0) -> DsonChannelFloat:
+
+        struct:DsonChannelFloat = cls()
+        DsonChannel._create_basic(struct, channel_json)
+
+        # Default value
+        if "value" in channel_json:
+            struct.default_value = channel_json["value"]
+        else:
+            struct.default_value = default_value
+
+        # Current value
+        if "current_value" in channel_json:
+            struct.current_value = channel_json["current_value"]
+        else:
+            struct.current_value = struct.default_value
+
+        # Minimum value
+        if "min" in channel_json:
+            struct.minimum_value = channel_json["min"]
+
+        # Maximum value
+        if "max" in channel_json:
+            struct.maximum_value = channel_json["max"]
+
+        # Clamp values
+        if "clamped" in channel_json:
+            struct.clamp_values = channel_json["clamped"]
+
+        # Display as percent
+        if "display_as_percent" in channel_json:
+            struct.display_as_percent = channel_json["display_as_percent"]
+
+        # Value increment
+        if "step_size" in channel_json:
+            struct.value_increment = channel_json["step_size"]
+
+        # Can use image map
+        if "mappable" in channel_json:
+            struct.can_use_image_map = channel_json["mappable"]
+
+        return struct
+
+
     def __float__(self:DsonChannelFloat) -> float:
-        return self.get_value()
+        return float(self.current_value)
 
 
     def get_value(self:DsonChannelFloat) -> float:
-        return float(self.current_value)
+        return float(self)
 
 
 
@@ -186,9 +258,9 @@ class DsonChannelVector:
                     z_dict = item
 
         vector:DsonChannelVector = cls()
-        vector.x = DsonChannelFloat.load(x_dict, default_float_value=default_x)
-        vector.y = DsonChannelFloat.load(y_dict, default_float_value=default_y)
-        vector.z = DsonChannelFloat.load(z_dict, default_float_value=default_z)
+        vector.x = DsonChannelFloat.load(x_dict, default_value=default_x)
+        vector.y = DsonChannelFloat.load(y_dict, default_value=default_y)
+        vector.z = DsonChannelFloat.load(z_dict, default_value=default_z)
 
         return vector
 
