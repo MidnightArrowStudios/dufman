@@ -142,7 +142,7 @@ def get_absolute_filepath(relative_path:Path) -> Path:
     # Ensure type safety
     relative_path = check_path(relative_path)
 
-    # Leading lashes interfere with pathlib, so strip them off.
+    # Leading slashes interfere with pathlib, so strip them off.
     stripped:Path = relative_path.relative_to(relative_path.anchor)
 
     # Return value
@@ -164,28 +164,58 @@ def get_absolute_filepath(relative_path:Path) -> Path:
 
 # ============================================================================ #
 
-def get_absolute_filepaths_in_directory(relative_path:Path) -> list[Path]:
-    """Takes a relative DSON directory path and extracts its absolute DSF paths."""
-
-    # Ensure type safety
-    relative_path = check_path(relative_path)
-
-    absolute_path:Path = get_absolute_filepath(relative_path)
-
-    filepaths:list[Path] = []
-
-    for filepath in absolute_path.iterdir():
-        if not filepath.suffix.lower() == ".dsf":
-            continue
-        filepaths.append(filepath)
-
-    return filepaths
+def get_content_directories() -> list[Path]:
+    """Returns a list of every registered Daz Studio content directory."""
+    return [ directory for directory in _content_directories ]
 
 # ============================================================================ #
 
-def get_content_directories() -> list[str]:
-    """Returns a list of every registered Daz Studio content directory."""
-    return [ str(directory) for directory in _content_directories ]
+def get_dsf_filepaths_from_directory(directory:Path) -> list[Path]:
+
+    # TODO: Check if relative or absolute
+
+    directory = check_path(directory)
+
+    absolute:Path = get_absolute_filepath(directory)
+
+    result:list[Path] = []
+
+    for filepath in absolute.iterdir():
+        if not filepath.suffix.lower() == ".dsf":
+            continue
+
+        relative:Path = get_relative_filepath(filepath)
+        result.append(relative)
+
+    return result
+
+# ============================================================================ #
+
+def get_relative_filepath(absolute_path:Path) -> Path:
+
+    # Ensure type safety
+    absolute_path = check_path(absolute_path)
+
+    if not absolute_path.is_absolute():
+        raise ValueError("Path argument is not an absolute path.")
+
+    # Return value
+    relative_filepaths:list[Path] = []
+
+    for directory in _content_directories:
+        if absolute_path.exists() and absolute_path.is_relative_to(directory):
+            relative_path = absolute_path.relative_to(directory)
+            relative_path = Path("/").joinpath(relative_path)
+            relative_filepaths.append(relative_path)
+
+    count:int = len(relative_filepaths)
+
+    if count <= 0:
+        raise FileNotFoundError
+    elif count == 1:
+        return relative_filepaths[0]
+    else:
+        raise MultipleDsfFiles
 
 # ============================================================================ #
 
