@@ -71,7 +71,7 @@ def find_library_containing_asset_id(asset_path:Path) -> LibraryType:
 #                                                                              #
 # ============================================================================ #
 
-def get_all_asset_urls_from_library(asset_path:Path, library_name:str) -> list[str]:
+def get_all_asset_urls_from_library(asset_path:Path, library_type:LibraryType) -> list[str]:
     """Returns a list of all IDs from a designated DSF file's library."""
 
     # Ensure type safety
@@ -88,21 +88,20 @@ def get_all_asset_urls_from_library(asset_path:Path, library_name:str) -> list[s
     dsf_file:dict = handle_dsf_file(asset_address.filepath)
 
     # Ensure the library actually exists inside the DSON file
-    if not library_name in dsf_file:
-        raise LibraryNotFound(f"DSF file \"{ asset_path }\" does not contain { library_name }.")
+    if not library_type.value in dsf_file:
+        raise LibraryNotFound(f"DSF file \"{ asset_path }\" does not contain { library_type }.")
 
     # Return value
     result:list[str] = []
 
     # Loop through library and compile list of quoted asset URLs for each one
-    for entry in dsf_file[library_name]:
+    for entry in dsf_file[library_type.value]:
         fp:str = asset_address.filepath
         ai:str = entry["id"]
-        full_url:str = AssetAddress.create_from_components(filepath=fp, asset_id=ai).get_url_to_asset()
+        full_url:str = AssetAddress.format_url_as_string(filepath=fp, asset_id=ai)
         result.append(full_url)
 
     return result
-
 
 # ============================================================================ #
 #                                                                              #
