@@ -34,6 +34,7 @@ from dufman.url import AssetAddress
 # ============================================================================ #
 
 def find_library_containing_asset_id(asset_path:Path) -> LibraryType:
+    """Searches all of a DSON file's libraries to verify an asset's type."""
 
     # Ensure type safety
     asset_path = check_path(asset_path)
@@ -43,7 +44,7 @@ def find_library_containing_asset_id(asset_path:Path) -> LibraryType:
 
     # Ensure we have something to open
     if not asset_address.filepath:
-        raise Exception(f"Asset URL \"{ asset_path }\" does not have a valid filepath.")
+        raise ValueError(f"Asset URL \"{ asset_path }\" does not have a valid filepath.")
 
     # Open the DSF file
     dsf_file:dict = handle_dsf_file(asset_address.filepath)
@@ -96,7 +97,7 @@ def get_all_asset_urls_from_library(asset_path:Path, library_type:LibraryType) -
 
     # Ensure we have something to open
     if not asset_address.filepath:
-        raise Exception(f"Asset URL \"{ asset_path }\" does not have a valid filepath.")
+        raise ValueError(f"Asset URL \"{ asset_path }\" does not have a valid filepath.")
 
     # Open the DSF file
     dsf_file:dict = handle_dsf_file(asset_address.filepath)
@@ -183,7 +184,7 @@ def get_node_hierarchy_urls_from_library(asset_path:Path) -> list[str]:
 
     # Ensure we have something to open
     if not asset_address.filepath:
-        raise Exception(f"Asset URL \"{ asset_path }\" does not have a valid filepath.")
+        raise ValueError(f"Asset URL \"{ asset_path }\" does not have a valid filepath.")
 
     # Open the DSF file
     dsf_file:dict = handle_dsf_file(asset_address.filepath)
