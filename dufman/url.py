@@ -28,8 +28,38 @@ class AssetAddress:
     property_path:str = None
 
 
-    @classmethod
-    def format_url_as_string(cls:type, node_name:str=None, filepath:str=None, asset_id:str=None, property_path:str=None) -> str:
+    # ======================================================================== #
+
+    @staticmethod
+    def format_filepath(filepath:str, *, is_quoted:bool=True, has_leading_slash:bool=True) -> str:
+        """Ensure filepath string is formatted according to DSON standards.
+        
+        The resulting filepath will have forward slashes and be quoted using
+        urllib, ensuring it matches the format that DSON files use to access
+        other files. It will also have a forward slash appended to the front,
+        if there isn't one already.
+        """
+
+        if not filepath:
+            return None
+
+        # Ensure filepath has forward slashes and is quoted
+        result:str = quote(Path(unquote(str(filepath))).as_posix(), safe="/\\")
+
+        # Ensure filepath starts with forward slash
+        if not has_leading_slash and result.startswith("/"):
+            result = result.lstrip("/")
+        elif has_leading_slash and not result.startswith("/"):
+            result = "/" + result
+
+        return result if is_quoted else unquote(result)
+
+
+    # ------------------------------------------------------------------------ #
+
+    @staticmethod
+    def format_url_as_string(*, node_name:str=None, filepath:str=None, asset_id:str=None, property_path:str=None) -> str:
+        """Construct and format a DSON URL string from its component parts."""
 
         result:str = ""
 
@@ -44,7 +74,7 @@ class AssetAddress:
 
         # Filepath
         if filepath:
-            filepath = cls.format_filepath(filepath)
+            filepath = AssetAddress.format_filepath(filepath)
             result += f"{filepath}"
 
         # Asset ID
@@ -58,22 +88,7 @@ class AssetAddress:
         return result
 
 
-    @staticmethod
-    def format_filepath(filepath:str) -> str:
-        """Helper method to ensure filepaths are formatted according to DSON standards."""
-
-        if not filepath:
-            return None
-
-        # Ensure filepath has forward slashes and is quoted
-        result:str = quote(Path(unquote(str(filepath))).as_posix(), safe="/\\")
-
-        # Ensure filepath starts with forward slash
-        if not result.startswith("/"):
-            result = "/" + result
-
-        return result
-
+    # ======================================================================== #
 
     @classmethod
     def create_from_components(cls:type, *, node_name:str=None, filepath:str=None, asset_id:str=None, property_path:str=None) -> AssetAddress:
@@ -83,6 +98,8 @@ class AssetAddress:
 
         return cls(node_name, filepath, asset_id, property_path)
 
+
+    # ------------------------------------------------------------------------ #
 
     @classmethod
     def create_from_url(cls:type, url_string:Any) -> AssetAddress:
