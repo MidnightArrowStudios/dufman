@@ -24,7 +24,7 @@ from dufman.file import (
     get_property_from_dson_file,
     handle_dsf_file,
 )
-from dufman.exceptions import IncorrectArgument, LibraryNotFound
+from dufman.exceptions import LibraryNotFound
 from dufman.url import AssetAddress
 
 
@@ -149,8 +149,7 @@ def get_asset_json_from_library(asset_path:Path, library_type:LibraryType, *, du
 
     # No URL, failure
     else:
-        message:str = "Could not get asset data. URL was invalid or DUF argument was None."
-        raise IncorrectArgument(message)
+        raise ValueError
     # ======================================================================== #
 
     # Ensure the DSON file contains a library of the requested type

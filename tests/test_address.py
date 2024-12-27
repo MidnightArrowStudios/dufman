@@ -3,7 +3,6 @@ from pathlib import Path
 from typing import Any
 from unittest import TestCase
 
-from dufman.exceptions import IncorrectArgument
 from dufman.url import AssetAddress
 
 
@@ -15,9 +14,9 @@ class TestAddress(TestCase):
 
     def test_invalid(self:TestAddress) -> None:
 
-        self.assertRaises(IncorrectArgument, AssetAddress.from_url, 5)
-        self.assertRaises(IncorrectArgument, AssetAddress.from_url, 10.0)
-        self.assertRaises(IncorrectArgument, AssetAddress.from_url, True)
+        self.assertRaises(TypeError, AssetAddress.from_url, 5)
+        self.assertRaises(TypeError, AssetAddress.from_url, 10.0)
+        self.assertRaises(TypeError, AssetAddress.from_url, True)
 
         return
 

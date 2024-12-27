@@ -7,7 +7,6 @@ from urllib.parse import unquote
 
 from dufman import file
 from dufman import observers
-from dufman.exceptions import IncorrectArgument
 
 class TestFileModule(TestCase):
 
@@ -65,7 +64,7 @@ class TestFileModule(TestCase):
 
     def test_check_path(self:TestFileModule) -> None:
 
-        self.assertRaises(IncorrectArgument, file.check_path, None)
+        self.assertRaises(TypeError, file.check_path, None)
 
         contdir:str = self.content_directory.as_posix()
         result:Path = file.check_path(contdir)

@@ -11,8 +11,6 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import ParseResult, quote, unquote, urlparse
 
-from dufman.exceptions import IncorrectArgument
-
 
 # ============================================================================ #
 #                                                                              #
@@ -140,8 +138,7 @@ class AssetAddress:
 
         # Ensure type safety.
         if not isinstance(url_string, str):
-            message:str = f"Could not create AssetAddress. Argument \"{url_string}\" is a {type(url_string)}, not a string or a Path object."
-            raise IncorrectArgument(message)
+            raise TypeError
 
         # urllib sucks at handling Scheme. Doesn't preserve capitalization and
         #   makes it a path if it has an underscore. If there is a Scheme, we

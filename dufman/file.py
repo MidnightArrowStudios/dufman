@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import unquote
 
-from dufman.exceptions import IncorrectArgument, MultipleDsfFiles, NotDsfFile
+from dufman.exceptions import MultipleDsfFiles, NotDsfFile
 from dufman.observers import _dson_file_opened, _dson_file_loaded
 
 
@@ -122,8 +122,7 @@ def check_path(potential_path:Path) -> Path:
         potential_path = Path(unquote(potential_path))
 
     if not isinstance(potential_path, Path):
-        message:str = f"Argument \"{repr(potential_path)}\" is not Path or string."
-        raise IncorrectArgument(message)
+        raise TypeError
 
     return potential_path
 
