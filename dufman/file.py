@@ -167,7 +167,7 @@ def get_absolute_filepath(relative_path:Path) -> Path:
 # ============================================================================ #
 
 def get_cache_memory_consumption() -> int:
-    memory_usage:int = _get_memory_consumption(_dsf_cache)
+    memory_usage:int = get_dson_memory_consumption(_dsf_cache)
     memory_usage -= sys.getsizeof(_dsf_cache)
     return memory_usage
 
@@ -181,6 +181,23 @@ def get_cached_file_count() -> int:
 def get_content_directories() -> list[Path]:
     """Returns a list of every registered Daz Studio content directory."""
     return [ directory for directory in _content_directories ]
+
+# ============================================================================ #
+
+def get_dson_memory_consumption(obj:Any) -> int:
+
+    running_total:int = 0
+    pointer_stack:list[Any] = [ obj ]
+
+    while pointer_stack:
+        pointer:Any = pointer_stack.pop()
+        running_total += sys.getsizeof(pointer)
+        if isinstance(pointer, dict):
+            pointer_stack.extend(pointer.values())
+        elif isinstance(pointer, list):
+            pointer_stack.extend(pointer)
+
+    return running_total
 
 # ============================================================================ #
 
@@ -348,7 +365,7 @@ def handle_dsf_file(dsf_filepath:Path, *, should_cache:bool=True, memory_limit:i
     # If the file is too large, don't cache it.
     if memory_limit > 0:
         # Memory limit is in megabytes.
-        if _get_memory_consumption(dson_file) > memory_limit:
+        if get_dson_memory_consumption(dson_file) > memory_limit:
             return dson_file
 
     # Add file to cache and return it.
@@ -450,23 +467,3 @@ def save_uncompressed_dson_file(filepath:Path, output_folder:Path=None, *, suffi
         json.dump(dson_file, output_file, indent='\t')
 
     return
-
-
-# ============================================================================ #
-#                                                                              #
-# ============================================================================ #
-
-def _get_memory_consumption(obj:Any) -> int:
-
-    running_total:int = 0
-    pointer_stack:list[Any] = [ obj ]
-
-    while pointer_stack:
-        pointer:Any = pointer_stack.pop()
-        running_total += sys.getsizeof(pointer)
-        if isinstance(pointer, dict):
-            pointer_stack.extend(pointer.values())
-        elif isinstance(pointer, list):
-            pointer_stack.extend(pointer)
-
-    return running_total
