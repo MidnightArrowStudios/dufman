@@ -29,6 +29,8 @@ class AssetAddress:
 
 
     # ======================================================================== #
+    # FORMAT METHODS                                                           #
+    # ======================================================================== #
 
     @staticmethod
     def format_filepath(filepath:str, *, is_quoted:bool=True, has_leading_slash:bool=True) -> str:
@@ -88,6 +90,32 @@ class AssetAddress:
         return result
 
 
+    # ======================================================================== #
+    # STRING GENERATION METHODS                                                #
+    # ======================================================================== #
+
+    @staticmethod
+    def generate_asset_url(url_string:str, *, filepath:str=None) -> str:
+        address:AssetAddress = AssetAddress.create_from_url(url_string)
+        if not address.filepath and filepath:
+            address.filepath = filepath
+        return address.get_url_to_asset()
+
+
+    # ------------------------------------------------------------------------ #
+
+    @staticmethod
+    def generate_property_url(url_string:str, *, filepath:str=None, property_path:str=None) -> str:
+        address:AssetAddress = AssetAddress.create_from_url(url_string)
+        if not address.filepath and filepath:
+            address.filepath = filepath
+        if not address.property_path and property_path:
+            address.property_path = property_path
+        return address.get_url_to_property()
+
+
+    # ======================================================================== #
+    # FACTORY METHODS                                                          #
     # ======================================================================== #
 
     @classmethod
@@ -150,21 +178,8 @@ class AssetAddress:
         return cls(node_name, filepath, asset_id, property_path)
 
 
-    # ------------------------------------------------------------------------ #
-
-    def get_property_tokens(self:AssetAddress) -> list[str]:
-        """Break the property path into a list of tokens.
-
-        :returns: The path to the property
-        :rtype: List of strings
-        """
-        if not self.property_path:
-            return []
-        return self.property_path.split("/")
-
-
     # ======================================================================== #
-    #                                                                          #
+    # URL CREATION METHODS                                                     #
     # ======================================================================== #
 
     def get_url_to_asset(self:AssetAddress, fallback:str = None) -> str:
@@ -187,6 +202,19 @@ class AssetAddress:
 
     def get_url_to_property(self:AssetAddress) -> str:
         return self.format_url_as_string(filepath=self.filepath, asset_id=self.asset_id, property_path=self.property_path)
+
+
+    # ======================================================================== #
+    # QUERY METHODS                                                            #
+    # ======================================================================== #
+
+    def get_property_tokens(self:AssetAddress) -> list[str]:
+        """Break the property path into a list of tokens.
+
+        :returns: The path to the property
+        :rtype: List of strings
+        """
+        return self.property_path.split("/") if self.property_path else []
 
 
 # ============================================================================ #
