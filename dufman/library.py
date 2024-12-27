@@ -3,7 +3,17 @@
 # https://github.com/MidnightArrowStudios/dufman
 # Licensed under the MIT license.
 # ============================================================================ #
-"""Module containing functions to extract data from DSF file libraries."""
+"""This module extracts data from DSF files.
+
+The DSON file specification allows DSON files to store six kinds of assets:
+geometry, images, materials, modifiers, nodes, and UV sets. These assets are
+stored in libraries inside each DSON file. DSON files can refer to other DSON
+assets with a URL that identifies both the asset's file and its ID.
+
+The utilities provided by this module allow a user to extract both assets (in
+the form of dictionaries) found in DSON libraries and the URLs which refer to
+assets in other files.
+"""
 
 from pathlib import Path
 from typing import Any
@@ -210,8 +220,6 @@ def get_node_hierarchy_urls_from_library(asset_path:Path) -> list[str]:
 #                                                                              #
 # ============================================================================ #
 
-# TODO: Break the file loading and the file parsing into separate functions,
-#   so we can parse already-opened files.
 def get_single_property_from_library(dsf_filepath:Path, property_path:list[Any]) -> Any:
     """Gets a single piece of data from a DSF file based on its path."""
 
