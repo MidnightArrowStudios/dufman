@@ -53,8 +53,10 @@ class DsonGeometry:
     rigidity                : DsonRigidity          = None
 
 
-    @classmethod
-    def load(cls:type, dsf_filepath:Path, geometry_json:dict=None) -> DsonGeometry:
+    # ======================================================================== #
+
+    @staticmethod
+    def load(dsf_filepath:Path, geometry_json:dict=None) -> DsonGeometry:
 
         # Ensure type safety
         dsf_filepath = check_path(dsf_filepath)
@@ -65,14 +67,14 @@ class DsonGeometry:
 
         # TODO: Validate mandatory properties
 
-        struct:DsonGeometry = cls()
+        struct:DsonGeometry = DsonGeometry()
         struct.dsf_file = dsf_filepath
 
         # ID
         if "id" in geometry_json:
             struct.library_id = geometry_json["id"]
         else:
-            raise Exception("Missing required property \"id\"")
+            raise ValueError("Missing required property \"id\"")
 
         # Name
         if "name" in geometry_json:
@@ -117,6 +119,116 @@ class DsonGeometry:
         _geometry_struct_created(struct, geometry_json)
 
         return struct
+
+
+    # ======================================================================== #
+
+    @staticmethod
+    def save(struct:DsonGeometry) -> dict:
+
+        geometry_json:dict = {}
+
+        # ID
+        if struct.library_id:
+            geometry_json["id"] = struct.library_id
+        else:
+            raise ValueError("DsonGeometry struct has no asset ID.")
+
+        # Name
+        if struct.name:
+            geometry_json["name"] = struct.name
+
+        # Label
+        if struct.label:
+            geometry_json["label"] = struct.label
+
+        # Type
+        if struct.geometry_type:
+            geometry_json["type"] = struct.geometry_type.value
+
+        # Source
+        if struct.source:
+            geometry_json["source"] = struct.source
+
+        # Edge interpolation
+        if struct.edge_interpolation:
+            geometry_json["edge_interpolation_mode"] = struct.edge_interpolation.value
+
+        # -------------------------------------------------------------------- #
+        # Vertices
+        if not struct.vertices:
+            raise ValueError("DsonGeometry struct has no vertices.")
+
+        vertex_dict:dict = {
+            "count": len(struct.vertices),
+            "values": [],
+        }
+
+        for vertex in struct.vertices:
+            vertex_dict["values"].append(list(vertex))
+
+        geometry_json["vertices"] = vertex_dict
+
+        # -------------------------------------------------------------------- #
+        # Polygons
+        if not struct.face_group_indices:
+            raise ValueError("DsonGeometry struct has no face group indices.")
+        if not struct.material_indices:
+            raise ValueError("DsonGeometry struct has no material indices.")
+        if not struct.polygons:
+            raise ValueError("DsonGeometry struct has no polygons.")
+
+        polylist_dict:dict = {
+            "count": len(struct.polygons),
+            "values": [],
+        }
+
+        for (index, polygon) in enumerate(struct.polygons):
+            fg:int = struct.face_group_indices[index]
+            mi:int = struct.material_indices[index]
+            polylist_dict["values"].append([ fg, mi, *polygon ])
+
+        geometry_json["polylist"] = polylist_dict
+
+        # -------------------------------------------------------------------- #
+        # Face group names
+        if not struct.face_group_names:
+            raise ValueError("DsonGeometry struct has no face group names.")
+
+        fg_dict:dict = {
+            "count": len(struct.face_group_names),
+            "values": [],
+        }
+
+        for fg_name in struct.face_group_names:
+            fg_dict["values"].append(fg_name)
+
+        geometry_json["polygon_groups"] = fg_dict
+
+        # -------------------------------------------------------------------- #
+        # Material surface names
+        if not struct.material_names:
+            raise ValueError("DsonGeometry struct has no material names.")
+
+        mat_dict:dict = {
+            "count": len(struct.material_names),
+            "values": [],
+        }
+
+        for mat_name in struct.material_names:
+            mat_dict["values"].append(mat_name)
+
+        geometry_json["polygon_material_groups"] = mat_dict
+
+        # -------------------------------------------------------------------- #
+
+        # Default UV Set
+        if struct.default_uv_set:
+            geometry_json["default_uv_set"] = struct.default_uv_set
+
+        # TODO: Add region, graft, and rigidity once structs are implemented.
+
+        return geometry_json
 
 
 # ============================================================================ #
