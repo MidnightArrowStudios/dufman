@@ -33,9 +33,9 @@ def register_on_dson_file_opened(callback:Callable, userdata:dict) -> None:
     _on_dson_file_opened.append(_Callback(callback, userdata))
     return
 
-def _dson_file_opened(filepath:Path, absolute_filepath:Path, dson_file:str) -> None:
+def _dson_file_opened(absolute_filepath:Path, dson_file:str) -> None:
     for callback in _on_dson_file_opened:
-        callback.function(callback.userdata, filepath, absolute_filepath, dson_file)
+        callback.function(callback.userdata, absolute_filepath, dson_file)
     return
 
 # ============================================================================ #
@@ -49,9 +49,9 @@ def register_on_dson_file_loaded(callback:Callable, userdata:dict) -> None:
     _on_dson_file_loaded.append(_Callback(callback, userdata))
     return
 
-def _dson_file_loaded(filepath:Path, absolute_filepath:Path, dson_file:dict) -> None:
+def _dson_file_loaded(absolute_filepath:Path, dson_file:dict) -> None:
     for callback in _on_dson_file_loaded:
-        callback.function(callback.userdata, filepath, absolute_filepath, dson_file)
+        callback.function(callback.userdata, absolute_filepath, dson_file)
     return
 
 # ============================================================================ #
