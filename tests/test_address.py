@@ -15,9 +15,9 @@ class TestAddress(TestCase):
 
     def test_invalid(self:TestAddress) -> None:
 
-        self.assertRaises(IncorrectArgument, AssetAddress.create_from_url, 5)
-        self.assertRaises(IncorrectArgument, AssetAddress.create_from_url, 10.0)
-        self.assertRaises(IncorrectArgument, AssetAddress.create_from_url, True)
+        self.assertRaises(IncorrectArgument, AssetAddress.from_url, 5)
+        self.assertRaises(IncorrectArgument, AssetAddress.from_url, 10.0)
+        self.assertRaises(IncorrectArgument, AssetAddress.from_url, True)
 
         return
 
@@ -33,7 +33,7 @@ class TestAddress(TestCase):
         def check_address(url_string:Any, *, node_name:str = None, asset_id:str = None, property_path:str = None) -> None:
             nonlocal canonical_url
 
-            address:AssetAddress = AssetAddress.create_from_url(url_string)
+            address:AssetAddress = AssetAddress.from_url(url_string)
             self.assertIsNotNone(address)
             self.assertEqual(address.node_name, node_name)
             self.assertEqual(address.filepath, canonical_url)

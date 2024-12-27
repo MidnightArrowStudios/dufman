@@ -96,7 +96,7 @@ class AssetAddress:
 
     @staticmethod
     def generate_asset_url(url_string:str, *, filepath:str=None) -> str:
-        address:AssetAddress = AssetAddress.create_from_url(url_string)
+        address:AssetAddress = AssetAddress.from_url(url_string)
         if not address.filepath and filepath:
             address.filepath = filepath
         return address.get_url_to_asset()
@@ -106,7 +106,7 @@ class AssetAddress:
 
     @staticmethod
     def generate_property_url(url_string:str, *, filepath:str=None, property_path:str=None) -> str:
-        address:AssetAddress = AssetAddress.create_from_url(url_string)
+        address:AssetAddress = AssetAddress.from_url(url_string)
         if not address.filepath and filepath:
             address.filepath = filepath
         if not address.property_path and property_path:
@@ -119,7 +119,7 @@ class AssetAddress:
     # ======================================================================== #
 
     @classmethod
-    def create_from_components(cls:type, *, node_name:str=None, filepath:str=None, asset_id:str=None, property_path:str=None) -> AssetAddress:
+    def from_components(cls:type, *, node_name:str=None, filepath:str=None, asset_id:str=None, property_path:str=None) -> AssetAddress:
         """Factory method to create an AssetAddress from a DSON-formatted URL's parts."""
 
         filepath = cls.format_filepath(filepath)
@@ -130,7 +130,7 @@ class AssetAddress:
     # ------------------------------------------------------------------------ #
 
     @classmethod
-    def create_from_url(cls:type, url_string:Any) -> AssetAddress:
+    def from_url(cls:type, url_string:Any) -> AssetAddress:
         """Factory method to create an AssetAddress from a DSON-formatted URL."""
 
         # Force-convert Path object to string, using as_posix() to ensure it

@@ -230,7 +230,7 @@ def _inherits_scale_default(struct:DsonNode) -> bool:
         return True
 
     # Create variables to access property.
-    address:AssetAddress = AssetAddress.create_from_url(struct.parent)
+    address:AssetAddress = AssetAddress.from_url(struct.parent)
     property_path:list[Any] = [ "node_library", address.asset_id, "type" ]
 
     # Get type as string

@@ -40,7 +40,7 @@ def find_library_containing_asset_id(asset_path:Path) -> LibraryType:
     asset_path = check_path(asset_path)
 
     # Convert URL from string to object
-    asset_address:AssetAddress = AssetAddress.create_from_url(asset_path)
+    asset_address:AssetAddress = AssetAddress.from_url(asset_path)
 
     # Ensure we have something to open
     if not asset_address.filepath:
@@ -93,7 +93,7 @@ def get_all_asset_urls_from_library(asset_path:Path, library_type:LibraryType) -
     asset_path = check_path(asset_path)
 
     # Convert URL from string to object
-    asset_address:AssetAddress = AssetAddress.create_from_url(asset_path)
+    asset_address:AssetAddress = AssetAddress.from_url(asset_path)
 
     # Ensure we have something to open
     if not asset_address.filepath:
@@ -129,7 +129,7 @@ def get_asset_json_from_library(asset_path:Path, library_type:LibraryType, *, du
     asset_path = check_path(asset_path)
 
     # Convert URL from string to object
-    asset_address:AssetAddress = AssetAddress.create_from_url(asset_path)
+    asset_address:AssetAddress = AssetAddress.from_url(asset_path)
 
     # ======================================================================== #
     # Assets can either be in the file we are currently parsing, in which case
@@ -180,7 +180,7 @@ def get_node_hierarchy_urls_from_library(asset_path:Path) -> list[str]:
     asset_path = check_path(asset_path)
 
     # Convert URL from string to object
-    asset_address:AssetAddress = AssetAddress.create_from_url(asset_path)
+    asset_address:AssetAddress = AssetAddress.from_url(asset_path)
 
     # Ensure we have something to open
     if not asset_address.filepath:
@@ -210,7 +210,7 @@ def get_node_hierarchy_urls_from_library(asset_path:Path) -> list[str]:
         potential_child:dict = working_list.pop(0)
         if NodeType(potential_child["type"]) == NodeType.BONE:
             bone_id:str = potential_child["id"]
-            bone_address:AssetAddress = AssetAddress.create_from_components(filepath=dsf_url, asset_id=bone_id)
+            bone_address:AssetAddress = AssetAddress.from_components(filepath=dsf_url, asset_id=bone_id)
             result.append(bone_address.get_url_to_asset())
             working_list.extend( _get_child_node_json(all_nodes, bone_id) )
 
@@ -246,7 +246,7 @@ def _get_child_node_json(node_library:list[dict], parent_id:str) -> list[dict]:
             continue
 
         # Parent URLs are stored with a pound sign. This will strip them off.
-        parent_address:AssetAddress = AssetAddress.create_from_url(node["parent"])
+        parent_address:AssetAddress = AssetAddress.from_url(node["parent"])
 
         # TODO: Can a node have a parent in a different file? It's doubtful,
         #   but it might be an edge case worth handling.
