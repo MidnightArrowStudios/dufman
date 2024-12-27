@@ -9,7 +9,11 @@ from pathlib import Path
 from typing import Any
 
 from dufman.enums import LibraryType, NodeType
-from dufman.file import check_path, handle_dsf_file
+from dufman.file import (
+    check_path,
+    get_property_from_dson_file,
+    handle_dsf_file,
+)
 from dufman.exceptions import IncorrectArgument, LibraryNotFound
 from dufman.url import AssetAddress
 
@@ -208,77 +212,12 @@ def get_node_hierarchy_urls_from_library(asset_path:Path) -> list[str]:
 
 # TODO: Break the file loading and the file parsing into separate functions,
 #   so we can parse already-opened files.
-def get_single_property_from_library(dsf_filepath:Path, property_path:list[str]) -> Any:
+def get_single_property_from_library(dsf_filepath:Path, property_path:list[Any]) -> Any:
     """Gets a single piece of data from a DSF file based on its path."""
 
-    invalid:Exception = Exception("Property could not be retrieved. Ensure property_path is valid.")
-
     dsf_filepath = check_path(dsf_filepath)
-
-    tokens:list[str] = list(property_path)
-    dsf_pointer:Any = handle_dsf_file(dsf_filepath)
-
-    # The property path is split into components representing the hierarchy
-    #   of the asset's property.
-    # [ "geometry_library", 0, "polygon_material_groups", "values", 4 ]
-    #   will return the fifth surface's name in the first geometry asset.
-    while tokens:
-
-        token = tokens.pop(0)
-
-        # Current level is DSON object (i.e. dictionary).
-        if isinstance(dsf_pointer, dict):
-
-            if not token in dsf_pointer:
-                raise invalid
-
-            # NOTE: This is a dirty hack, to get around some Daz Studio
-            #   stupidity. For some reason, formulas refer to "scale/general",
-            #   but under the hood it's converted to "general_scale".
-            if token == "scale" and len(tokens) == 1 and tokens[0] == "general":
-                tokens.pop(0)
-                token = "general_scale"
-
-            dsf_pointer = dsf_pointer[token]
-            continue
-
-        # Current level is list.
-        if isinstance(dsf_pointer, list):
-
-            # Need this to control branching. If we put a continue statement
-            #   into the following for loop, then it will only continue that
-            #   loop, instead of the loop we want ("while tokens:").
-            was_found:bool = False
-
-            # First, see if the token matches an ID.
-            for entry in dsf_pointer:
-                if isinstance(entry, dict) and "id" in entry and entry["id"] == token:
-                    dsf_pointer = entry
-                    was_found = True
-                    break
-
-            # Restart top-level loop if ID was found.
-            if was_found:
-                continue
-
-            # If it doesn't match an ID, see if we can use it as an index.
-            index:int = None
-
-            try:
-                index = int(token)
-            except ValueError as ve:
-                raise invalid from ve
-
-            if not 0 <= index < len(dsf_pointer):
-                raise IndexError
-
-            dsf_pointer = dsf_pointer[index]
-            continue
-
-        # Neither a dictionary nor a list, so property_path is not valid.
-        raise invalid
-
-    return dsf_pointer
+    dson_file:dict = handle_dsf_file(dsf_filepath)
+    return get_property_from_dson_file(dson_file, property_path)
 
 
 # ============================================================================ #
