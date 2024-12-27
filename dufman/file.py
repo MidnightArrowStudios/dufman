@@ -8,10 +8,12 @@
 import gzip
 import json
 import platform
+import sys
 import winreg
 
 from io import TextIOWrapper
 from pathlib import Path
+from typing import Any
 from urllib.parse import unquote
 
 from dufman.exceptions import IncorrectArgument, MultipleDsfFiles, NotDsfFile
@@ -129,7 +131,7 @@ def check_path(potential_path:Path) -> Path:
 # ============================================================================ #
 
 def clear_dsf_cache() -> None:
-    """Removes all DSF files which have been cached, freeing up memory."""
+    """Removes all DSF files from cache, freeing up memory."""
     _dsf_cache.clear()
     return
 
@@ -164,26 +166,36 @@ def get_absolute_filepath(relative_path:Path) -> Path:
 
 # ============================================================================ #
 
+def get_cache_memory_consumption() -> int:
+    memory_usage:int = _get_memory_consumption(_dsf_cache)
+    memory_usage -= sys.getsizeof(_dsf_cache)
+    return memory_usage
+
+# ============================================================================ #
+
+def get_cached_file_count() -> int:
+    return len(_dsf_cache)
+
+# ============================================================================ #
+
 def get_content_directories() -> list[Path]:
     """Returns a list of every registered Daz Studio content directory."""
     return [ directory for directory in _content_directories ]
 
 # ============================================================================ #
 
-def get_dsf_filepaths_from_directory(directory:Path) -> list[Path]:
-
-    # TODO: Check if relative or absolute
+def get_relative_filepaths_from_directory(directory:Path, *, filter_dsf:bool=True) -> list[Path]:
 
     directory = check_path(directory)
 
-    absolute:Path = get_absolute_filepath(directory)
+    if not directory.is_absolute():
+        directory = get_absolute_filepath(directory)
 
     result:list[Path] = []
 
-    for filepath in absolute.iterdir():
-        if not filepath.suffix.lower() == ".dsf":
+    for filepath in directory.iterdir():
+        if filter_dsf and not filepath.suffix.lower() == ".dsf":
             continue
-
         relative:Path = get_relative_filepath(filepath)
         result.append(relative)
 
@@ -219,7 +231,7 @@ def get_relative_filepath(absolute_path:Path) -> Path:
 
 # ============================================================================ #
 
-def handle_dsf_file(dsf_filepath:Path, should_cache:bool=True, _memory_limit:int=0) -> dict:
+def handle_dsf_file(dsf_filepath:Path, *, should_cache:bool=True, memory_limit:int=0) -> dict:
     """Opens and caches the DSF file located at the (relative) filepath."""
 
     dsf_filepath = check_path(dsf_filepath)
@@ -240,10 +252,17 @@ def handle_dsf_file(dsf_filepath:Path, should_cache:bool=True, _memory_limit:int
     if dsf_filepath in _dsf_cache:
         return _dsf_cache[dsf_filepath]
 
-    # TODO: Add memory size checks
+    # Load the file from disk.
+    dson_file:dict = open_dson_file(absolute_filepath)
+
+    # If the file is too large, don't cache it.
+    if memory_limit > 0:
+        # Memory limit is in megabytes.
+        if _get_memory_consumption(dson_file) > memory_limit:
+            return dson_file
 
     # Add file to cache and return it.
-    _dsf_cache[dsf_filepath] = open_dson_file(absolute_filepath)
+    _dsf_cache[dsf_filepath] = dson_file
     return _dsf_cache[dsf_filepath]
 
 # ============================================================================ #
@@ -267,19 +286,19 @@ def open_dson_file(filepath:Path) -> dict:
         file:TextIOWrapper = gzip.open(absolute_filepath, "rt")
         text = file.read()
         file.close()
-        _dson_file_opened(filepath, absolute_filepath, text)
+        _dson_file_opened(absolute_filepath, text)
 
         data = json.loads(text)
-        _dson_file_loaded(filepath, absolute_filepath, data)
+        _dson_file_loaded(absolute_filepath, data)
 
     except gzip.BadGzipFile:
         file:TextIOWrapper = open(absolute_filepath, "rt", encoding="utf-8")
         text = file.read()
         file.close()
-        _dson_file_opened(filepath, absolute_filepath, text)
+        _dson_file_opened(absolute_filepath, text)
 
         data = json.loads(text)
-        _dson_file_loaded(filepath, absolute_filepath, data)
+        _dson_file_loaded(absolute_filepath, data)
 
     return data
 
@@ -341,3 +360,23 @@ def save_uncompressed_dson_file(filepath:Path, output_folder:Path=None, *, suffi
         json.dump(dson_file, output_file, indent='\t')
 
     return
+
+
+# ============================================================================ #
+#                                                                              #
+# ============================================================================ #
+
+def _get_memory_consumption(obj:Any) -> int:
+
+    running_total:int = 0
+    pointer_stack:list[Any] = [ obj ]
+
+    while pointer_stack:
+        pointer:Any = pointer_stack.pop()
+        running_total += sys.getsizeof(pointer)
+        if isinstance(pointer, dict):
+            pointer_stack.extend(pointer.values())
+        elif isinstance(pointer, list):
+            pointer_stack.extend(pointer)
+
+    return running_total
