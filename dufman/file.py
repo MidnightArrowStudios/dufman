@@ -433,6 +433,9 @@ def remove_all_content_directories() -> None:
 def save_uncompressed_dson_file(filepath:Path, output_folder:Path=None, *, suffix:str="", overwrite:bool=False) -> None:
     """Open a compressed DSON file and save it back to disk uncompressed."""
 
+    # TODO: Fix this function so it can take relative filepaths.
+    # TODO: Implement ensure folder exists?
+
     # Ensure filepath argument is formatted correctly.
     filepath = check_path(filepath)
     if not filepath.is_file():
