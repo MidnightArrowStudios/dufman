@@ -5,6 +5,7 @@ from dufman.file import add_content_directory, remove_content_directory
 from dufman.driver.driver_map import DriverMap
 from dufman.structs.modifier import DsonModifier
 from dufman.structs.morph import DsonMorph
+from dufman.structs.node import DsonNode
 
 class TestDriverMap(TestCase):
 
@@ -92,26 +93,27 @@ class TestDriverMap(TestCase):
         # -------------------------------------------------------------------- #
         # Morph vertex positions
 
-        morph:DsonMorph = driver_map.get_current_morph_shape(16556)
-        breakpoint()
+        #morph:DsonMorph = driver_map.get_current_morph_shape(16556)
+
+        # -------------------------------------------------------------------- #
+        # Morph bone positions
+
+        node_url:str = "/data/DAZ%203D/Genesis%208/Female/Genesis8Female.dsf#lCollar"
+        node:DsonNode = driver_map.get_current_node_shape(node_url)
+
+        # center_point
+        self.assertAlmostEqual(node.center_point.x.current_value,   3.46, places=2)
+        self.assertAlmostEqual(node.center_point.y.current_value, 147.35, places=2)
+        self.assertAlmostEqual(node.center_point.z.current_value,  -3.79, places=2)
+
+        # end_point
+        self.assertAlmostEqual(node.end_point.x.current_value,  12.99, places=2)
+        self.assertAlmostEqual(node.end_point.y.current_value, 147.69, places=2)
+        self.assertAlmostEqual(node.end_point.z.current_value,  -4.91, places=2)
+
+        # orientation
+        self.assertAlmostEqual(node.orientation.x.current_value, 0.05, places=2)
+        self.assertAlmostEqual(node.orientation.y.current_value, 3.51, places=2)
+        self.assertAlmostEqual(node.orientation.z.current_value, 1.75, places=2)
 
         return
-
-
-
-#   509: <Vector ( -0.8818,  5.3460, -0.0756)>
-#  1792: <Vector (  0.3642,  4.5411, -1.1118)>
-#  3092: <Vector ( -0.0720,  4.5140,  0.0623)>
-#  5101: <Vector ( -1.1162,  5.4204,  0.0115)>
-#  6829: <Vector ( -0.6213, -0.0989, -0.4503)>
-#  7147: <Vector (  0.0796,  4.8020, -0.0700)>
-#  7964: <Vector ( -0.4976, -0.1505, -0.6023)>
-#  9571: <Vector (  0.7755,  5.0940, -0.2787)>
-# 11176: <Vector (  0.4906,  3.9886, -0.0337)>
-# 12640: <Vector (  1.0993,  5.3510,  0.0163)>
-# 12644: <Vector (  1.0911,  5.3240,  0.0212)>
-# 13059: <Vector ( -0.1015,  4.8790, -0.0299)>
-# 13411: <Vector ( -0.0259,  4.8820, -0.0648)>
-# 15589: <Vector ( -0.9834, -0.0785, -0.3598)>
-# 16074: <Vector (  0.2307,  4.4590, -0.1460)>
-# 16520: <Vector ( -0.2307,  4.4875, -0.1243)>

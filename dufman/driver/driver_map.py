@@ -11,6 +11,7 @@ from dufman.driver.driver_dict import DriverDictionary
 from dufman.driver.driver_object import DriverTarget, DriverEquation
 from dufman.enums import LibraryType
 from dufman.library import find_library_containing_asset_id
+from dufman.structs.channel import DsonChannel
 from dufman.structs.formula import DsonFormula
 from dufman.structs.modifier import DsonModifier
 from dufman.structs.morph import DsonMorph
@@ -172,29 +173,38 @@ class DriverMap:
 
     # ------------------------------------------------------------------------ #
 
-    def get_current_node_adjustment(self:DriverMap, target_url:str) -> DsonNode:
+    def get_current_node_shape(self:DriverMap, target_url:str) -> DsonNode:
 
-        # TODO: Better path validation.
-        # TODO: More robust implementation.
-        # TODO: More property types.
+        # We want to loop through all of a node's properties and update all of
+        #   them at once, so convert it to an asset_url which will be used to
+        #   retrieve all its stored property_paths.
+        address:AssetAddress = AssetAddress.from_url(target_url)
+        asset_url:str = address.get_url_to_asset()
 
-        # address:AssetAddress = AssetAddress.from_url(target_url)
-        # asset_url:str = address.get_url_to_asset()
+        # Ensure DsonNode was actually loaded.
+        if not asset_url in self._nodes:
+            # TODO: Raise an exception instead?
+            return None
 
-        # source_node:DsonNode = self.get_node(asset_url)
-        # copied_node:DsonNode = deepcopy(source_node)
+        # Get the node stored inside the DriverMap, then copy it so we can
+        #   return a new copy with the updated values.
+        source_node:DsonNode = self._nodes[asset_url]
+        copied_node:DsonNode = deepcopy(source_node)
 
-        # for prop in self.get_all_property_paths(asset_url):
+        # Get all property_path variables and loop through them.
+        for property_path in self._drivers.get_all_property_paths(asset_url):
 
-        #     address.property_path = prop
-        #     property_url:str = address.get_url_to_property()
+            # The URL pointing to the property stored inside the DsonNode.
+            property_url:str = AssetAddress.format_url_as_string(filepath=address.filepath, asset_id=address.asset_id, property_path=property_path)
 
-        #     channel:DsonChannel = self._get_channel_from_asset(address, copied_node)
-        #     channel.current_value = self.get_property_value(property_url)
+            # Use helper method to extract the nested DsonChannel object from
+            #   the DsonNode object.
+            channel:DsonChannel = DriverTarget.get_channel_object(copied_node, property_url)
 
-        # return copied_node
-        
-        return
+            # Update the node's properties.
+            channel.current_value = self.get_driver_value(property_url)
+
+        return copied_node
 
 
     # ======================================================================== #
@@ -204,6 +214,7 @@ class DriverMap:
     def _load_asset(self:DriverMap, struct:Any, property_path:str, library_type:LibraryType) -> None:
 
         # TODO: How and where to implement dummy properties?
+        # TODO: Should the struct argument replace or update an earlier one?
 
         # Format and validate URL
         address:AssetAddress = AssetAddress.from_url(str(struct.dsf_file))
@@ -221,18 +232,21 @@ class DriverMap:
         #   on top of each other.
         is_first_time:bool = False
 
+        # This is an alias for the struct argument.
+        asset:Any = None
+
         # Add object to internal dictionary
         if library_type == LibraryType.MODIFIER:
             if not asset_url in self._modifiers:
                 self._modifiers[asset_url] = struct
                 is_first_time = True
-            struct = self._modifiers[asset_url]
+            asset = self._modifiers[asset_url]
 
         elif library_type == LibraryType.NODE:
             if not asset_url in self._nodes:
                 self._nodes[asset_url] = struct
                 is_first_time = True
-            struct = self._nodes[asset_url]
+            asset = self._nodes[asset_url]
 
         else:
             raise NotImplementedError(library_type)
@@ -242,9 +256,11 @@ class DriverMap:
 
         # Get DriverTarget associated with this URL, or create one if it doesn't
         #   exist.
+        # TODO: Update the struct stored inside the DriverTarget if it already
+        #   exists?
         driver_target:DriverTarget = self._drivers.get_driver_target(property_url)
         if not driver_target:
-            driver_target = DriverTarget(property_url, struct, library_type)
+            driver_target = DriverTarget(property_url, asset, library_type)
             self._drivers.add_driver_target(property_url, driver_target)
 
         # Create formula objects.
@@ -253,12 +269,12 @@ class DriverMap:
             equations:list[DriverEquation] = None
 
             # DsonModifier
-            if library_type == LibraryType.MODIFIER and struct.formulas:
-                equations = self._parse_formulas(address.filepath, struct.formulas)
+            if library_type == LibraryType.MODIFIER and asset.formulas:
+                equations = self._parse_formulas(address.filepath, asset.formulas)
 
             # DsonNode
-            elif library_type == LibraryType.NODE and struct.formulas:
-                equations = self._parse_formulas(address.filepath, struct.formulas)
+            elif library_type == LibraryType.NODE and asset.formulas:
+                equations = self._parse_formulas(address.filepath, asset.formulas)
 
             self._equations[asset_url] = equations
 
