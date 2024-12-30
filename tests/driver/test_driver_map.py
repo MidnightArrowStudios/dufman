@@ -46,8 +46,8 @@ class TestDriverMap(TestCase):
         # Check loaded URLs
 
         victoria_url:str = f"{base_url}?value"
-        body_morph_url:str = "/data/DAZ%203D/Genesis%208/Female/Morphs/DAZ%203D/Victoria%208/FHMVictoria8.dsf#FHMVictoria8?value"
-        head_morph_url:str = "/data/DAZ%203D/Genesis%208/Female/Morphs/DAZ%203D/Victoria%208/FBMVictoria8.dsf#FBMVictoria8?value"
+        head_morph_url:str = "/data/DAZ%203D/Genesis%208/Female/Morphs/DAZ%203D/Victoria%208/FHMVictoria8.dsf#FHMVictoria8?value"
+        body_morph_url:str = "/data/DAZ%203D/Genesis%208/Female/Morphs/DAZ%203D/Victoria%208/FBMVictoria8.dsf#FBMVictoria8?value"
 
         urls:list[str] = driver_map.get_all_driver_urls()
         self.assertIsNotNone(urls)
@@ -58,8 +58,8 @@ class TestDriverMap(TestCase):
         #   back. This is because the body morph loads everything from the
         #   Genesis8Female.dsf between them.
         self.assertEqual(urls[0], victoria_url)
-        self.assertEqual(urls[1], body_morph_url)
-        self.assertEqual(urls[1511], head_morph_url)
+        self.assertEqual(urls[1], head_morph_url)
+        self.assertEqual(urls[1511], body_morph_url)
 
         # -------------------------------------------------------------------- #
         # Dial Victoria 8 in
@@ -94,6 +94,7 @@ class TestDriverMap(TestCase):
         # Morph vertex positions
 
         #morph:DsonMorph = driver_map.get_current_morph_shape(16556)
+        breakpoint()
 
         # -------------------------------------------------------------------- #
         # Morph bone positions
