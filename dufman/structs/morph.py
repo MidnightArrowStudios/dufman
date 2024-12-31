@@ -7,7 +7,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 
-from dufman.datatypes.vector import DsonVector
+from dufman.types import DsonVector
 
 @dataclass
 class DsonMorph:

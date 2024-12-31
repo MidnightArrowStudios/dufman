@@ -9,7 +9,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from dufman.datatypes.color import DsonColor
 from dufman.enums import LibraryType, NodeType, RotationOrder
 from dufman.file import check_path
 
@@ -23,6 +22,8 @@ from dufman.url import AssetAddress
 from dufman.structs.channel import DsonChannelFloat, DsonChannelVector
 from dufman.structs.formula import DsonFormula
 from dufman.structs.presentation import DsonPresentation
+
+from dufman.types import DsonColor
 
 
 # ============================================================================ #

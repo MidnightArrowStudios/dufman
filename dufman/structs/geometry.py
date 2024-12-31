@@ -8,8 +8,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from dufman.datatypes.vector import DsonVector
-from dufman.datatypes.polygon import DsonPolygon
 from dufman.enums import EdgeInterpolation, GeometryType, LibraryType
 from dufman.file import check_path
 from dufman.library import get_asset_json_from_library
@@ -18,6 +16,8 @@ from dufman.observers import _geometry_struct_created
 from dufman.structs.graft import DsonGraft
 from dufman.structs.region import DsonRegion
 from dufman.structs.rigidity import DsonRigidity
+
+from dufman.types import DsonVector, DsonPolygon
 
 
 # ============================================================================ #

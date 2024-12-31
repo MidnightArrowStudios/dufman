@@ -8,7 +8,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from dufman.datatypes.color import DsonColor
+from dufman.types import DsonColor
 
 @dataclass
 class DsonPresentation:
