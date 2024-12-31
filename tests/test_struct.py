@@ -25,7 +25,6 @@ from dufman.observers import (
     register_on_node_struct_created,
     register_on_uv_set_struct_created,
 )
-from dufman.datatypes.color import DsonColor
 from dufman.structs.asset_info import DsonAssetInfo
 from dufman.structs.bulge_binding import DsonBulgeWeights
 from dufman.structs.channel import DsonChannelFloat, DsonChannelVector
@@ -43,6 +42,7 @@ from dufman.structs.rigidity import DsonRigidity
 from dufman.structs.skin_binding import DsonSkinBinding
 from dufman.structs.uv_set import DsonUVSet
 from dufman.structs.weighted_joint import DsonWeightedJoint
+from dufman.types import DsonColor
 
 
 from tests.abstract.test_directory import TestDirectory
