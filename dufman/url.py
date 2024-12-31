@@ -5,10 +5,9 @@
 # ============================================================================ #
 """Utility module for working with DSON asset URLs."""
 
-from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Self
 from urllib.parse import ParseResult, quote, unquote, urlparse
 
 
@@ -117,7 +116,7 @@ class AssetAddress:
     # ======================================================================== #
 
     @classmethod
-    def from_components(cls:type, *, node_name:str=None, filepath:str=None, asset_id:str=None, property_path:str=None) -> AssetAddress:
+    def from_components(cls:type, *, node_name:str=None, filepath:str=None, asset_id:str=None, property_path:str=None) -> Self:
         """Factory method to create an AssetAddress from a DSON-formatted URL's parts."""
 
         filepath = cls.format_filepath(filepath)
@@ -128,7 +127,7 @@ class AssetAddress:
     # ------------------------------------------------------------------------ #
 
     @classmethod
-    def from_url(cls:type, url_string:Any) -> AssetAddress:
+    def from_url(cls:type, url_string:Any) -> Self:
         """Factory method to create an AssetAddress from a DSON-formatted URL."""
 
         # Force-convert Path object to string, using as_posix() to ensure it
@@ -179,7 +178,7 @@ class AssetAddress:
     # URL CREATION METHODS                                                     #
     # ======================================================================== #
 
-    def get_url_to_asset(self:AssetAddress, fallback:str = None) -> str:
+    def get_url_to_asset(self:Self, fallback:str = None) -> str:
         """Returns a URL suitable for retrieving data from a DSF file."""
 
         if not self.asset_id:
@@ -197,7 +196,7 @@ class AssetAddress:
 
     # ------------------------------------------------------------------------ #
 
-    def get_url_to_property(self:AssetAddress) -> str:
+    def get_url_to_property(self:Self) -> str:
         return self.format_url_as_string(filepath=self.filepath, asset_id=self.asset_id, property_path=self.property_path)
 
 
@@ -205,7 +204,7 @@ class AssetAddress:
     # QUERY METHODS                                                            #
     # ======================================================================== #
 
-    def get_property_tokens(self:AssetAddress) -> list[str]:
+    def get_property_tokens(self:Self) -> list[str]:
         """Break the property path into a list of tokens.
 
         :returns: The path to the property
