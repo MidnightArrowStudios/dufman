@@ -1,6 +1,10 @@
+# ============================================================================ #
+# Copyright (c) 2024, Midnight Arrow.
+# https://github.com/MidnightArrowStudios/dufman
+# Licensed under the MIT license.
+# ============================================================================ #
 
 # stdlib
-from __future__ import annotations
 from copy import deepcopy
 from math import isclose
 from typing import Any, Self
@@ -23,7 +27,7 @@ class DriverMap:
 
     # ======================================================================== #
 
-    def __init__(self:DriverMap) -> Self:
+    def __init__(self:Self) -> Self:
 
         # Stores a hierarchical list of DriverTarget objects.
         self._drivers:DriverDictionary = DriverDictionary()
@@ -42,13 +46,13 @@ class DriverMap:
 
     # ------------------------------------------------------------------------ #
 
-    def __str__(self:DriverMap) -> str:
+    def __str__(self:Self) -> str:
         return "DriverMap"
 
 
     # ------------------------------------------------------------------------ #
 
-    def __repr__(self:DriverMap) -> str:
+    def __repr__(self:Self) -> str:
         return f"DriverMap(drivers={ len(self.get_all_driver_urls()) })"
 
 
@@ -56,13 +60,13 @@ class DriverMap:
     # PUBLIC FUNCTIONALITY                                                     #
     # ======================================================================== #
 
-    def load_invalid(self:DriverMap, target_url:str, property_path:str) -> None:
+    def load_invalid(self:Self, target_url:str, property_path:str) -> None:
         return
 
 
     # ------------------------------------------------------------------------ #
 
-    def load_modifier(self:DriverMap, struct:DsonModifier) -> None:
+    def load_modifier(self:Self, struct:DsonModifier) -> None:
         """Add a channel-containing DsonModifier struct to the DriverMap."""
         self._load_asset(struct, struct.channel.channel_id, LibraryType.MODIFIER)
         return
@@ -70,7 +74,7 @@ class DriverMap:
 
     # ------------------------------------------------------------------------ #
 
-    def load_node(self:DriverMap, struct:DsonNode, property_path:str) -> None:
+    def load_node(self:Self, struct:DsonNode, property_path:str) -> None:
         """Add a channel-containing DsonNode struct to the DriverMap."""
         self._load_asset(struct, property_path, LibraryType.NODE)
         return
@@ -79,7 +83,7 @@ class DriverMap:
     # ======================================================================== #
     # ======================================================================== #
 
-    def get_driver_value(self:DriverMap, target_url:str) -> Any:
+    def get_driver_value(self:Self, target_url:str) -> Any:
         """Calculate and return a channel's current value."""
         driver_target:DriverTarget = self._drivers.get_driver_target(target_url)
         return driver_target.get_value()
@@ -87,7 +91,7 @@ class DriverMap:
 
     # ------------------------------------------------------------------------ #
 
-    def set_driver_value(self:DriverMap, target_url:str, new_value:Any) -> None:
+    def set_driver_value(self:Self, target_url:str, new_value:Any) -> None:
         """Update a channel's current value."""
         driver_target:DriverTarget = self._drivers.get_driver_target(target_url)
         driver_target.set_value(new_value)
@@ -97,7 +101,7 @@ class DriverMap:
     # ======================================================================== #
     # ======================================================================== #
 
-    def get_all_driver_urls(self:DriverMap) -> list[str]:
+    def get_all_driver_urls(self:Self) -> list[str]:
         """Return a list of every URL that has been loaded."""
         return self._drivers.get_all_stored_urls()
 
@@ -105,21 +109,21 @@ class DriverMap:
     # ========================================================================= #
     # ========================================================================= #
 
-    def does_filepath_have_driver(self:DriverMap, target_url:str) -> bool:
+    def does_filepath_have_driver(self:Self, target_url:str) -> bool:
         """Check if a DSF file has been loaded."""
         return self._drivers.has_filepath(target_url)
 
 
     # ------------------------------------------------------------------------ #
 
-    def does_asset_id_have_driver(self:DriverMap, target_url:str) -> bool:
+    def does_asset_id_have_driver(self:Self, target_url:str) -> bool:
         """Check if an asset inside a DSF file has been loaded."""
         return self._drivers.has_asset_id(target_url)
 
 
     # ------------------------------------------------------------------------ #
 
-    def does_property_path_have_driver(self:DriverMap, target_url:str) -> bool:
+    def does_property_path_have_driver(self:Self, target_url:str) -> bool:
         """Check if a property inside an asset has been loaded."""
         return self._drivers.has_property_path(target_url)
 
@@ -127,7 +131,7 @@ class DriverMap:
     # ======================================================================== #
     # ======================================================================== #
 
-    def get_current_morph_shape(self:DriverMap, vertex_count:int) -> DsonMorph:
+    def get_current_morph_shape(self:Self, vertex_count:int) -> DsonMorph:
 
         morph_deltas:dict = {}
 
@@ -179,7 +183,7 @@ class DriverMap:
 
     # ------------------------------------------------------------------------ #
 
-    def get_current_node_shape(self:DriverMap, target_url:str) -> DsonNode:
+    def get_current_node_shape(self:Self, target_url:str) -> DsonNode:
 
         # We want to loop through all of a node's properties and update all of
         #   them at once, so convert it to an asset_url which will be used to
@@ -216,7 +220,7 @@ class DriverMap:
     # ======================================================================== #
     # ======================================================================== #
 
-    def get_joint_controlled_morphs(self:DriverMap) -> None:
+    def get_joint_controlled_morphs(self:Self) -> None:
 
         for property_url in self._drivers.get_all_stored_urls():
             driver_target:DriverTarget = self._drivers.get_driver_target(property_url)
@@ -229,7 +233,7 @@ class DriverMap:
     # PRIVATE IMPLEMENTATION METHODS                                           #
     # ======================================================================== #
 
-    def _load_asset(self:DriverMap, struct:Any, property_path:str, library_type:LibraryType) -> None:
+    def _load_asset(self:Self, struct:Any, property_path:str, library_type:LibraryType) -> None:
 
         # TODO: How and where to implement dummy properties?
         # TODO: Should the struct argument replace or update an earlier one?
@@ -305,7 +309,7 @@ class DriverMap:
     # ======================================================================== #
     # ======================================================================== #
 
-    def _parse_formulas(self:DriverMap, filepath:str, formula_list:list[DsonFormula]) -> list[DriverEquation]:
+    def _parse_formulas(self:Self, filepath:str, formula_list:list[DsonFormula]) -> list[DriverEquation]:
 
         # TODO: How does "auto_follow" work for JCMs?
 
@@ -331,7 +335,7 @@ class DriverMap:
     # ======================================================================== #
     # ======================================================================== #
 
-    def _parse_url(self:DriverMap, equation:DriverEquation, url_string:str, dsf_filepath:str, is_input:bool) -> None:
+    def _parse_url(self:Self, equation:DriverEquation, url_string:str, dsf_filepath:str, is_input:bool) -> None:
 
         # Format URL
         address:AssetAddress = AssetAddress.from_url(url_string)
@@ -344,7 +348,7 @@ class DriverMap:
         try:
             asset_type:LibraryType = find_library_containing_asset_id(asset_url)
         except FileNotFoundError:
-            # TODO: Quick and dirty hack. Should be replaced when implementing
+            # FIXME: Quick and dirty hack. Should be replaced when implementing
             #   dummy properties.
             return
 

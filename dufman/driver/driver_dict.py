@@ -5,7 +5,6 @@
 # ============================================================================ #
 """This module defines a custom dictionary to store DriverTarget objects."""
 
-from __future__ import annotations
 from typing import Self
 
 from dufman.driver.driver_object import DriverTarget
@@ -45,14 +44,14 @@ class DriverDictionary:
 
     # ======================================================================== #
 
-    def __init__(self:DriverDictionary) -> Self:
+    def __init__(self:Self) -> Self:
         self._dict:dict = {}
         return
 
 
     # ======================================================================== #
 
-    def add_driver_target(self:DriverDictionary, url_string:str, target:DriverTarget) -> None:
+    def add_driver_target(self:Self, url_string:str, target:DriverTarget) -> None:
         """Add a DriverTarget to the dictionary and associate it with a URL."""
 
         # Ensure DriverTarget is valid
@@ -94,7 +93,7 @@ class DriverDictionary:
 
     # ------------------------------------------------------------------------ #
 
-    def get_driver_target(self:DriverDictionary, url_string:str) -> DriverTarget:
+    def get_driver_target(self:Self, url_string:str) -> DriverTarget:
         """Return a DriverTarget stored inside the dictionary using its URL."""
 
         address:AssetAddress = AssetAddress.from_url(url_string)
@@ -116,14 +115,14 @@ class DriverDictionary:
 
     # ======================================================================== #
 
-    def get_all_filepaths(self:DriverDictionary) -> list[str]:
+    def get_all_filepaths(self:Self) -> list[str]:
         """Return a list of all DSF files stored inside the dictionary."""
         return list(self._dict.keys())
 
 
     # ------------------------------------------------------------------------ #
 
-    def get_all_asset_ids(self:DriverDictionary, url_string:str) -> list[str]:
+    def get_all_asset_ids(self:Self, url_string:str) -> list[str]:
         """Return a list of a designated DSF file's assets."""
 
         address:AssetAddress = AssetAddress.from_url(url_string)
@@ -137,7 +136,7 @@ class DriverDictionary:
 
     # ------------------------------------------------------------------------ #
 
-    def get_all_property_paths(self:DriverDictionary, url_string:str) -> list[str]:
+    def get_all_property_paths(self:Self, url_string:str) -> list[str]:
         """Return a list of the designated asset's driver targets."""
 
         address:AssetAddress = AssetAddress.from_url(url_string)
@@ -155,7 +154,7 @@ class DriverDictionary:
 
     # ------------------------------------------------------------------------ #
 
-    def get_all_stored_urls(self:DriverDictionary) -> list[str]:
+    def get_all_stored_urls(self:Self) -> list[str]:
         """Return all URLs stored inside the nested dictionaries."""
 
         result:list[str] = []
@@ -171,7 +170,7 @@ class DriverDictionary:
 
     # ======================================================================== #
 
-    def has_filepath(self:DriverDictionary, url_string:str) -> bool:
+    def has_filepath(self:Self, url_string:str) -> bool:
         """Check if a DSF file has any DriverTargets in the dictionary."""
 
         # Format URL, ensure it has a filepath.
@@ -186,7 +185,7 @@ class DriverDictionary:
 
     # ------------------------------------------------------------------------ #
 
-    def has_asset_id(self:DriverDictionary, url_string:str) -> bool:
+    def has_asset_id(self:Self, url_string:str) -> bool:
         """Check if a DSF file's assets have any DriverTargets in the dictionary."""
 
         # Format URL, ensure it has a filepath and an asset ID.
@@ -203,7 +202,7 @@ class DriverDictionary:
 
     # ------------------------------------------------------------------------ #
 
-    def has_property_path(self:DriverDictionary, url_string:str) -> bool:
+    def has_property_path(self:Self, url_string:str) -> bool:
         """Check if an asset's properties have any DriverTargets in the dictionary."""
 
         # Format URL, ensure it has filepath, asset ID, and property path.
