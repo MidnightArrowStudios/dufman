@@ -5,7 +5,8 @@
 # ============================================================================ #
 """Unit testing functions for the DUFMan package."""
 
-from __future__ import annotations
+from typing import Self
+from unittest import TestCase
 
 from dufman.enums import (
     ChannelType,
@@ -18,6 +19,7 @@ from dufman.enums import (
     RigidScale,
     RotationOrder,
 )
+from dufman.file import add_content_directory, remove_content_directory
 from dufman.library import get_single_property_from_library
 from dufman.observers import (
     register_on_geometry_struct_created,
@@ -38,25 +40,31 @@ from dufman.structs.named_string_map import DsonNamedStringMap
 from dufman.structs.node import DsonNode
 from dufman.structs.presentation import DsonPresentation
 from dufman.structs.region import DsonRegion
-from dufman.structs.rigidity import DsonRigidity
+from dufman.structs.rigidity import DsonRigidity, _Group
 from dufman.structs.skin_binding import DsonSkinBinding
 from dufman.structs.uv_set import DsonUVSet, _Hotswap, _Coordinate
 from dufman.structs.weighted_joint import DsonWeightedJoint
 from dufman.types import DsonColor
 
 
-from tests.abstract.test_directory import TestDirectory
-
-
-class TestStruct(TestDirectory):
+class TestStruct(TestCase):
     """Unit testing for the DUFMan package's data structs."""
+
+    def setUp(self:Self) -> None:
+        add_content_directory("F:/Daz3D")
+        return
+
+
+    def tearDown(self:Self) -> None:
+        remove_content_directory("F:/Daz3D")
+        return
 
 
     # ======================================================================== #
     #                                                                          #
     # ======================================================================== #
 
-    def test_asset_info(self:TestStruct) -> None:
+    def test_asset_info(self:Self) -> None:
         """Unit testing method for DsonAssetInfo."""
 
         url:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf"
@@ -77,7 +85,7 @@ class TestStruct(TestDirectory):
     #                                                                          #
     # ======================================================================== #
 
-    def test_bulge_binding(self:TestStruct) -> None:
+    def test_bulge_binding(self:Self) -> None:
         """Unit testing method for DsonBulgeBinding."""
 
         url:str = "/data/DAZ%203D/DAZ%20Horse%202/Base/DAZHorse2.dsf"
@@ -117,7 +125,7 @@ class TestStruct(TestDirectory):
     #                                                                          #
     # ======================================================================== #
 
-    def test_channel_float(self:TestStruct) -> None:
+    def test_channel_float(self:Self) -> None:
         """Unit testing method for DsonChannelFloat."""
 
         url:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf"
@@ -142,7 +150,7 @@ class TestStruct(TestDirectory):
 
     # ======================================================================== #
 
-    def test_channel_vector(self:TestStruct) -> None:
+    def test_channel_vector(self:Self) -> None:
         """Unit testing method for DsonChannelVector."""
 
         url:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf"
@@ -177,7 +185,7 @@ class TestStruct(TestDirectory):
     #                                                                          #
     # ======================================================================== #
 
-    def test_contributor(self:TestStruct) -> None:
+    def test_contributor(self:Self) -> None:
         """Unit testing method for DsonContributor."""
 
         url:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf"
@@ -196,7 +204,7 @@ class TestStruct(TestDirectory):
     #                                                                          #
     # ======================================================================== #
 
-    def test_formula(self:TestStruct) -> None:
+    def test_formula(self:Self) -> None:
         """Unit testing method for DsonFormula."""
 
         url:str = "/data/DAZ 3D/Genesis 8/Female/Morphs/iSourceTextures/Evangeliya/CTRL-ISTEvangeliya.dsf"
@@ -230,7 +238,7 @@ class TestStruct(TestDirectory):
     #                                                                          #
     # ======================================================================== #
 
-    def test_geometry(self:TestStruct) -> None:
+    def test_geometry(self:Self) -> None:
         """Unit testing method for DsonGeometry."""
 
         def callback(_user_data:dict, _struct:DsonGeometry, geometry_json:dict) -> None:
@@ -287,7 +295,7 @@ class TestStruct(TestDirectory):
     #                                                                          #
     # ======================================================================== #
 
-    def test_graft(self:TestStruct) -> None:
+    def test_graft(self:Self) -> None:
         """Unit testing method for DsonGraft."""
 
         url:str = "/data/DAZ 3D/Genesis 8 Centaur/G8Female Centaur/G8FCentaur.dsf"
@@ -316,7 +324,7 @@ class TestStruct(TestDirectory):
     #                                                                          #
     # ======================================================================== #
 
-    def test_modifier(self:TestStruct) -> None:
+    def test_modifier(self:Self) -> None:
         """Unit testing method for DsonModifier."""
 
         def callback(_user_data:dict, _struct:DsonModifier, modifier_json:dict) -> None:
@@ -345,7 +353,7 @@ class TestStruct(TestDirectory):
     #                                                                          #
     # ======================================================================== #
 
-    def test_morph(self:TestStruct) -> None:
+    def test_morph(self:Self) -> None:
         """Unit testing method for DsonMorph."""
 
         url:str = "/data/DAZ 3D/Genesis 8/Female/Morphs/DAZ 3D/Base Correctives/pJCMAbdomen2Fwd_40.dsf"
@@ -374,7 +382,7 @@ class TestStruct(TestDirectory):
     #                                                                          #
     # ======================================================================== #
 
-    def test_named_string_map(self:TestStruct) -> None:
+    def test_named_string_map(self:Self) -> None:
         """Unit testing method for DsonNamedStringMap."""
 
         url:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf"
@@ -399,7 +407,7 @@ class TestStruct(TestDirectory):
     #                                                                          #
     # ======================================================================== #
 
-    def test_node(self:TestStruct) -> None:
+    def test_node(self:Self) -> None:
         """Unit testing method for DsonNode."""
 
         def callback(_user_data:dict, _struct:DsonGeometry, node_json:dict) -> None:
@@ -459,7 +467,7 @@ class TestStruct(TestDirectory):
     #                                                                          #
     # ======================================================================== #
 
-    def test_presentation(self:TestStruct) -> None:
+    def test_presentation(self:Self) -> None:
         """Unit testing method for DsonPresentation."""
 
         url:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf"
@@ -489,7 +497,7 @@ class TestStruct(TestDirectory):
     #                                                                          #
     # ======================================================================== #
 
-    def test_region(self:TestStruct) -> None:
+    def test_region(self:Self) -> None:
         """Unit testing method for DsonRegion."""
 
         url:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf"
@@ -526,7 +534,7 @@ class TestStruct(TestDirectory):
     #                                                                          #
     # ======================================================================== #
 
-    def test_rigidity(self:TestStruct) -> None:
+    def test_rigidity(self:Self) -> None:
         """Unit testing method for DsonRigidity."""
 
         url:str = "/data/Mada/Nyx/Nyx_Dress/V6O2_Dress.dsf"
@@ -545,7 +553,7 @@ class TestStruct(TestDirectory):
         # Groups
         self.assertEqual(len(struct.groups), 1)
 
-        group:DsonRigidity.Group = struct.groups[0]
+        group:_Group = struct.groups[0]
 
         self.assertEqual(group.group_id, "Broach")
 
@@ -571,7 +579,7 @@ class TestStruct(TestDirectory):
     #                                                                          #
     # ======================================================================== #
 
-    def test_skin_binding(self:TestStruct) -> None:
+    def test_skin_binding(self:Self) -> None:
 
         url:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf"
         json:dict = get_single_property_from_library(url, [ "modifier_library", "SkinBinding", "skin" ])
@@ -590,7 +598,7 @@ class TestStruct(TestDirectory):
     #                                                                          #
     # ======================================================================== #
 
-    def test_uv_set(self:TestStruct) -> None:
+    def test_uv_set(self:Self) -> None:
         """Unit testing method for DsonUVSet."""
 
         def callback(_user_data:dict, _struct:DsonUVSet, uv_set_json:dict) -> None:
@@ -636,7 +644,7 @@ class TestStruct(TestDirectory):
     #                                                                          #
     # ======================================================================== #
 
-    def test_weighted_joint(self:TestStruct) -> None:
+    def test_weighted_joint(self:Self) -> None:
 
         url:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf"
         json:list = get_single_property_from_library(url, [ "modifier_library", "SkinBinding", "skin", "joints", 0 ])
