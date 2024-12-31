@@ -40,7 +40,7 @@ from dufman.structs.presentation import DsonPresentation
 from dufman.structs.region import DsonRegion
 from dufman.structs.rigidity import DsonRigidity
 from dufman.structs.skin_binding import DsonSkinBinding
-from dufman.structs.uv_set import DsonUVSet
+from dufman.structs.uv_set import DsonUVSet, _Hotswap, _Coordinate
 from dufman.structs.weighted_joint import DsonWeightedJoint
 from dufman.types import DsonColor
 
@@ -547,7 +547,7 @@ class TestStruct(TestDirectory):
 
         group:DsonRigidity.Group = struct.groups[0]
 
-        self.assertEqual(group.id, "Broach")
+        self.assertEqual(group.group_id, "Broach")
 
         self.assertEqual(group.rotation, RigidRotation.NONE)
         self.assertEqual(group.scale_x, RigidScale.NONE)
@@ -611,10 +611,10 @@ class TestStruct(TestDirectory):
 
         # Coordinates
         self.assertEqual(len(struct.uv_coordinates), 18332)
-        self.assertIsInstance(struct.uv_coordinates[0], DsonUVSet.Coordinate)
+        self.assertIsInstance(struct.uv_coordinates[0], _Coordinate)
         self.assertAlmostEqual(struct.uv_coordinates[0].x, 1.5)
         self.assertAlmostEqual(struct.uv_coordinates[0].y, 0.318154)
-        self.assertIsInstance(struct.uv_coordinates[18331], DsonUVSet.Coordinate)
+        self.assertIsInstance(struct.uv_coordinates[18331], _Coordinate)
         self.assertAlmostEqual(struct.uv_coordinates[18331].x, 2.48818)
         self.assertAlmostEqual(struct.uv_coordinates[18331].y, 0.251876)
 
@@ -622,11 +622,11 @@ class TestStruct(TestDirectory):
         self.assertEqual(len(struct.hotswap_indices), 1924)
 
         self.assertEqual(len(struct.hotswap_indices[177]), 2)
-        self.assertIsInstance(struct.hotswap_indices[177][0], DsonUVSet.Hotswap)
+        self.assertIsInstance(struct.hotswap_indices[177][0], _Hotswap)
         self.assertListEqual(struct.hotswap(177, [2]), [ 17046 ])
 
         self.assertEqual(len(struct.hotswap_indices[15252]), 2)
-        self.assertIsInstance(struct.hotswap_indices[15252][0], DsonUVSet.Hotswap)
+        self.assertIsInstance(struct.hotswap_indices[15252][0], _Hotswap)
         self.assertListEqual(struct.hotswap(15252, [16535]), [ 17921 ])
 
         return

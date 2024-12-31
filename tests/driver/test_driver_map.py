@@ -4,7 +4,6 @@ from unittest import TestCase
 from dufman.file import add_content_directory, remove_content_directory
 from dufman.driver.driver_map import DriverMap
 from dufman.structs.modifier import DsonModifier
-from dufman.structs.morph import DsonMorph
 from dufman.structs.node import DsonNode
 
 class TestDriverMap(TestCase):
