@@ -4,11 +4,22 @@
 # Licensed under the MIT license.
 # ============================================================================ #
 
+"""Defines a struct which encapsulates DSON's "formula" datatype.
+
+http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/start
+"""
+
+# stdlib
 from dataclasses import dataclass
 from typing import Any, Self
 
+# dufman
 from dufman.enums import FormulaOperator, FormulaStage
 
+
+# ============================================================================ #
+# DsonOperation                                                                #
+# ============================================================================ #
 
 @dataclass
 class DsonOperation:
@@ -18,6 +29,10 @@ class DsonOperation:
     value           : Any                   = None
 
 
+# ============================================================================ #
+# DsonOperation                                                                #
+# ============================================================================ #
+
 @dataclass
 class DsonFormula:
 
@@ -26,11 +41,13 @@ class DsonFormula:
     stage           : FormulaStage          = FormulaStage.SUM
 
 
+    # ======================================================================== #
+
     @staticmethod
     def load(formula_array:list[dict]) -> list[Self]:
         """Factory method for creating an array of DsonFormula objects."""
 
-        if not isinstance(formula_array, list):
+        if not formula_array or not isinstance(formula_array, list):
             raise TypeError("\"formulas\" property is not a list")
 
         if not all(isinstance(item, dict) for item in formula_array):
@@ -41,7 +58,8 @@ class DsonFormula:
         for formula_json in formula_array:
 
             formula:Self = DsonFormula()
-            all_structs.append(formula)
+
+            # ---------------------------------------------------------------- #
 
             # Output
             if "output" in formula_json:
@@ -86,5 +104,9 @@ class DsonFormula:
                 # Value
                 if "val" in op_json:
                     operation.value = op_json["val"]
+
+            # ---------------------------------------------------------------- #
+
+            all_structs.append(formula)
 
         return all_structs

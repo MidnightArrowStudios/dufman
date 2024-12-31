@@ -9,24 +9,25 @@ from typing import Self
 
 from dufman.enums import RigidRotation, RigidScale
 
+
+@dataclass
+class _Group:
+    group_id                : str               = None
+    rotation                : RigidRotation     = RigidRotation.NONE
+    scale_x                 : RigidScale        = None
+    scale_y                 : RigidScale        = None
+    scale_z                 : RigidScale        = None
+    reference_vertices      : list[int]         = None
+    participant_vertices    : list[int]         = None
+    reference               : str               = None
+    transform_nodes         : list[str]         = None
+
+
 @dataclass
 class DsonRigidity:
 
     weights:dict = None
-    groups:list[Self.Group] = None
-
-
-    @dataclass
-    class Group:
-        group_id                 : str               = None
-        rotation                : RigidRotation     = RigidRotation.NONE
-        scale_x                 : RigidScale        = None
-        scale_y                 : RigidScale        = None
-        scale_z                 : RigidScale        = None
-        reference_vertices      : list[int]         = None
-        participant_vertices    : list[int]         = None
-        reference               : str               = None
-        transform_nodes         : list[str]         = None
+    groups:list[_Group] = None
 
 
     @staticmethod
@@ -41,11 +42,11 @@ class DsonRigidity:
         if not "groups" in rigidity_json:
             raise ValueError("Missing required property \"groups\"")
 
-        groups:list[DsonRigidity.Group] = []
+        groups:list[_Group] = []
 
         for group_json in rigidity_json["groups"]:
 
-            group:DsonRigidity.Group = DsonRigidity.Group()
+            group:_Group = _Group()
             groups.append(group)
 
             # TODO: Error handling

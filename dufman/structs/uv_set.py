@@ -4,10 +4,12 @@
 # Licensed under the MIT license.
 # ============================================================================ #
 
+# stdlib
 from dataclasses import dataclass
 from pathlib import Path
 from typing import NamedTuple, Self
 
+# dufman
 from dufman.enums import LibraryType
 from dufman.file import check_path
 from dufman.library import get_asset_json_from_library
@@ -15,7 +17,26 @@ from dufman.observers import _uv_set_struct_created
 
 
 # ============================================================================ #
-#                                                                              #
+# UV Coordinate                                                                #
+# ============================================================================ #
+
+class _Coordinate(NamedTuple):
+    x:float
+    y:float
+
+
+# ============================================================================ #
+# Hotswap data                                                                 #
+# ============================================================================ #
+
+class _Hotswap(NamedTuple):
+    face_index:int
+    original_vertex:int
+    replacement_vertex:int
+
+
+# ============================================================================ #
+# DsonUVSet                                                                    #
 # ============================================================================ #
 
 @dataclass
@@ -29,23 +50,10 @@ class DsonUVSet:
     source                      : str                   = ""
 
     expected_vertices           : int                   = None
-    uv_coordinates              : list[Self.Coordinate] = None
+    uv_coordinates              : list[_Coordinate]     = None
     hotswap_indices             : dict                  = None
 
 
-    class Coordinate(NamedTuple):
-        x:float
-        y:float
-
-
-    class Hotswap(NamedTuple):
-        face_index:int
-        original_vertex:int
-        replacement_vertex:int
-
-
-    # ======================================================================== #
-    #                                                                          #
     # ======================================================================== #
 
     @staticmethod
@@ -62,6 +70,8 @@ class DsonUVSet:
 
         struct:DsonUVSet = DsonUVSet()
         struct.dsf_file = dsf_filepath
+
+        # -------------------------------------------------------------------- #
 
         # ID
         if "id" in uv_set_json:
@@ -90,7 +100,7 @@ class DsonUVSet:
         # UV coordinates
         if "uvs" in uv_set_json:
             uv_values:list[dict] = uv_set_json["uvs"]["values"]
-            struct.uv_coordinates = [ Self.Coordinate(x=entry[0], y=entry[1]) for entry in uv_values ]
+            struct.uv_coordinates = [ _Coordinate(x=entry[0], y=entry[1]) for entry in uv_values ]
         else:
             raise ValueError("Missing required property \"uvs\"")
 
@@ -109,12 +119,14 @@ class DsonUVSet:
                     struct.hotswap_indices[face_index] = []
 
                 struct.hotswap_indices[face_index].append(
-                    Self.Hotswap(
+                    _Hotswap(
                         face_index=face_index,
                         original_vertex=entry[1],
                         replacement_vertex=entry[2],
                     )
                 )
+
+        # -------------------------------------------------------------------- #
 
         # Fire observer update.
         _uv_set_struct_created(struct, uv_set_json)
@@ -122,8 +134,6 @@ class DsonUVSet:
         return struct
 
 
-    # ======================================================================== #
-    #                                                                          #
     # ======================================================================== #
 
     def hotswap(self:Self, index:int, face_indices:list[int]) -> list[int]:
@@ -147,7 +157,7 @@ class DsonUVSet:
         #   is built, but a UV Set may still contain multiple entries for
         #   one vertex. The following code will cull them to prevent errors.
         # "/Environments/Architecture/Polish/College Classroom/College Classroom Complete Scene.duf"
-        all_hotswaps:list[self.Hotswap] = []
+        all_hotswaps:list[_Hotswap] = []
         for entry in self.hotswap_indices[index]:
             if not entry in all_hotswaps:
                 all_hotswaps.append(entry)

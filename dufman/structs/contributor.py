@@ -4,8 +4,19 @@
 # Licensed under the MIT license.
 # ============================================================================ #
 
+"""Defines a struct to encapsulate DSON's "contributor" data type.
+
+http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/contributor/start
+"""
+
+# stdlib
 from dataclasses import dataclass
 from typing import Self
+
+
+# ============================================================================ #
+# DsonContributor struct                                                       #
+# ============================================================================ #
 
 @dataclass
 class DsonContributor:
@@ -15,24 +26,34 @@ class DsonContributor:
     email       : str   = None
     website     : str   = None
 
+
+    # ======================================================================== #
+
     @staticmethod
-    def load(asset_json:dict) -> Self:
+    def load(contributor_json:dict) -> Self:
         """Factory method to validate the creation of Contributor objects."""
+
+        if not contributor_json or not isinstance(contributor_json, dict):
+            raise TypeError
 
         struct:Self = DsonContributor()
 
+        # -------------------------------------------------------------------- #
+
         # Author
-        if "author" in asset_json:
-            struct.author = asset_json["author"]
+        if "author" in contributor_json:
+            struct.author = contributor_json["author"]
         else:
             raise ValueError("Missing required property \"author\"")
 
         # Email
-        if "email" in asset_json:
-            struct.email = asset_json["email"]
+        if "email" in contributor_json:
+            struct.email = contributor_json["email"]
 
         # Website
-        if "website" in asset_json:
-            struct.website = asset_json["website"]
+        if "website" in contributor_json:
+            struct.website = contributor_json["website"]
+
+        # -------------------------------------------------------------------- #
 
         return struct

@@ -4,10 +4,17 @@
 # Licensed under the MIT license.
 # ============================================================================ #
 
+# stdlib
 from dataclasses import dataclass
 from typing import Self
 
+# dufman
 from dufman.structs.channel import DsonChannelFloat
+
+
+# ============================================================================ #
+# DsonBulgeBinding                                                             #
+# ============================================================================ #
 
 @dataclass
 class DsonBulgeBinding:
@@ -20,13 +27,21 @@ class DsonBulgeBinding:
     left_map        : dict              = None
     right_map       : dict              = None
 
+
+    # ======================================================================== #
+
     @staticmethod
     def load(bulge_json:dict) -> Self:
         """Factory method to create and validate DsonBulgeBinding objects."""
 
+        if not bulge_json or not isinstance(bulge_json, dict):
+            raise TypeError
+
         struct:Self = DsonBulgeBinding()
 
         bulge_axes:dict = { axis["id"]: axis for axis in bulge_json["bulges"] }
+
+        # -------------------------------------------------------------------- #
 
         # NOTE: I attempted to do a list comparison with the dictionary's keys,
         #   but it failed for unknown reasons.
@@ -61,8 +76,14 @@ class DsonBulgeBinding:
         # Right map
         struct.right_map = { entry[0]: entry[1] for entry in bulge_json["right_map"]["values"] }
 
+        # -------------------------------------------------------------------- #
+
         return struct
 
+
+# ============================================================================ #
+# DsonBulgeWeights                                                             #
+# ============================================================================ #
 
 @dataclass
 class DsonBulgeWeights:
@@ -70,6 +91,9 @@ class DsonBulgeWeights:
     bulge_x     : DsonBulgeBinding = None
     bulge_y     : DsonBulgeBinding = None
     bulge_z     : DsonBulgeBinding = None
+
+
+    # ======================================================================== #
 
     @staticmethod
     def load(array:list) -> Self:
@@ -80,6 +104,8 @@ class DsonBulgeWeights:
 
         struct:Self = DsonBulgeWeights()
 
+        # -------------------------------------------------------------------- #
+
         axes:dict = { axis: array[axis] for axis in array }
 
         if 'x' in axes:
@@ -88,5 +114,7 @@ class DsonBulgeWeights:
             struct.bulge_y = DsonBulgeBinding.load(axes['y'])
         if 'z' in axes:
             struct.bulge_z = DsonBulgeBinding.load(axes['z'])
+
+        # -------------------------------------------------------------------- #
 
         return struct

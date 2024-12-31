@@ -20,9 +20,9 @@ class DsonRegion:
     @staticmethod
     def load(root_region_json:dict) -> list[Self]:
 
-        all_structs:list[DsonRegion] = []
+        all_structs:list[Self] = []
 
-        def recursive(parent:DsonRegion, parent_json:dict) -> None:
+        def recursive(parent:Self, parent_json:dict) -> None:
 
             parent.id = parent_json["id"]
             all_structs.append(parent)
