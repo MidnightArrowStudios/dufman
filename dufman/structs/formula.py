@@ -4,11 +4,19 @@
 # Licensed under the MIT license.
 # ============================================================================ #
 
-from __future__ import annotations
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Self
 
 from dufman.enums import FormulaOperator, FormulaStage
+
+
+@dataclass
+class DsonOperation:
+
+    operator        : FormulaOperator       = None
+    url             : str                   = None
+    value           : Any                   = None
+
 
 @dataclass
 class DsonFormula:
@@ -18,28 +26,28 @@ class DsonFormula:
     stage           : FormulaStage          = FormulaStage.SUM
 
 
-    @classmethod
-    def load(cls:type, formula_array:list[dict]) -> list[DsonFormula]:
+    @staticmethod
+    def load(formula_array:list[dict]) -> list[Self]:
         """Factory method for creating an array of DsonFormula objects."""
 
         if not isinstance(formula_array, list):
-            raise Exception("\"formulas\" property is not a list")
+            raise TypeError("\"formulas\" property is not a list")
 
         if not all(isinstance(item, dict) for item in formula_array):
-            raise Exception("\"formulas\" property contains a non-dictionary item")
+            raise ValueError("\"formulas\" property contains a non-dictionary item")
 
-        all_structs:list[DsonFormula] = []
+        all_structs:list[Self] = []
 
         for formula_json in formula_array:
 
-            formula:DsonFormula = cls()
+            formula:Self = DsonFormula()
             all_structs.append(formula)
 
             # Output
             if "output" in formula_json:
                 formula.output = formula_json["output"]
             else:
-                raise Exception("Missing required property \"output\"")
+                raise ValueError("Missing required property \"output\"")
 
             # Stage
             if "stage" in formula_json:
@@ -56,7 +64,7 @@ class DsonFormula:
 
             # Operations
             if not "operations" in formula_json:
-                raise Exception("Missing required property \"operations\"")
+                raise ValueError("Missing required property \"operations\"")
 
             formula.operations = []
 
@@ -69,7 +77,7 @@ class DsonFormula:
                 if "op" in op_json:
                     operation.operator = FormulaOperator(op_json["op"])
                 else:
-                    raise Exception("Missing required property \"op\"")
+                    raise ValueError("Missing required property \"op\"")
 
                 # URL
                 if "url" in op_json:
@@ -80,11 +88,3 @@ class DsonFormula:
                     operation.value = op_json["val"]
 
         return all_structs
-
-
-@dataclass
-class DsonOperation:
-
-    operator        : FormulaOperator       = None
-    url             : str                   = None
-    value           : Any                   = None

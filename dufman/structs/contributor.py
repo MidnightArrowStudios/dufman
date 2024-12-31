@@ -4,8 +4,8 @@
 # Licensed under the MIT license.
 # ============================================================================ #
 
-from __future__ import annotations
 from dataclasses import dataclass
+from typing import Self
 
 @dataclass
 class DsonContributor:
@@ -15,17 +15,17 @@ class DsonContributor:
     email       : str   = None
     website     : str   = None
 
-    @classmethod
-    def load(cls:type, asset_json:dict) -> DsonContributor:
+    @staticmethod
+    def load(asset_json:dict) -> Self:
         """Factory method to validate the creation of Contributor objects."""
 
-        struct:DsonContributor = cls()
+        struct:Self = DsonContributor()
 
         # Author
         if "author" in asset_json:
             struct.author = asset_json["author"]
         else:
-            raise Exception("Missing required property \"author\"")
+            raise ValueError("Missing required property \"author\"")
 
         # Email
         if "email" in asset_json:

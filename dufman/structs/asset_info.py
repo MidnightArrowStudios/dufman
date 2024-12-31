@@ -4,8 +4,8 @@
 # Licensed under the MIT license.
 # ============================================================================ #
 
-from __future__ import annotations
 from dataclasses import dataclass
+from typing import Self
 
 from dufman.structs.contributor import DsonContributor
 
@@ -13,23 +13,25 @@ from dufman.structs.contributor import DsonContributor
 class DsonAssetInfo:
     """Header data about the creation of a Daz Studio asset."""
 
+    # TODO: Convert modified to use Python's datetime?
+
     asset_id        : str               = None
     asset_type      : str               = None
     contributor     : DsonContributor   = None
     revision        : str               = "1.0"
-    modified        : str               = None      # TODO: Convert this to use Python's datetime?
+    modified        : str               = None
 
-    @classmethod
-    def load(cls:type, info_json:dict) -> DsonAssetInfo:
+    @staticmethod
+    def load(info_json:dict) -> Self:
         """Factory method to create and validate AssetInfo object."""
 
-        struct:DsonAssetInfo = cls()
+        struct:Self = DsonAssetInfo()
 
         # "ID"
         if "id" in info_json:
             struct.asset_id = info_json["id"]
         else:
-            raise Exception("Missing required property \"id\"")
+            raise ValueError("Missing required property \"id\"")
 
         # "type"
         if "type" in info_json:
@@ -39,13 +41,13 @@ class DsonAssetInfo:
         if "contributor" in info_json:
             struct.contributor = DsonContributor.load(info_json["contributor"])
         else:
-            raise Exception("Missing required property \"contributor\"")
+            raise ValueError("Missing required property \"contributor\"")
 
         # "Revision"
         if "revision" in info_json:
             struct.revision = info_json["revision"]
         else:
-            raise Exception("Missing required property \"revision\"")
+            raise ValueError("Missing required property \"revision\"")
 
         # "Modified"
         if "modified" in info_json:

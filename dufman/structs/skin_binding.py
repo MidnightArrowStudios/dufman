@@ -4,8 +4,8 @@
 # Licensed under the MIT license.
 # ============================================================================ #
 
-from __future__ import annotations
 from dataclasses import dataclass
+from typing import Self
 
 from dufman.structs.named_string_map import DsonNamedStringMap
 from dufman.structs.weighted_joint import DsonWeightedJoint
@@ -20,31 +20,31 @@ class DsonSkinBinding:
     selection_sets          : list[DsonNamedStringMap]      = None
 
 
-    @classmethod
-    def load(cls:type, binding_json:dict) -> DsonSkinBinding:
+    @staticmethod
+    def load(binding_json:dict) -> Self:
 
         if not binding_json:
             return None
 
-        struct:DsonSkinBinding = cls()
+        struct:DsonSkinBinding = DsonSkinBinding()
 
         # Node URL
         if "node" in binding_json:
             struct.node = binding_json["node"]
         else:
-            raise Exception("Missing required property \"node\"")
+            raise ValueError("Missing required property \"node\"")
 
         # Geometry URL
         if "geometry" in binding_json:
             struct.geometry = binding_json["geometry"]
         else:
-            raise Exception("Missing required property \"geometry\"")
+            raise ValueError("Missing required property \"geometry\"")
 
         # Expected vertices
         if "vertex_count" in binding_json:
             struct.expected_vertices = binding_json["vertex_count"]
         else:
-            raise Exception("Missing required property \"vertex_count\"")
+            raise ValueError("Missing required property \"vertex_count\"")
 
         # Weighted joint
         if "joints" in binding_json:

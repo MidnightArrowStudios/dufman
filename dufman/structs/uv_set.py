@@ -4,10 +4,9 @@
 # Licensed under the MIT license.
 # ============================================================================ #
 
-from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
-from typing import NamedTuple
+from typing import NamedTuple, Self
 
 from dufman.enums import LibraryType
 from dufman.file import check_path
@@ -30,7 +29,7 @@ class DsonUVSet:
     source                      : str                   = ""
 
     expected_vertices           : int                   = None
-    uv_coordinates              : list[Coordinate]      = None
+    uv_coordinates              : list[Self.Coordinate] = None
     hotswap_indices             : dict                  = None
 
 
@@ -49,8 +48,8 @@ class DsonUVSet:
     #                                                                          #
     # ======================================================================== #
 
-    @classmethod
-    def load(cls:type, dsf_filepath:Path, uv_set_json:dict=None) -> DsonUVSet:
+    @staticmethod
+    def load(dsf_filepath:Path, uv_set_json:dict=None) -> Self:
 
         # Ensure type safety
         dsf_filepath:Path = check_path(dsf_filepath)
@@ -61,14 +60,14 @@ class DsonUVSet:
 
         # TODO: Validate mandatory properties
 
-        struct:DsonUVSet = cls()
+        struct:DsonUVSet = DsonUVSet()
         struct.dsf_file = dsf_filepath
 
         # ID
         if "id" in uv_set_json:
             struct.library_id = uv_set_json["id"]
         else:
-            raise Exception("Missing required property \"id\"")
+            raise ValueError("Missing required property \"id\"")
 
         # Name
         if "name" in uv_set_json:
@@ -86,14 +85,14 @@ class DsonUVSet:
         if "vertex_count" in uv_set_json:
             struct.expected_vertices = uv_set_json["vertex_count"]
         else:
-            raise Exception("Missing required property \"vertex_count\"")
+            raise ValueError("Missing required property \"vertex_count\"")
 
         # UV coordinates
         if "uvs" in uv_set_json:
             uv_values:list[dict] = uv_set_json["uvs"]["values"]
-            struct.uv_coordinates = [ cls.Coordinate(x=entry[0], y=entry[1]) for entry in uv_values ]
+            struct.uv_coordinates = [ Self.Coordinate(x=entry[0], y=entry[1]) for entry in uv_values ]
         else:
-            raise Exception("Missing required property \"uvs\"")
+            raise ValueError("Missing required property \"uvs\"")
 
         # The hotswap data is stored in a DSON file as a flat list, with the
         #   first index indicating the polygon. This is inefficient for lookup
@@ -110,7 +109,7 @@ class DsonUVSet:
                     struct.hotswap_indices[face_index] = []
 
                 struct.hotswap_indices[face_index].append(
-                    cls.Hotswap(
+                    Self.Hotswap(
                         face_index=face_index,
                         original_vertex=entry[1],
                         replacement_vertex=entry[2],
@@ -127,7 +126,7 @@ class DsonUVSet:
     #                                                                          #
     # ======================================================================== #
 
-    def hotswap(self:DsonUVSet, index:int, face_indices:list[int]) -> list[int]:
+    def hotswap(self:Self, index:int, face_indices:list[int]) -> list[int]:
         """Swaps a face's vertex indices so they can index into a UVSet's UV array."""
 
         # ==================================================================== #

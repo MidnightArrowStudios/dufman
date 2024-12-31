@@ -4,8 +4,8 @@
 # Licensed under the MIT license.
 # ============================================================================ #
 
-from __future__ import annotations
 from dataclasses import dataclass
+from typing import Self
 
 from dufman.enums import RigidRotation, RigidScale
 
@@ -13,12 +13,12 @@ from dufman.enums import RigidRotation, RigidScale
 class DsonRigidity:
 
     weights:dict = None
-    groups:list[Group] = None
+    groups:list[Self.Group] = None
 
 
     @dataclass
     class Group:
-        id                      : str               = None
+        group_id                 : str               = None
         rotation                : RigidRotation     = RigidRotation.NONE
         scale_x                 : RigidScale        = None
         scale_y                 : RigidScale        = None
@@ -29,8 +29,8 @@ class DsonRigidity:
         transform_nodes         : list[str]         = None
 
 
-    @classmethod
-    def load(cls:type, rigidity_json:dict) -> DsonRigidity:
+    @staticmethod
+    def load(rigidity_json:dict) -> Self:
 
         # Weights
         weights:dict = None
@@ -39,18 +39,18 @@ class DsonRigidity:
 
         # Groups
         if not "groups" in rigidity_json:
-            raise Exception("Missing required property \"groups\"")
+            raise ValueError("Missing required property \"groups\"")
 
-        groups:list[cls.Group] = []
+        groups:list[DsonRigidity.Group] = []
 
         for group_json in rigidity_json["groups"]:
 
-            group:cls.Group = cls.Group()
+            group:DsonRigidity.Group = DsonRigidity.Group()
             groups.append(group)
 
             # TODO: Error handling
 
-            group.id = group_json["id"]
+            group.group_id = group_json["id"]
             group.scale_x = RigidScale(group_json["scale_modes"][0])
             group.scale_y = RigidScale(group_json["scale_modes"][1])
             group.scale_z = RigidScale(group_json["scale_modes"][2])
@@ -67,4 +67,4 @@ class DsonRigidity:
             if "transform_nodes" in group_json:
                 group.transform_nodes = list(group_json["transform_nodes"])
 
-        return cls(weights=weights, groups=groups)
+        return DsonRigidity(weights, groups)

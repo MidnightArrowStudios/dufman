@@ -4,9 +4,9 @@
 # Licensed under the MIT license.
 # ============================================================================ #
 
-from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Self
 
 from dufman.enums import LibraryType
 from dufman.file import check_path
@@ -47,8 +47,8 @@ class DsonModifier:
     skin_binding            : DsonSkinBinding       = None
 
 
-    @classmethod
-    def load(cls:type, dsf_filepath:Path, modifier_json:dict=None) -> DsonModifier:
+    @staticmethod
+    def load(dsf_filepath:Path, modifier_json:dict=None) -> Self:
 
         # Ensure type safety
         dsf_filepath = check_path(dsf_filepath)
@@ -57,14 +57,14 @@ class DsonModifier:
         if not modifier_json:
             modifier_json = get_asset_json_from_library(dsf_filepath, LibraryType.MODIFIER)
 
-        struct:DsonModifier = cls()
+        struct:DsonModifier = DsonModifier()
         struct.dsf_file = dsf_filepath
 
         # ID
         if "id" in modifier_json:
             struct.library_id = modifier_json["id"]
         else:
-            raise Exception("Missing required property \"ID\"")
+            raise ValueError("Missing required property \"ID\"")
 
         # Name
         if "name" in modifier_json:

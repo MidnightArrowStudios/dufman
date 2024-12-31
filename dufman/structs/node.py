@@ -4,10 +4,9 @@
 # Licensed under the MIT license.
 # ============================================================================ #
 
-from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Self
 
 from dufman.enums import LibraryType, NodeType, RotationOrder
 from dufman.file import check_path
@@ -110,8 +109,8 @@ class DsonNode:
     # CAMERA                                                                   #
     # ======================================================================== #
 
-    @classmethod
-    def load(cls:type, dsf_filepath:Path, node_json:dict=None) -> DsonNode:
+    @staticmethod
+    def load(dsf_filepath:Path, node_json:dict=None) -> Self:
 
         # Ensure type safety
         dsf_filepath = check_path(dsf_filepath)
@@ -120,20 +119,20 @@ class DsonNode:
         if not node_json:
             node_json = get_asset_json_from_library(dsf_filepath, LibraryType.NODE)
 
-        struct:DsonNode = cls()
+        struct:DsonNode = DsonNode()
         struct.dsf_file = dsf_filepath
 
         # ID
         if "id" in node_json:
             struct.library_id = node_json["id"]
         else:
-            raise Exception("Missing required property \"ID\"")
+            raise ValueError("Missing required property \"ID\"")
 
         # Name
         if "name" in node_json:
             struct.name = node_json["name"]
         else:
-            raise Exception("Missing required property \"name\"")
+            raise ValueError("Missing required property \"name\"")
 
         # Type
         if "type" in node_json:
@@ -143,7 +142,7 @@ class DsonNode:
         if "label" in node_json:
             struct.label = node_json["label"]
         else:
-            raise Exception("Missing required property \"label\"")
+            raise ValueError("Missing required property \"label\"")
 
         # Source
         if "source" in node_json:

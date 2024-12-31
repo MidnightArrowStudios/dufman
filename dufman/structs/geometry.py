@@ -4,9 +4,10 @@
 # Licensed under the MIT license.
 # ============================================================================ #
 
-from __future__ import annotations
+# python stdlib
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Self
 
 from dufman.enums import EdgeInterpolation, GeometryType, LibraryType
 from dufman.file import check_path
@@ -56,7 +57,7 @@ class DsonGeometry:
     # ======================================================================== #
 
     @staticmethod
-    def load(dsf_filepath:Path, geometry_json:dict=None) -> DsonGeometry:
+    def load(dsf_filepath:Path, geometry_json:dict=None) -> Self:
 
         # Ensure type safety
         dsf_filepath = check_path(dsf_filepath)
@@ -67,7 +68,7 @@ class DsonGeometry:
 
         # TODO: Validate mandatory properties
 
-        struct:DsonGeometry = DsonGeometry()
+        struct:Self = DsonGeometry()
         struct.dsf_file = dsf_filepath
 
         # ID
@@ -124,7 +125,7 @@ class DsonGeometry:
     # ======================================================================== #
 
     @staticmethod
-    def save(struct:DsonGeometry) -> dict:
+    def save(struct:Self) -> dict:
 
         geometry_json:dict = {}
 

@@ -4,8 +4,8 @@
 # Licensed under the MIT license.
 # ============================================================================ #
 
-from __future__ import annotations
 from dataclasses import dataclass
+from typing import Self
 
 @dataclass
 class DsonRegion:
@@ -14,11 +14,11 @@ class DsonRegion:
     label                   : str                   = None
     display_hint            : str                   = None
     face_indices            : list[int]             = None
-    parent                  : DsonRegion            = None
-    children                : list[DsonRegion]      = None
+    parent                  : Self                  = None
+    children                : list[Self]            = None
 
-    @classmethod
-    def load(cls:type, root_region_json:dict) -> list[DsonRegion]:
+    @staticmethod
+    def load(root_region_json:dict) -> list[Self]:
 
         all_structs:list[DsonRegion] = []
 

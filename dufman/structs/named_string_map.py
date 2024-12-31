@@ -4,9 +4,8 @@
 # Licensed under the MIT license.
 # ============================================================================ #
 
-from __future__ import annotations
 from dataclasses import dataclass
-from typing import NamedTuple
+from typing import NamedTuple, Self
 
 
 @dataclass
@@ -20,23 +19,23 @@ class DsonNamedStringMap:
     map_id              : str               = None
     mappings            : list[Mapping]     = None
 
-    @classmethod
-    def load(cls:type, map_json:dict) -> DsonNamedStringMap:
+    @staticmethod
+    def load(map_json:dict) -> Self:
 
         if not map_json:
             return None
 
-        struct:DsonNamedStringMap = cls()
+        struct:DsonNamedStringMap = DsonNamedStringMap()
 
         # ID
         if "id" in map_json:
             struct.map_id = map_json["id"]
         else:
-            raise Exception("Missing required property \"ID\"")
+            raise ValueError("Missing required property \"ID\"")
 
         # Mappings
         if not "mappings" in map_json:
-            raise Exception("Missing required property \"mappings\"")
+            raise ValueError("Missing required property \"mappings\"")
 
         struct.mappings = []
 

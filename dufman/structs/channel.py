@@ -4,9 +4,8 @@
 # Licensed under the MIT license.
 # ============================================================================ #
 
-from __future__ import annotations
 from dataclasses import dataclass
-from typing import Any, Iterator
+from typing import Any, Iterator, Self
 
 from dufman.enums import ChannelType
 
@@ -30,30 +29,33 @@ class DsonChannel:
 
 
     @staticmethod
-    def _create_basic(struct:DsonChannel, channel_json:dict) -> None:
+    def _create_basic(struct:Self, channel_json:dict) -> None:
 
+        # -------------------------------------------------------------------- #
+        
         # Verify channel's type is valid
         if not "type" in channel_json:
-            raise Exception("Missing required property \"type\"")
+            raise ValueError("Missing required property \"type\"")
 
         chstr:str = channel_json["type"]
-        channel_type:ChannelType = None
         try:
-            channel_type = ChannelType(chstr)
-        except Exception as e:
-            raise Exception(f"Channel type \"{chstr}\" is not valid") from e
+            struct.channel_type = ChannelType(chstr)
+        except ValueError as ve:
+            raise ValueError(f"Channel type \"{chstr}\" is not valid") from ve
+
+        # -------------------------------------------------------------------- #
 
         # ID
         if "id" in channel_json:
             struct.channel_id = channel_json["id"]
         else:
-            raise Exception("Missing required property \"id\"")
+            raise ValueError("Missing required property \"id\"")
 
         # Name
         if "name" in channel_json:
             struct.name = channel_json["name"]
         else:
-            raise Exception("Missing required property \"name\"")
+            raise ValueError("Missing required property \"name\"")
 
         # Label
         if "label" in channel_json:
@@ -74,8 +76,10 @@ class DsonChannel:
         return
 
 
-    @classmethod
-    def load(cls:type, channel_json:dict, **kwargs) -> DsonChannel:
+    # ======================================================================== #
+
+    @staticmethod
+    def load(channel_json:dict, **kwargs) -> Self:
         channel_type:ChannelType = ChannelType(channel_json["type"])
         match channel_type:
             case ChannelType.BOOL:
@@ -86,7 +90,9 @@ class DsonChannel:
                 raise NotImplementedError(channel_type)
 
 
-    def get_value(self:DsonChannel) -> Any:
+    # ======================================================================== #
+
+    def get_value(self:Self) -> Any:
         raise NotImplementedError
 
 
@@ -107,10 +113,10 @@ class DsonChannelBool(DsonChannel):
     can_use_image_map:bool = False
 
 
-    @classmethod
-    def load(cls:type, channel_json, default_value:bool=False) -> DsonChannelBool:
+    @staticmethod
+    def load(channel_json:dict, default_value:bool=False) -> Self:
 
-        struct:DsonChannelBool = cls()
+        struct:Self = DsonChannelBool()
         DsonChannel._create_basic(struct, channel_json)
 
         # Default value
@@ -148,11 +154,11 @@ class DsonChannelBool(DsonChannel):
         return struct
 
 
-    def __bool__(self:DsonChannelBool) -> bool:
+    def __bool__(self:Self) -> bool:
         return bool(self.current_value)
 
 
-    def get_value(self:DsonChannelBool) -> bool:
+    def get_value(self:Self) -> bool:
         return bool(self)
 
 
@@ -174,10 +180,10 @@ class DsonChannelFloat(DsonChannel):
     can_use_image_map:bool = False
 
 
-    @classmethod
-    def load(cls:type, channel_json:dict, default_value:float=0.0) -> DsonChannelFloat:
+    @staticmethod
+    def load(channel_json:dict, default_value:float=0.0) -> Self:
 
-        struct:DsonChannelFloat = cls()
+        struct:Self = DsonChannelFloat()
         DsonChannel._create_basic(struct, channel_json)
 
         # Default value
@@ -219,11 +225,11 @@ class DsonChannelFloat(DsonChannel):
         return struct
 
 
-    def __float__(self:DsonChannelFloat) -> float:
+    def __float__(self:Self) -> float:
         return float(self.current_value)
 
 
-    def get_value(self:DsonChannelFloat) -> float:
+    def get_value(self:Self) -> float:
         return float(self)
 
 
@@ -240,8 +246,8 @@ class DsonChannelVector:
     z:DsonChannelFloat = None
 
 
-    @classmethod
-    def load(cls:type, json_array:list[dict], default_x:float=0.0, default_y:float=0.0, default_z:float=0.0) -> DsonChannelVector:
+    @staticmethod
+    def load(json_array:list[dict], default_x:float=0.0, default_y:float=0.0, default_z:float=0.0) -> Self:
 
         x_dict:dict = None
         y_dict:dict = None
@@ -257,7 +263,7 @@ class DsonChannelVector:
                 if channel_id == 'Z':
                     z_dict = item
 
-        vector:DsonChannelVector = cls()
+        vector:Self = DsonChannelVector()
         vector.x = DsonChannelFloat.load(x_dict, default_value=default_x)
         vector.y = DsonChannelFloat.load(y_dict, default_value=default_y)
         vector.z = DsonChannelFloat.load(z_dict, default_value=default_z)
@@ -265,5 +271,5 @@ class DsonChannelVector:
         return vector
 
 
-    def __iter__(self:DsonChannelVector) -> Iterator:
+    def __iter__(self:Self) -> Iterator:
         return iter([ float(self.x), float(self.y), float(self.z) ])

@@ -4,9 +4,8 @@
 # Licensed under the MIT license.
 # ============================================================================ #
 
-from __future__ import annotations
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Self
 
 from dufman.types import DsonColor
 
@@ -21,34 +20,34 @@ class DsonPresentation:
     color1                  : DsonColor     = None
     color2                  : DsonColor     = None
 
-    @classmethod
-    def load(cls:type, presentation_json:dict) -> DsonPresentation:
+    @staticmethod
+    def load(presentation_json:dict) -> Self:
 
-        struct:DsonPresentation = cls()
+        struct:DsonPresentation = DsonPresentation()
 
         # Content type
         if "type" in presentation_json:
             struct.content_type = presentation_json["type"]
         else:
-            raise Exception("Missing required property \"type\"")
+            raise ValueError("Missing required property \"type\"")
 
         # Label
         if "label" in presentation_json:
             struct.label = presentation_json["label"]
         else:
-            raise Exception("Missing required property \"label\"")
+            raise ValueError("Missing required property \"label\"")
 
         # Description
         if "description" in presentation_json:
             struct.description = presentation_json["description"]
         else:
-            raise Exception("Missing required property \"description\"")
+            raise ValueError("Missing required property \"description\"")
 
         # Icon (large)
         if "icon_large" in presentation_json:
             struct.icon_large = presentation_json["icon_large"]
         else:
-            raise Exception("Missing required property \"icon_large\"")
+            raise ValueError("Missing required property \"icon_large\"")
 
         # Icon (small)
         if "icon_small" in presentation_json:
@@ -56,11 +55,11 @@ class DsonPresentation:
 
         # Colors
         if not "colors" in presentation_json:
-            raise Exception("Missing required property \"colors\"")
+            raise ValueError("Missing required property \"colors\"")
 
         colors:Any = presentation_json["colors"]
         if not (isinstance(colors, list) and len(colors) == 2):
-            raise Exception("\"colors\" property must be an array with two elements")
+            raise TypeError("\"colors\" property must be an array with two elements")
 
         struct.color1 = DsonColor(colors[0])
         struct.color2 = DsonColor(colors[1])

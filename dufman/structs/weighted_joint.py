@@ -4,8 +4,8 @@
 # Licensed under the MIT license.
 # ============================================================================ #
 
-from __future__ import annotations
 from dataclasses import dataclass
+from typing import Self
 
 @dataclass
 class DsonWeightedJoint:
@@ -19,25 +19,25 @@ class DsonWeightedJoint:
     bulge_weights:list = None
 
 
-    @classmethod
-    def load(cls:type, joint_json:dict) -> DsonWeightedJoint:
+    @staticmethod
+    def load(joint_json:dict) -> Self:
 
         if not joint_json:
             return None
 
-        struct:DsonWeightedJoint = cls()
+        struct:DsonWeightedJoint = DsonWeightedJoint()
 
         # ID
         if "id" in joint_json:
             struct.joint_id = joint_json["id"]
         else:
-            raise Exception("Missing required property \"ID\"")
+            raise ValueError("Missing required property \"ID\"")
 
         # Node URL
         if "node" in joint_json:
             struct.node = joint_json["node"]
         else:
-            raise Exception("Missing required property \"node\"")
+            raise ValueError("Missing required property \"node\"")
 
         # Ensure weighted joint has at least one type of weighting
         has_weights:bool = False
@@ -61,6 +61,6 @@ class DsonWeightedJoint:
 
         # Weighted joint is not valid
         if not has_weights:
-            raise Exception("Weighted joint does not have any weights")
+            raise ValueError("Weighted joint does not have any weights")
 
         return struct

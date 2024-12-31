@@ -4,8 +4,8 @@
 # Licensed under the MIT license.
 # ============================================================================ #
 
-from __future__ import annotations
 from dataclasses import dataclass
+from typing import Self
 
 from dufman.structs.channel import DsonChannelFloat
 
@@ -20,11 +20,11 @@ class DsonBulgeBinding:
     left_map        : dict              = None
     right_map       : dict              = None
 
-    @classmethod
-    def load(cls:type, bulge_json:dict) -> DsonBulgeBinding:
+    @staticmethod
+    def load(bulge_json:dict) -> Self:
         """Factory method to create and validate DsonBulgeBinding objects."""
 
-        struct:DsonBulgeBinding = cls()
+        struct:Self = DsonBulgeBinding()
 
         bulge_axes:dict = { axis["id"]: axis for axis in bulge_json["bulges"] }
 
@@ -35,25 +35,25 @@ class DsonBulgeBinding:
         if "positive-left" in bulge_axes:
             struct.positive_left = DsonChannelFloat.load(bulge_axes["positive-left"])
         else:
-            raise Exception("Missing required property \"positive-left\"")
+            raise ValueError("Missing required property \"positive-left\"")
 
         # Positive right
         if "positive-right" in bulge_axes:
             struct.positive_right = DsonChannelFloat.load(bulge_axes["positive-right"])
         else:
-            raise Exception("Missing required property \"positive-right\"")
+            raise ValueError("Missing required property \"positive-right\"")
 
         # Negative left
         if "negative-left" in bulge_axes:
             struct.negative_left = DsonChannelFloat.load(bulge_axes["negative-left"])
         else:
-            raise Exception("Missing required property \"negative-left\"")
+            raise ValueError("Missing required property \"negative-left\"")
 
         # Negative right
         if "negative-right" in bulge_axes:
             struct.negative_right = DsonChannelFloat.load(bulge_axes["negative-right"])
         else:
-            raise Exception("Missing required property \"negative-right\"")
+            raise ValueError("Missing required property \"negative-right\"")
 
         # Left map
         struct.left_map = { entry[0]: entry[1] for entry in bulge_json["left_map"]["values"] }
@@ -71,14 +71,14 @@ class DsonBulgeWeights:
     bulge_y     : DsonBulgeBinding = None
     bulge_z     : DsonBulgeBinding = None
 
-    @classmethod
-    def load(cls:type, array:list) -> DsonBulgeWeights:
+    @staticmethod
+    def load(array:list) -> Self:
         """Factory method to create and validate DsonBulgeWeights object."""
 
         if not array:
-            raise Exception("Data array is None")
+            raise ValueError("Data array is None")
 
-        struct:DsonBulgeWeights = cls()
+        struct:Self = DsonBulgeWeights()
 
         axes:dict = { axis: array[axis] for axis in array }
 
