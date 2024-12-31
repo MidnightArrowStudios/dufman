@@ -6,7 +6,6 @@
 """This module defines classes to calculate driver values."""
 
 # stdlib
-from __future__ import annotations
 from typing import Any, Self
 
 # dufman
@@ -19,6 +18,12 @@ from dufman.enums import (
 from dufman.library import (
     find_library_containing_asset_id,
     get_single_property_from_library,
+)
+from dufman.spline import (
+    calculate_linear_spline,
+    calculate_tcb_spline,
+    Knot,
+    TcbKnot,
 )
 from dufman.structs.channel import (
     DsonChannel,
@@ -49,7 +54,7 @@ class DriverTarget:
 
     # ======================================================================== #
 
-    def __init__(self:DriverTarget, target_url:str, asset_struct:Any, library_type:LibraryType) -> Self:
+    def __init__(self:Self, target_url:str, asset_struct:Any, library_type:LibraryType) -> Self:
 
         # Object properties
         self._target_url:str = target_url
@@ -74,13 +79,13 @@ class DriverTarget:
 
     # ------------------------------------------------------------------------ #
 
-    def __str__(self:DriverTarget) -> str:
+    def __str__(self:Self) -> str:
         return self._target_url
 
 
     # ------------------------------------------------------------------------ #
 
-    def __repr__(self:DriverTarget) -> str:
+    def __repr__(self:Self) -> str:
         return f"DriverTarget(\"{ str(self) }\")"
 
 
@@ -244,7 +249,7 @@ class DriverTarget:
     #                                                                          #
     # ======================================================================== #
 
-    def get_channel_type(self:DriverTarget) -> ChannelType:
+    def get_channel_type(self:Self) -> ChannelType:
         """Return the ChannelType of the underlying DsonChannel object."""
         if not self.is_valid():
             return None
@@ -253,7 +258,7 @@ class DriverTarget:
 
     # ------------------------------------------------------------------------ #
 
-    def get_value(self:DriverTarget) -> Any:
+    def get_value(self:Self) -> Any:
         """Return the current value of this DriverTarget."""
 
         if not self.is_valid():
@@ -269,14 +274,14 @@ class DriverTarget:
 
     # ------------------------------------------------------------------------ #
 
-    def is_valid(self:DriverTarget) -> bool:
+    def is_valid(self:Self) -> bool:
         """Check if this DriverTarget has a DsonChannel."""
         return self._asset is not None
 
 
     # ------------------------------------------------------------------------ #
 
-    def set_value(self:DriverTarget, new_value:Any) -> None:
+    def set_value(self:Self, new_value:Any) -> None:
         """Update the current value of this DriverTarget."""
 
         if not self.is_valid():
@@ -300,7 +305,7 @@ class DriverTarget:
     #                                                                          #
     # ======================================================================== #
 
-    def _get_float_value(self:DriverTarget) -> Any:
+    def _get_float_value(self:Self) -> Any:
 
         # Sort equations which contribute to the final value.
         stage_sum:list[DriverEquation] = []
@@ -356,7 +361,7 @@ class DriverEquation:
 
     # ======================================================================== #
 
-    def __init__(self:DriverEquation, struct:DsonFormula) -> Self:
+    def __init__(self:Self, struct:DsonFormula) -> Self:
 
         if not struct or not isinstance(struct, DsonFormula):
             raise TypeError
@@ -370,13 +375,13 @@ class DriverEquation:
 
     # ------------------------------------------------------------------------ #
 
-    def __str__(self:DriverEquation) -> str:
+    def __str__(self:Self) -> str:
         return self.get_equation_as_string()
 
 
     # ------------------------------------------------------------------------ #
 
-    def __repr__(self:DriverEquation) -> str:
+    def __repr__(self:Self) -> str:
         return f"DriverEquation(\"{ str(self) }\")"
 
 
@@ -391,7 +396,7 @@ class DriverEquation:
 
     # ======================================================================== #
 
-    def get_equation_as_string(self:DriverEquation) -> str:
+    def get_equation_as_string(self:Self) -> str:
         """Create a user-readable string identifying how the equation works."""
 
         stack:list[Any] = []
@@ -411,6 +416,20 @@ class DriverEquation:
                     result:str = f"({value1} * {value2})"
                     stack.append(result)
 
+                case FormulaOperator.SPL_TCB | FormulaOperator.SPL_LINEAR:
+                    number_of_knots:int = stack.pop()
+                    knots:list[Knot] = []
+
+                    for _ in range(number_of_knots):
+                        data:list = stack.pop()
+                        knot:Knot = Knot()
+                        knot.x = data[0]
+                        knot.y = data[1]
+                        knots.append(knot)
+
+                    _value:Any = stack.pop()
+                    stack.append("IMPLEMENT SPLINE PRINTING")
+
                 case _:
                     raise NotImplementedError(operation.operator)
 
@@ -420,14 +439,14 @@ class DriverEquation:
 
     # ------------------------------------------------------------------------ #
 
-    def get_stage(self:DriverEquation) -> FormulaStage:
+    def get_stage(self:Self) -> FormulaStage:
         """Return the FormulaStage of the underlying DsonFormula struct."""
         return self.struct.stage
 
 
     # ------------------------------------------------------------------------ #
 
-    def get_value(self:DriverEquation) -> Any:
+    def get_value(self:Self) -> Any:
         """Return the final value of the equation.
         
         This is equivalent to calculating the "output" property of a DsonFormula
@@ -439,6 +458,7 @@ class DriverEquation:
         for operation in self.struct.operations:
             match operation.operator:
 
+                # ------------------------------------------------------------ #
                 # Push
                 case FormulaOperator.PUSH:
 
@@ -453,6 +473,7 @@ class DriverEquation:
                         input_property:DriverTarget = self.inputs[operation.url]
                         stack.append(input_property.get_value())
 
+                # ------------------------------------------------------------ #
                 # Multiply
                 case FormulaOperator.MULT:
                     value1:Any = stack.pop()
@@ -460,9 +481,66 @@ class DriverEquation:
                     result:Any = value1 * value2
                     stack.append(result)
 
+                # ------------------------------------------------------------ #
+                # Spline (Linear)
+                case FormulaOperator.SPL_LINEAR:
+
+                    number_of_knots:int = int(stack.pop())
+                    knots:list[Knot] = []
+
+                    for _ in range(number_of_knots):
+
+                        knot:Knot = Knot()
+                        knot_list:list = stack.pop()
+
+                        knot.x = knot_list[0]
+                        knot.y = knot_list[1]
+
+                        knots.append(knot)
+
+                    value:Any = stack.pop()
+                    result:Any = calculate_linear_spline(knots, value)
+                    stack.append(result)
+
+                # ------------------------------------------------------------ #
+                # Spline (TCB)
+
+                # The following JCMs use TCB spline interpolation:
+                #   pJCMForeArmFwd_75_L
+                #   pJCMThighFwd_57_L
+                #   pJCMThighFwd_115_L
+                #   pJCMShinBend_90_L
+                #   pJCMShinBend_155_L
+
+                # NOTE: Currently, this is an alias for linear interpolation.
+                case FormulaOperator.SPL_TCB:
+
+                    number_of_splines:int = int(stack.pop())
+                    knots:list[TcbKnot] = []
+
+                    for _ in range(number_of_splines):
+
+                        knot:TcbKnot = TcbKnot()
+                        knot_list:list = stack.pop()
+
+                        knot.x=knot_list[0]
+                        knot.y=knot_list[1]
+                        knot.tension=knot_list[2]
+                        knot.continuity=knot_list[3]
+                        knot.bias=knot_list[4]
+
+                        knots.append(knot)
+
+                    value:Any = stack.pop()
+                    result:Any = calculate_tcb_spline(knots, value)
+                    stack.append(result)
+
+                # ------------------------------------------------------------ #
                 # Unknown
                 case _:
                     raise NotImplementedError(operation.operator)
+
+                # ------------------------------------------------------------ #
 
         if len(stack) != 1:
             raise RuntimeError

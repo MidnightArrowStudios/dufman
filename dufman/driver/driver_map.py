@@ -6,7 +6,6 @@ from math import isclose
 from typing import Any, Self
 
 # dufman
-from dufman.datatypes.vector import DsonVector
 from dufman.driver.driver_dict import DriverDictionary
 from dufman.driver.driver_object import DriverTarget, DriverEquation
 from dufman.enums import LibraryType
@@ -16,6 +15,7 @@ from dufman.structs.formula import DsonFormula
 from dufman.structs.modifier import DsonModifier
 from dufman.structs.morph import DsonMorph
 from dufman.structs.node import DsonNode
+from dufman.types import DsonVector
 from dufman.url import AssetAddress
 
 
@@ -55,6 +55,12 @@ class DriverMap:
     # ======================================================================== #
     # PUBLIC FUNCTIONALITY                                                     #
     # ======================================================================== #
+
+    def load_invalid(self:DriverMap, target_url:str, property_path:str) -> None:
+        return
+
+
+    # ------------------------------------------------------------------------ #
 
     def load_modifier(self:DriverMap, struct:DsonModifier) -> None:
         """Add a channel-containing DsonModifier struct to the DriverMap."""
@@ -208,6 +214,18 @@ class DriverMap:
 
 
     # ======================================================================== #
+    # ======================================================================== #
+
+    def get_joint_controlled_morphs(self:DriverMap) -> None:
+
+        for property_url in self._drivers.get_all_stored_urls():
+            driver_target:DriverTarget = self._drivers.get_driver_target(property_url)
+            print(repr(driver_target))
+
+        return
+
+
+    # ======================================================================== #
     # PRIVATE IMPLEMENTATION METHODS                                           #
     # ======================================================================== #
 
@@ -247,6 +265,9 @@ class DriverMap:
                 self._nodes[asset_url] = struct
                 is_first_time = True
             asset = self._nodes[asset_url]
+
+        elif not library_type:
+            pass
 
         else:
             raise NotImplementedError(library_type)
@@ -319,19 +340,24 @@ class DriverMap:
 
         # Create variables to instantiate assets
         asset_url:str = address.get_url_to_asset()
-        asset_type:LibraryType = find_library_containing_asset_id(asset_url)
+
+        try:
+            asset_type:LibraryType = find_library_containing_asset_id(asset_url)
+        except FileNotFoundError:
+            # TODO: Quick and dirty hack. Should be replaced when implementing
+            #   dummy properties.
+            return
 
         # Recursively load any dependencies (which may call _parse_formulas()
         #   again) this driver relies on.
-        match asset_type:
-            case LibraryType.MODIFIER:
-                struct:DsonModifier = DsonModifier.load(asset_url)
-                self.load_modifier(struct)
-            case LibraryType.NODE:
-                struct:DsonNode = DsonNode.load(asset_url)
-                self.load_node(struct, address.property_path)
-            case _:
-                raise NotImplementedError(asset_type)
+        if asset_type == LibraryType.MODIFIER:
+            struct:DsonModifier = DsonModifier.load(asset_url)
+            self.load_modifier(struct)
+        elif asset_type == LibraryType.NODE:
+            struct:DsonNode = DsonNode.load(asset_url)
+            self.load_node(struct, address.property_path)
+        else:
+            raise NotImplementedError(asset_type)
 
         # Get the DriverTarget from the internal database. This should have
         #   been added before _parse_formulas() was called.

@@ -94,7 +94,6 @@ class TestDriverMap(TestCase):
         # Morph vertex positions
 
         #morph:DsonMorph = driver_map.get_current_morph_shape(16556)
-        breakpoint()
 
         # -------------------------------------------------------------------- #
         # Morph bone positions
