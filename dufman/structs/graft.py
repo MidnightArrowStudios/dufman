@@ -4,7 +4,10 @@
 # Licensed under the MIT license.
 # ============================================================================ #
 
-"""DsonGraft defines how one mesh should be geografted to another."""
+"""Defines a struct which encapsulates DSON's "graft" datatype.
+
+http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/graft/start
+"""
 
 # stdlib
 from dataclasses import dataclass
@@ -22,7 +25,7 @@ class _Pair(NamedTuple):
 
 
 # ============================================================================ #
-# DsonGraft                                                                    #
+# DsonGraft struct                                                             #
 # ============================================================================ #
 
 @dataclass
@@ -38,14 +41,13 @@ class DsonGraft:
     # ======================================================================== #
 
     @staticmethod
-    def load(graft_json:dict) -> Self:
+    def load_from_dson(graft_dson:dict) -> Self:
         """Factory method for the creation of DsonGraft structs."""
 
-        # Some DSON files have empty graft dictionaries.
-        if not graft_json:
+        if not graft_dson:
             return None
 
-        if not isinstance(graft_json, dict):
+        if not isinstance(graft_dson, dict):
             raise TypeError
 
         struct:DsonGraft = DsonGraft()
@@ -53,27 +55,27 @@ class DsonGraft:
         # -------------------------------------------------------------------- #
 
         # Expected vertices
-        if "vertex_count" in graft_json:
-            struct.expected_vertices = graft_json["vertex_count"]
+        if "vertex_count" in graft_dson:
+            struct.expected_vertices = graft_dson["vertex_count"]
         else:
             raise ValueError("Missing required property \"vertex_count\"")
 
         # Expected polygons
-        if "poly_count" in graft_json:
-            struct.expected_polygons = graft_json["poly_count"]
+        if "poly_count" in graft_dson:
+            struct.expected_polygons = graft_dson["poly_count"]
         else:
             raise ValueError("Missing required property \"poly_count\"")
 
         # Vertex pairs
-        if "vertex_pairs" in graft_json:
-            pairs:list[_Pair] = [ _Pair(i[0], i[1]) for i in graft_json["vertex_pairs"]["values"] ]
+        if "vertex_pairs" in graft_dson:
+            pairs:list[_Pair] = [ _Pair(i[0], i[1]) for i in graft_dson["vertex_pairs"]["values"] ]
             struct.vertex_pairs = pairs
         else:
             raise ValueError("Missing required property \"vertex_pairs\"")
 
         # Hidden polygons
-        if "hidden_polys" in graft_json:
-            struct.hidden_polygons:list[int] = list(graft_json["hidden_polys"]["values"])
+        if "hidden_polys" in graft_dson:
+            struct.hidden_polygons:list[int] = list(graft_dson["hidden_polys"]["values"])
         else:
             raise ValueError("Missing required property \"hidden_polys\"")
 

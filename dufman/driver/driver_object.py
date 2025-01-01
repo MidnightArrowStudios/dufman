@@ -154,11 +154,11 @@ class DriverTarget:
 
                 # DsonModifier
                 case LibraryType.MODIFIER:
-                    struct = DsonModifier.load(asset_url)
+                    struct = DsonModifier.load_from_file(asset_url)
 
                 # DsonNode
                 case LibraryType.NODE:
-                    struct = DsonNode.load(asset_url)
+                    struct = DsonNode.load_from_file(asset_url)
 
                 # Unknown
                 case _:

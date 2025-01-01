@@ -12,7 +12,7 @@ from dufman.enums import LibraryType, NodeType, RotationOrder
 from dufman.file import check_path
 
 from dufman.library import (
-    get_asset_json_from_library,
+    get_asset_dson_from_library,
     get_single_property_from_library,
 )
 from dufman.observers import _node_struct_created
@@ -21,8 +21,6 @@ from dufman.url import AssetAddress
 from dufman.structs.channel import DsonChannelFloat, DsonChannelVector
 from dufman.structs.formula import DsonFormula
 from dufman.structs.presentation import DsonPresentation
-
-from dufman.types import DsonColor
 
 
 # ============================================================================ #
@@ -59,161 +57,130 @@ class DsonNode:
 
 
     # ======================================================================== #
-    # CAMERA                                                                   #
-    # ======================================================================== #
-
-    @dataclass
-    class CameraPerspective:
-        clipping_z_near                     : float                 = None
-        clipping_z_far                      : float                 = None
-        magnification_y                     : float                 = None
-
-    @dataclass
-    class CameraOrthographic:
-        clipping_z_near                     : float                 = None
-        clipping_z_far                      : float                 = None
-        field_of_view_y                     : float                 = 45.0
-        focal_length                        : float                 = None
-        depth_of_field                      : bool                  = False
-        focal_distance                      : float                 = None
-        f_stop                              : float                 = None
-
-    perspective                         : CameraPerspective     = None
-    orthographic                        : CameraOrthographic    = None
-
-
-    # ======================================================================== #
-    # LIGHT                                                                    #
-    # ======================================================================== #
-
-    @dataclass
-    class LightPoint:
-        pass
-
-    @dataclass
-    class LightDirectional:
-        pass
-
-    @dataclass
-    class LightSpot:
-        pass
-
-    light_on:bool = True
-    light_color:DsonColor = None
-    light_point:LightPoint = None
-    light_directional:LightDirectional = None
-    light_spot:LightSpot = None
-
-
-    # ======================================================================== #
-    # CAMERA                                                                   #
-    # ======================================================================== #
 
     @staticmethod
-    def load(dsf_filepath:Path, node_json:dict=None) -> Self:
+    def load_from_dson(node_dson:dict) -> Self:
 
-        # Ensure type safety
-        dsf_filepath = check_path(dsf_filepath)
+        if not node_dson:
+            return None
 
-        # Load DSON data from disk if it wasn't passed in.
-        if not node_json:
-            node_json = get_asset_json_from_library(dsf_filepath, LibraryType.NODE)
+        if not isinstance(node_dson, dict):
+            raise TypeError
 
         struct:DsonNode = DsonNode()
-        struct.dsf_file = dsf_filepath
+
+        # -------------------------------------------------------------------- #
 
         # ID
-        if "id" in node_json:
-            struct.library_id = node_json["id"]
+        if "id" in node_dson:
+            struct.library_id = node_dson["id"]
         else:
             raise ValueError("Missing required property \"ID\"")
 
         # Name
-        if "name" in node_json:
-            struct.name = node_json["name"]
+        if "name" in node_dson:
+            struct.name = node_dson["name"]
         else:
             raise ValueError("Missing required property \"name\"")
 
         # Type
-        if "type" in node_json:
-            struct.node_type = NodeType(node_json["type"])
+        if "type" in node_dson:
+            struct.node_type = NodeType(node_dson["type"])
 
         # Label
-        if "label" in node_json:
-            struct.label = node_json["label"]
+        if "label" in node_dson:
+            struct.label = node_dson["label"]
         else:
             raise ValueError("Missing required property \"label\"")
 
         # Source
-        if "source" in node_json:
-            struct.source = node_json["source"]
+        if "source" in node_dson:
+            struct.source = node_dson["source"]
 
         # Parent
-        if "parent" in node_json:
-            struct.parent = node_json["parent"]
+        if "parent" in node_dson:
+            struct.parent = node_dson["parent"]
 
         # Rotation order
-        if "rotation_order" in node_json:
-            struct.rotation_order = RotationOrder(node_json["rotation_order"])
+        if "rotation_order" in node_dson:
+            struct.rotation_order = RotationOrder(node_dson["rotation_order"])
 
         # Inherits scale
-        if "inherits_scale" in node_json:
-            struct.inherits_scale = node_json["inherits_scale"]
+        if "inherits_scale" in node_dson:
+            struct.inherits_scale = node_dson["inherits_scale"]
         else:
             struct.inherits_scale = _inherits_scale_default(struct)
 
         # Center point
-        center_point_json:dict = None
-        if "center_point" in node_json:
-            center_point_json = node_json["center_point"]
-        struct.center_point = DsonChannelVector.load(center_point_json)
+        center_point_dson:dict = None
+        if "center_point" in node_dson:
+            center_point_dson = node_dson["center_point"]
+        struct.center_point = DsonChannelVector.load_from_dson(center_point_dson)
 
         # End point
-        end_point_json:dict = None
-        if "end_point" in node_json:
-            end_point_json = node_json["end_point"]
-        struct.end_point = DsonChannelVector.load(end_point_json)
+        end_point_dson:dict = None
+        if "end_point" in node_dson:
+            end_point_dson = node_dson["end_point"]
+        struct.end_point = DsonChannelVector.load_from_dson(end_point_dson)
 
         # Orientation
-        orientation_json:dict = None
-        if "orientation" in node_json:
-            orientation_json = node_json["orientation"]
-        struct.orientation = DsonChannelVector.load(orientation_json)
+        orientation_dson:dict = None
+        if "orientation" in node_dson:
+            orientation_dson = node_dson["orientation"]
+        struct.orientation = DsonChannelVector.load_from_dson(orientation_dson)
 
         # Rotation
-        rotation_json:dict = None
-        if "rotation" in node_json:
-            rotation_json = node_json["rotation"]
-        struct.rotation = DsonChannelVector.load(rotation_json)
+        rotation_dson:dict = None
+        if "rotation" in node_dson:
+            rotation_dson = node_dson["rotation"]
+        struct.rotation = DsonChannelVector.load_from_dson(rotation_dson)
 
         # Translation
-        translation_json:dict = None
-        if "translation" in node_json:
-            translation_json = node_json["translation"]
-        struct.translation = DsonChannelVector.load(translation_json)
+        translation_dson:dict = None
+        if "translation" in node_dson:
+            translation_dson = node_dson["translation"]
+        struct.translation = DsonChannelVector.load_from_dson(translation_dson)
 
         # Scale
-        scale_json:dict = None
-        if "scale" in node_json:
-            scale_json = node_json["scale"]
-        struct.scale = DsonChannelVector.load(scale_json, 1.0, 1.0, 1.0)
+        scale_dson:dict = None
+        if "scale" in node_dson:
+            scale_dson = node_dson["scale"]
+        struct.scale = DsonChannelVector.load_from_dson(scale_dson, default_value=1.0)
 
         # General scale
-        general_scale_json:dict = None
-        if "general_scale" in node_json:
-            general_scale_json = node_json["general_scale"]
-        struct.general_scale = DsonChannelFloat.load(general_scale_json, default_value=1.0)
+        general_scale_dson:dict = None
+        if "general_scale" in node_dson:
+            general_scale_dson = node_dson["general_scale"]
+        struct.general_scale = DsonChannelFloat.load_from_dson(general_scale_dson, default_value=1.0)
 
         # Presentation
-        if "presentation" in node_json:
-            struct.presentation = DsonPresentation.load(node_json["presentation"])
+        if "presentation" in node_dson:
+            struct.presentation = DsonPresentation.load_from_dson(node_dson["presentation"])
 
         # Formulas
-        if "formulas" in node_json:
-            struct.formulas = DsonFormula.load(node_json["formulas"])
+        if "formulas" in node_dson:
+            struct.formulas = DsonFormula.load_from_dson(node_dson["formulas"])
+
+        # -------------------------------------------------------------------- #
+
+        return struct
+
+
+    # ------------------------------------------------------------------------ #
+
+    @staticmethod
+    def load_from_file(dsf_filepath:Path) -> Self:
+
+        # Ensure type safety
+        dsf_filepath = check_path(dsf_filepath)
+
+        node_dson:dict = get_asset_dson_from_library(dsf_filepath, LibraryType.NODE)
+
+        struct:Self = DsonNode.load_from_dson(node_dson)
+        struct.dsf_file = dsf_filepath
 
         # Fire observer update.
-        _node_struct_created(struct, node_json)
+        _node_struct_created(struct, node_dson)
 
         return struct
 

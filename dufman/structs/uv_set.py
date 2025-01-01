@@ -12,7 +12,7 @@ from typing import NamedTuple, Self
 # dufman
 from dufman.enums import LibraryType
 from dufman.file import check_path
-from dufman.library import get_asset_json_from_library
+from dufman.library import get_asset_dson_from_library
 from dufman.observers import _uv_set_struct_created
 
 
@@ -57,49 +57,46 @@ class DsonUVSet:
     # ======================================================================== #
 
     @staticmethod
-    def load(dsf_filepath:Path, uv_set_json:dict=None) -> Self:
+    def load_from_dson(uv_set_dson:dict) -> Self:
 
-        # Ensure type safety
-        dsf_filepath:Path = check_path(dsf_filepath)
+        if not uv_set_dson:
+            return None
 
-        # Load DSON data from disk if it wasn't passed in.
-        if not uv_set_json:
-            uv_set_json = get_asset_json_from_library(dsf_filepath, LibraryType.UV_SET)
+        if not isinstance(uv_set_dson, dict):
+            raise TypeError
 
-        # TODO: Validate mandatory properties
-
-        struct:DsonUVSet = DsonUVSet()
-        struct.dsf_file = dsf_filepath
+        struct:Self = DsonUVSet()
 
         # -------------------------------------------------------------------- #
+        # TODO: Validate mandatory properties
 
         # ID
-        if "id" in uv_set_json:
-            struct.library_id = uv_set_json["id"]
+        if "id" in uv_set_dson:
+            struct.library_id = uv_set_dson["id"]
         else:
             raise ValueError("Missing required property \"id\"")
 
         # Name
-        if "name" in uv_set_json:
-            struct.name = uv_set_json["name"]
+        if "name" in uv_set_dson:
+            struct.name = uv_set_dson["name"]
 
         # Label
-        if "label" in uv_set_json:
-            struct.label = uv_set_json["label"]
+        if "label" in uv_set_dson:
+            struct.label = uv_set_dson["label"]
 
         # Source
-        if "source" in uv_set_json:
-            struct.source = uv_set_json["source"]
+        if "source" in uv_set_dson:
+            struct.source = uv_set_dson["source"]
 
         # Expected vertices
-        if "vertex_count" in uv_set_json:
-            struct.expected_vertices = uv_set_json["vertex_count"]
+        if "vertex_count" in uv_set_dson:
+            struct.expected_vertices = uv_set_dson["vertex_count"]
         else:
             raise ValueError("Missing required property \"vertex_count\"")
 
         # UV coordinates
-        if "uvs" in uv_set_json:
-            uv_values:list[dict] = uv_set_json["uvs"]["values"]
+        if "uvs" in uv_set_dson:
+            uv_values:list[dict] = uv_set_dson["uvs"]["values"]
             struct.uv_coordinates = [ _Coordinate(x=entry[0], y=entry[1]) for entry in uv_values ]
         else:
             raise ValueError("Missing required property \"uvs\"")
@@ -109,8 +106,8 @@ class DsonUVSet:
         #   purposes, so we convert the data to a dictionary with its poly
         #   index as the key.
         struct.hotswap_indices = {}
-        if "polygon_vertex_indices" in uv_set_json:
-            for entry in uv_set_json["polygon_vertex_indices"]:
+        if "polygon_vertex_indices" in uv_set_dson:
+            for entry in uv_set_dson["polygon_vertex_indices"]:
 
                 face_index:int = entry[0]
 
@@ -128,8 +125,24 @@ class DsonUVSet:
 
         # -------------------------------------------------------------------- #
 
+        return struct
+
+
+    # ------------------------------------------------------------------------ #
+
+    @staticmethod
+    def load_from_file(dsf_filepath:Path) -> Self:
+
+        # Ensure type safety
+        dsf_filepath = check_path(dsf_filepath)
+
+        uv_set_dson:dict = get_asset_dson_from_library(dsf_filepath, LibraryType.UV_SET)
+
+        struct:Self = DsonUVSet.load_from_dson(uv_set_dson)
+        struct.dsf_file = dsf_filepath
+
         # Fire observer update.
-        _uv_set_struct_created(struct, uv_set_json)
+        _uv_set_struct_created(struct, uv_set_dson)
 
         return struct
 

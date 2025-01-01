@@ -6,7 +6,7 @@
 
 """Defines a struct which encapsulates DSON's "formula" datatype.
 
-http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/start
+http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/formula/start
 """
 
 # stdlib
@@ -18,7 +18,7 @@ from dufman.enums import FormulaOperator, FormulaStage
 
 
 # ============================================================================ #
-# DsonOperation                                                                #
+# DsonOperation struct                                                         #
 # ============================================================================ #
 
 @dataclass
@@ -30,7 +30,7 @@ class DsonOperation:
 
 
 # ============================================================================ #
-# DsonOperation                                                                #
+# DsonFormula struct                                                           #
 # ============================================================================ #
 
 @dataclass
@@ -44,10 +44,13 @@ class DsonFormula:
     # ======================================================================== #
 
     @staticmethod
-    def load(formula_array:list[dict]) -> list[Self]:
+    def load_from_dson(formula_array:list[dict]) -> list[Self]:
         """Factory method for creating an array of DsonFormula objects."""
 
-        if not formula_array or not isinstance(formula_array, list):
+        if not formula_array:
+            return None
+
+        if not isinstance(formula_array, list):
             raise TypeError("\"formulas\" property is not a list")
 
         if not all(isinstance(item, dict) for item in formula_array):
@@ -55,22 +58,22 @@ class DsonFormula:
 
         all_structs:list[Self] = []
 
-        for formula_json in formula_array:
+        for formula_dson in formula_array:
 
             formula:Self = DsonFormula()
 
             # ---------------------------------------------------------------- #
 
             # Output
-            if "output" in formula_json:
-                formula.output = formula_json["output"]
+            if "output" in formula_dson:
+                formula.output = formula_dson["output"]
             else:
                 raise ValueError("Missing required property \"output\"")
 
             # Stage
-            if "stage" in formula_json:
+            if "stage" in formula_dson:
 
-                stage_string:str = formula_json["stage"]
+                stage_string:str = formula_dson["stage"]
 
                 # DSON specs dictate this is spelled "multiply", but official
                 #   Daz files also abbreviate it, so we need to check.
@@ -81,29 +84,29 @@ class DsonFormula:
                 formula.stage = FormulaStage(stage_string)
 
             # Operations
-            if not "operations" in formula_json:
+            if not "operations" in formula_dson:
                 raise ValueError("Missing required property \"operations\"")
 
             formula.operations = []
 
-            for op_json in formula_json["operations"]:
+            for op_dson in formula_dson["operations"]:
 
                 operation:DsonOperation = DsonOperation()
                 formula.operations.append(operation)
 
                 # Operator
-                if "op" in op_json:
-                    operation.operator = FormulaOperator(op_json["op"])
+                if "op" in op_dson:
+                    operation.operator = FormulaOperator(op_dson["op"])
                 else:
                     raise ValueError("Missing required property \"op\"")
 
                 # URL
-                if "url" in op_json:
-                    operation.url = op_json["url"]
+                if "url" in op_dson:
+                    operation.url = op_dson["url"]
 
                 # Value
-                if "val" in op_json:
-                    operation.value = op_json["val"]
+                if "val" in op_dson:
+                    operation.value = op_dson["val"]
 
             # ---------------------------------------------------------------- #
 

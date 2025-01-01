@@ -4,11 +4,17 @@
 # Licensed under the MIT license.
 # ============================================================================ #
 
+# stdlib
 from dataclasses import dataclass
 from typing import Self
 
+# dufman
 from dufman.enums import RigidRotation, RigidScale
 
+
+# ============================================================================ #
+# Group                                                                        #
+# ============================================================================ #
 
 @dataclass
 class _Group:
@@ -23,6 +29,10 @@ class _Group:
     transform_nodes         : list[str]         = None
 
 
+# ============================================================================ #
+# DsonRigidity struct                                                          #
+# ============================================================================ #
+
 @dataclass
 class DsonRigidity:
 
@@ -30,42 +40,58 @@ class DsonRigidity:
     groups:list[_Group] = None
 
 
+    # ======================================================================== #
+
     @staticmethod
-    def load(rigidity_json:dict) -> Self:
+    def load_from_dson(rigidity_dson:dict) -> Self:
+
+        if not rigidity_dson:
+            return None
+
+        if not isinstance(rigidity_dson, dict):
+            raise TypeError
+
+        struct:Self = DsonRigidity()
+
+        # -------------------------------------------------------------------- #
 
         # Weights
-        weights:dict = None
-        if "weights" in rigidity_json:
-            weights = { entry[0]: entry[1] for entry in rigidity_json["weights"]["values"] }
+        if "weights" in rigidity_dson:
+            struct.weights = { entry[0]: entry[1] for entry in rigidity_dson["weights"]["values"] }
 
         # Groups
-        if not "groups" in rigidity_json:
+        if not "groups" in rigidity_dson:
             raise ValueError("Missing required property \"groups\"")
+        struct.groups = []
 
-        groups:list[_Group] = []
-
-        for group_json in rigidity_json["groups"]:
+        for group_dson in rigidity_dson["groups"]:
 
             group:_Group = _Group()
-            groups.append(group)
 
+            # ---------------------------------------------------------------- #
             # TODO: Error handling
 
-            group.group_id = group_json["id"]
-            group.scale_x = RigidScale(group_json["scale_modes"][0])
-            group.scale_y = RigidScale(group_json["scale_modes"][1])
-            group.scale_z = RigidScale(group_json["scale_modes"][2])
+            group.group_id = group_dson["id"]
+            group.scale_x = RigidScale(group_dson["scale_modes"][0])
+            group.scale_y = RigidScale(group_dson["scale_modes"][1])
+            group.scale_z = RigidScale(group_dson["scale_modes"][2])
 
-            if "reference_vertices" in group_json:
-                group.reference_vertices = list(group_json["reference_vertices"]["values"])
+            if "reference_vertices" in group_dson:
+                group.reference_vertices = list(group_dson["reference_vertices"]["values"])
 
-            if "mask_vertices" in group_json:
-                group.participant_vertices = list(group_json["mask_vertices"]["values"])
+            if "mask_vertices" in group_dson:
+                group.participant_vertices = list(group_dson["mask_vertices"]["values"])
 
-            if "reference" in group_json:
-                group.reference = group_json["reference"]
+            if "reference" in group_dson:
+                group.reference = group_dson["reference"]
 
-            if "transform_nodes" in group_json:
-                group.transform_nodes = list(group_json["transform_nodes"])
+            if "transform_nodes" in group_dson:
+                group.transform_nodes = list(group_dson["transform_nodes"])
 
-        return DsonRigidity(weights, groups)
+            # ---------------------------------------------------------------- #
+
+            struct.groups.append(group)
+
+            # ---------------------------------------------------------------- #
+
+        return struct

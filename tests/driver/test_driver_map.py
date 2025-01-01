@@ -37,8 +37,8 @@ class TestDriverMap(TestCase):
 
         # -------------------------------------------------------------------- #
         # Load character modifier
-
-        driver_map.load_modifier(DsonModifier.load(base_url))
+        struct:DsonModifier = DsonModifier.load_from_file(base_url)
+        driver_map.load_modifier(struct)
         self.assertTrue(driver_map.does_asset_id_have_driver(base_url))
 
         # -------------------------------------------------------------------- #

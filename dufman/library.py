@@ -50,33 +50,33 @@ def find_library_containing_asset_id(asset_path:Path) -> LibraryType:
     dsf_file:dict = handle_dsf_file(asset_address.filepath)
 
     # geometry_library
-    for geometry_json in dsf_file.get(LibraryType.GEOMETRY.value, []):
-        if geometry_json["id"] == asset_address.asset_id:
+    for geometry_dson in dsf_file.get(LibraryType.GEOMETRY.value, []):
+        if geometry_dson["id"] == asset_address.asset_id:
             return LibraryType.GEOMETRY
 
     # image_library
-    for image_json in dsf_file.get(LibraryType.IMAGE.value, []):
-        if image_json["id"] == asset_address.asset_id:
+    for image_dson in dsf_file.get(LibraryType.IMAGE.value, []):
+        if image_dson["id"] == asset_address.asset_id:
             return LibraryType.IMAGE
 
     # material_library
-    for material_json in dsf_file.get(LibraryType.MATERIAL.value, []):
-        if material_json["id"] == asset_address.asset_id:
+    for material_dson in dsf_file.get(LibraryType.MATERIAL.value, []):
+        if material_dson["id"] == asset_address.asset_id:
             return LibraryType.MATERIAL
 
     # modifier_library
-    for modifier_json in dsf_file.get(LibraryType.MODIFIER.value, []):
-        if modifier_json["id"] == asset_address.asset_id:
+    for modifier_dson in dsf_file.get(LibraryType.MODIFIER.value, []):
+        if modifier_dson["id"] == asset_address.asset_id:
             return LibraryType.MODIFIER
 
     # node_library
-    for node_json in dsf_file.get(LibraryType.NODE.value, []):
-        if node_json["id"] == asset_address.asset_id:
+    for node_dson in dsf_file.get(LibraryType.NODE.value, []):
+        if node_dson["id"] == asset_address.asset_id:
             return LibraryType.NODE
 
     # uv_set_library
-    for uv_set_json in dsf_file.get(LibraryType.UV_SET.value, []):
-        if uv_set_json["id"] == asset_address.asset_id:
+    for uv_set_dson in dsf_file.get(LibraryType.UV_SET.value, []):
+        if uv_set_dson["id"] == asset_address.asset_id:
             return LibraryType.UV_SET
 
     return None
@@ -122,7 +122,7 @@ def get_all_asset_urls_from_library(asset_path:Path, library_type:LibraryType) -
 #                                                                              #
 # ============================================================================ #
 
-def get_asset_json_from_library(asset_path:Path, library_type:LibraryType, *, duf_file:dict=None) -> dict:
+def get_asset_dson_from_library(asset_path:Path, library_type:LibraryType, *, duf_file:dict=None) -> dict:
     """Returns a dictionary object from the designated DSF file library."""
 
     # Ensure type safety
@@ -201,7 +201,7 @@ def get_node_hierarchy_urls_from_library(asset_path:Path) -> list[str]:
     # Loop through nodes, get all direct children
     dsf_url:str = asset_address.filepath
     sought_id:str = asset_address.asset_id
-    working_list:list[dict] = [ *_get_child_node_json(all_nodes, sought_id) ]
+    working_list:list[dict] = [ *_get_child_node_dson(all_nodes, sought_id) ]
 
     # As long as working list has something in it, test it to see if it's a
     #   bone. If so, add it to the working list. If not, discard it.
@@ -211,7 +211,7 @@ def get_node_hierarchy_urls_from_library(asset_path:Path) -> list[str]:
             bone_id:str = potential_child["id"]
             bone_address:AssetAddress = AssetAddress.from_components(filepath=dsf_url, asset_id=bone_id)
             result.append(bone_address.get_url_to_asset())
-            working_list.extend( _get_child_node_json(all_nodes, bone_id) )
+            working_list.extend( _get_child_node_dson(all_nodes, bone_id) )
 
     return result
 
@@ -232,7 +232,7 @@ def get_single_property_from_library(dsf_filepath:Path, property_path:list[Any])
 #                                                                              #
 # ============================================================================ #
 
-def _get_child_node_json(node_library:list[dict], parent_id:str) -> list[dict]:
+def _get_child_node_dson(node_library:list[dict], parent_id:str) -> list[dict]:
     """Returns a list of dictionary objects for a node's immediate children."""
 
     # Return value

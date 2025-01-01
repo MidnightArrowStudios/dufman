@@ -355,10 +355,10 @@ class DriverMap:
         # Recursively load any dependencies (which may call _parse_formulas()
         #   again) this driver relies on.
         if asset_type == LibraryType.MODIFIER:
-            struct:DsonModifier = DsonModifier.load(asset_url)
+            struct:DsonModifier = DsonModifier.load_from_file(asset_url)
             self.load_modifier(struct)
         elif asset_type == LibraryType.NODE:
-            struct:DsonNode = DsonNode.load(asset_url)
+            struct:DsonNode = DsonNode.load_from_file(asset_url)
             self.load_node(struct, address.property_path)
         else:
             raise NotImplementedError(asset_type)

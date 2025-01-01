@@ -4,14 +4,20 @@
 # Licensed under the MIT license.
 # ============================================================================ #
 
-# python stdlib
+"""Defines a struct which encapsulates DSON's "geometry" datatype.
+
+http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/geometry/start
+"""
+
+# stdlib
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Self
 
+# dufman
 from dufman.enums import EdgeInterpolation, GeometryType, LibraryType
 from dufman.file import check_path
-from dufman.library import get_asset_json_from_library
+from dufman.library import get_asset_dson_from_library
 from dufman.observers import _geometry_struct_created
 
 from dufman.structs.graft import DsonGraft
@@ -22,7 +28,7 @@ from dufman.types import DsonVector, DsonPolygon
 
 
 # ============================================================================ #
-#                                                                              #
+# DsonGeometry struct                                                          #
 # ============================================================================ #
 
 @dataclass
@@ -57,67 +63,83 @@ class DsonGeometry:
     # ======================================================================== #
 
     @staticmethod
-    def load(dsf_filepath:Path, geometry_json:dict=None) -> Self:
+    def load_from_dson(geometry_dson:dict) -> Self:
 
-        # Ensure type safety
-        dsf_filepath = check_path(dsf_filepath)
+        if not geometry_dson:
+            return None
 
-        # Load DSON data from disk if it wasn't passed in.
-        if not geometry_json:
-            geometry_json = get_asset_json_from_library(dsf_filepath, LibraryType.GEOMETRY)
-
-        # TODO: Validate mandatory properties
+        if not isinstance(geometry_dson, dict):
+            raise TypeError
 
         struct:Self = DsonGeometry()
-        struct.dsf_file = dsf_filepath
+
+        # -------------------------------------------------------------------- #
 
         # ID
-        if "id" in geometry_json:
-            struct.library_id = geometry_json["id"]
+        if "id" in geometry_dson:
+            struct.library_id = geometry_dson["id"]
         else:
             raise ValueError("Missing required property \"id\"")
 
         # Name
-        if "name" in geometry_json:
-            struct.name = geometry_json["name"]
+        if "name" in geometry_dson:
+            struct.name = geometry_dson["name"]
 
         # Label
-        if "label" in geometry_json:
-            struct.label = geometry_json["label"]
+        if "label" in geometry_dson:
+            struct.label = geometry_dson["label"]
 
         # Type
-        if "type" in geometry_json:
-            struct.geometry_type = GeometryType(geometry_json["type"])
+        if "type" in geometry_dson:
+            struct.geometry_type = GeometryType(geometry_dson["type"])
 
         # Source
-        if "source" in geometry_json:
-            struct.source = geometry_json["source"]
+        if "source" in geometry_dson:
+            struct.source = geometry_dson["source"]
 
         # Edge interpolation mode
-        if "edge_interpolation_mode" in geometry_json:
-            struct.edge_interpolation = EdgeInterpolation(geometry_json["edge_interpolation_mode"])
+        if "edge_interpolation_mode" in geometry_dson:
+            struct.edge_interpolation = EdgeInterpolation(geometry_dson["edge_interpolation_mode"])
 
         # Vertices - Polygons
-        _geometry(struct, geometry_json)
+        _geometry(struct, geometry_dson)
 
         # Default UV Set
-        if "default_uv_set" in geometry_json:
-            struct.default_uv_set = geometry_json["default_uv_set"]
+        if "default_uv_set" in geometry_dson:
+            struct.default_uv_set = geometry_dson["default_uv_set"]
 
         # Region
-        if "root_region" in geometry_json:
-            struct.regions = DsonRegion.load(geometry_json["root_region"])
+        if "root_region" in geometry_dson:
+            struct.regions = DsonRegion.load_from_dson(geometry_dson["root_region"])
 
         # Graft
-        if "graft" in geometry_json:
-            struct.graft = DsonGraft.load(geometry_json["graft"])
+        if "graft" in geometry_dson:
+            struct.graft = DsonGraft.load_from_dson(geometry_dson["graft"])
 
         # Rigidity
-        if "rigidity" in geometry_json:
-            struct.rigidity = DsonRigidity.load(geometry_json["rigidity"])
+        if "rigidity" in geometry_dson:
+            struct.rigidity = DsonRigidity.load_from_dson(geometry_dson["rigidity"])
+
+        # -------------------------------------------------------------------- #
+
+        return struct
+
+
+    # ------------------------------------------------------------------------ #
+
+    @staticmethod
+    def load_from_file(dsf_filepath:Path) -> Self:
+
+        # Ensure type safety
+        dsf_filepath = check_path(dsf_filepath)
+
+        geometry_dson:dict = get_asset_dson_from_library(dsf_filepath, LibraryType.GEOMETRY)
+
+        struct:Self = DsonGeometry.load_from_dson(geometry_dson)
+        struct.dsf_file = dsf_filepath
 
         # Fire observer update.
-        _geometry_struct_created(struct, geometry_json)
+        _geometry_struct_created(struct, geometry_dson)
 
         return struct
 
@@ -125,35 +147,35 @@ class DsonGeometry:
     # ======================================================================== #
 
     @staticmethod
-    def save(struct:Self) -> dict:
+    def save_to_dson(struct:Self) -> dict:
 
-        geometry_json:dict = {}
+        geometry_dson:dict = {}
 
         # ID
         if struct.library_id:
-            geometry_json["id"] = struct.library_id
+            geometry_dson["id"] = struct.library_id
         else:
             raise ValueError("DsonGeometry struct has no asset ID.")
 
         # Name
         if struct.name:
-            geometry_json["name"] = struct.name
+            geometry_dson["name"] = struct.name
 
         # Label
         if struct.label:
-            geometry_json["label"] = struct.label
+            geometry_dson["label"] = struct.label
 
         # Type
         if struct.geometry_type:
-            geometry_json["type"] = struct.geometry_type.value
+            geometry_dson["type"] = struct.geometry_type.value
 
         # Source
         if struct.source:
-            geometry_json["source"] = struct.source
+            geometry_dson["source"] = struct.source
 
         # Edge interpolation
         if struct.edge_interpolation:
-            geometry_json["edge_interpolation_mode"] = struct.edge_interpolation.value
+            geometry_dson["edge_interpolation_mode"] = struct.edge_interpolation.value
 
         # -------------------------------------------------------------------- #
         # Vertices
@@ -168,7 +190,7 @@ class DsonGeometry:
         for vertex in struct.vertices:
             vertex_dict["values"].append(list(vertex))
 
-        geometry_json["vertices"] = vertex_dict
+        geometry_dson["vertices"] = vertex_dict
 
         # -------------------------------------------------------------------- #
         # Polygons
@@ -189,7 +211,7 @@ class DsonGeometry:
             mi:int = struct.material_indices[index]
             polylist_dict["values"].append([ fg, mi, *polygon ])
 
-        geometry_json["polylist"] = polylist_dict
+        geometry_dson["polylist"] = polylist_dict
 
         # -------------------------------------------------------------------- #
         # Face group names
@@ -204,7 +226,7 @@ class DsonGeometry:
         for fg_name in struct.face_group_names:
             fg_dict["values"].append(fg_name)
 
-        geometry_json["polygon_groups"] = fg_dict
+        geometry_dson["polygon_groups"] = fg_dict
 
         # -------------------------------------------------------------------- #
         # Material surface names
@@ -219,31 +241,31 @@ class DsonGeometry:
         for mat_name in struct.material_names:
             mat_dict["values"].append(mat_name)
 
-        geometry_json["polygon_material_groups"] = mat_dict
+        geometry_dson["polygon_material_groups"] = mat_dict
 
         # -------------------------------------------------------------------- #
 
         # Default UV Set
         if struct.default_uv_set:
-            geometry_json["default_uv_set"] = struct.default_uv_set
+            geometry_dson["default_uv_set"] = struct.default_uv_set
 
         # TODO: Add region, graft, and rigidity once structs are implemented.
 
-        return geometry_json
+        return geometry_dson
 
 
 # ============================================================================ #
 #                                                                              #
 # ============================================================================ #
 
-def _geometry(struct:DsonGeometry, geometry_json:dict) -> None:
+def _geometry(struct:DsonGeometry, geometry_dson:dict) -> None:
 
     # TODO: Add exceptions
 
     # Vertices
     vertex_list:list = None
-    if geometry_json and "vertices" in geometry_json:
-        vertex_list = geometry_json["vertices"]["values"]
+    if geometry_dson and "vertices" in geometry_dson:
+        vertex_list = geometry_dson["vertices"]["values"]
 
     if vertex_list:
         struct.vertices = [ DsonVector(vertex) for vertex in vertex_list ]
@@ -252,8 +274,8 @@ def _geometry(struct:DsonGeometry, geometry_json:dict) -> None:
 
     # Polygons
     polygon_list:list = None
-    if geometry_json and "polylist" in geometry_json:
-        polygon_list = geometry_json["polylist"]["values"]
+    if geometry_dson and "polylist" in geometry_dson:
+        polygon_list = geometry_dson["polylist"]["values"]
 
     struct.polygons = []
     struct.material_indices = []
@@ -266,8 +288,8 @@ def _geometry(struct:DsonGeometry, geometry_json:dict) -> None:
 
     # Material names
     material_names:list[str] = None
-    if geometry_json and "polygon_material_groups" in geometry_json:
-        material_names = geometry_json["polygon_material_groups"]["values"]
+    if geometry_dson and "polygon_material_groups" in geometry_dson:
+        material_names = geometry_dson["polygon_material_groups"]["values"]
 
     if material_names:
         struct.material_names = list(material_names)
@@ -276,8 +298,8 @@ def _geometry(struct:DsonGeometry, geometry_json:dict) -> None:
 
     # Face group names
     face_group_names:list[str] = None
-    if geometry_json and "polygon_groups" in geometry_json:
-        face_group_names = geometry_json["polygon_groups"]["values"]
+    if geometry_dson and "polygon_groups" in geometry_dson:
+        face_group_names = geometry_dson["polygon_groups"]["values"]
 
     if face_group_names:
         struct.face_group_names = list(face_group_names)

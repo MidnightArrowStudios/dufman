@@ -4,8 +4,14 @@
 # Licensed under the MIT license.
 # ============================================================================ #
 
+# stdlib
 from dataclasses import dataclass
 from typing import Self
+
+
+# ============================================================================ #
+# DsonWeightedJoint struct                                                     #
+# ============================================================================ #
 
 @dataclass
 class DsonWeightedJoint:
@@ -19,23 +25,30 @@ class DsonWeightedJoint:
     bulge_weights:list = None
 
 
-    @staticmethod
-    def load(joint_json:dict) -> Self:
+    # ======================================================================== #
 
-        if not joint_json:
+    @staticmethod
+    def load_from_dson(weighted_joint_dson:dict) -> Self:
+
+        if not weighted_joint_dson:
             return None
 
-        struct:DsonWeightedJoint = DsonWeightedJoint()
+        if not isinstance(weighted_joint_dson, dict):
+            raise TypeError
+
+        struct:Self = DsonWeightedJoint()
+
+        # -------------------------------------------------------------------- #
 
         # ID
-        if "id" in joint_json:
-            struct.joint_id = joint_json["id"]
+        if "id" in weighted_joint_dson:
+            struct.joint_id = weighted_joint_dson["id"]
         else:
             raise ValueError("Missing required property \"ID\"")
 
         # Node URL
-        if "node" in joint_json:
-            struct.node = joint_json["node"]
+        if "node" in weighted_joint_dson:
+            struct.node = weighted_joint_dson["node"]
         else:
             raise ValueError("Missing required property \"node\"")
 
@@ -43,24 +56,26 @@ class DsonWeightedJoint:
         has_weights:bool = False
 
         # Node weights
-        if "node_weights" in joint_json:
+        if "node_weights" in weighted_joint_dson:
             has_weights = True
-            struct.node_weights = { item[0]: item[1] for item in joint_json["node_weights"]["values"] }
+            struct.node_weights = { item[0]: item[1] for item in weighted_joint_dson["node_weights"]["values"] }
 
         # Scale weights
-        if "scale_weights" in joint_json:
+        if "scale_weights" in weighted_joint_dson:
             raise NotImplementedError
 
         # Local weights
-        if "local_weights" in joint_json:
+        if "local_weights" in weighted_joint_dson:
             raise NotImplementedError
 
         # Bulge weights
-        if "bulge_weights" in joint_json:
+        if "bulge_weights" in weighted_joint_dson:
             raise NotImplementedError
 
         # Weighted joint is not valid
         if not has_weights:
             raise ValueError("Weighted joint does not have any weights")
+
+        # -------------------------------------------------------------------- #
 
         return struct

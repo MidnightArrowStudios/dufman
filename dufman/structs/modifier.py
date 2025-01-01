@@ -4,13 +4,20 @@
 # Licensed under the MIT license.
 # ============================================================================ #
 
+"""Defines a struct which encapsulates DSON's "modifier" datatype.
+
+http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/modifier/start
+"""
+
+# stdlib
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Self
 
+# dufman
 from dufman.enums import LibraryType
 from dufman.file import check_path
-from dufman.library import get_asset_json_from_library
+from dufman.library import get_asset_dson_from_library
 from dufman.observers import _modifier_struct_created
 
 from dufman.structs.channel import DsonChannel
@@ -21,7 +28,7 @@ from dufman.structs.skin_binding import DsonSkinBinding
 
 
 # ============================================================================ #
-#                                                                              #
+# DsonModifier struct                                                          #
 # ============================================================================ #
 
 @dataclass
@@ -47,70 +54,89 @@ class DsonModifier:
     skin_binding            : DsonSkinBinding       = None
 
 
+    # ======================================================================== #
+
     @staticmethod
-    def load(dsf_filepath:Path, modifier_json:dict=None) -> Self:
+    def load_from_dson(modifier_dson:dict) -> Self:
 
-        # Ensure type safety
-        dsf_filepath = check_path(dsf_filepath)
+        if not modifier_dson:
+            return None
 
-        # Load DSON data from disk if it wasn't passed in.
-        if not modifier_json:
-            modifier_json = get_asset_json_from_library(dsf_filepath, LibraryType.MODIFIER)
+        if not isinstance(modifier_dson, dict):
+            raise TypeError
 
         struct:DsonModifier = DsonModifier()
-        struct.dsf_file = dsf_filepath
+
+        # -------------------------------------------------------------------- #
 
         # ID
-        if "id" in modifier_json:
-            struct.library_id = modifier_json["id"]
+        if "id" in modifier_dson:
+            struct.library_id = modifier_dson["id"]
         else:
             raise ValueError("Missing required property \"ID\"")
 
         # Name
-        if "name" in modifier_json:
-            struct.name = modifier_json["name"]
+        if "name" in modifier_dson:
+            struct.name = modifier_dson["name"]
 
         # Label
-        if "label" in modifier_json:
-            struct.label = modifier_json["label"]
+        if "label" in modifier_dson:
+            struct.label = modifier_dson["label"]
 
         # Source
-        if "source" in modifier_json:
-            struct.source = modifier_json["source"]
+        if "source" in modifier_dson:
+            struct.source = modifier_dson["source"]
 
         # Parent
-        if "parent" in modifier_json:
-            struct.parent = modifier_json["parent"]
+        if "parent" in modifier_dson:
+            struct.parent = modifier_dson["parent"]
 
         # Presentation
-        if "presentation" in modifier_json:
-            struct.presentation = DsonPresentation.load(modifier_json["presentation"])
+        if "presentation" in modifier_dson:
+            struct.presentation = DsonPresentation.load_from_dson(modifier_dson["presentation"])
 
         # Channel
-        if "channel" in modifier_json:
-            struct.channel = DsonChannel.load(modifier_json["channel"])
+        if "channel" in modifier_dson:
+            struct.channel = DsonChannel.load_from_dson(modifier_dson["channel"])
 
         # Region
-        if "region" in modifier_json:
-            struct.region = modifier_json["region"]
+        if "region" in modifier_dson:
+            struct.region = modifier_dson["region"]
 
         # Group
-        if "group" in modifier_json:
-            struct.group = modifier_json["group"]
+        if "group" in modifier_dson:
+            struct.group = modifier_dson["group"]
 
         # Formulas
-        if "formulas" in modifier_json:
-            struct.formulas = DsonFormula.load(modifier_json["formulas"])
+        if "formulas" in modifier_dson:
+            struct.formulas = DsonFormula.load_from_dson(modifier_dson["formulas"])
 
         # Morph
-        if "morph" in modifier_json:
-            struct.morph = DsonMorph.load(modifier_json["morph"])
+        if "morph" in modifier_dson:
+            struct.morph = DsonMorph.load_from_dson(modifier_dson["morph"])
 
         # Skin binding
-        if "skin" in modifier_json:
-            struct.skin_binding = DsonSkinBinding.load(modifier_json["skin"])
+        if "skin" in modifier_dson:
+            struct.skin_binding = DsonSkinBinding.load_from_dson(modifier_dson["skin"])
+
+        # -------------------------------------------------------------------- #
+
+        return struct
+
+
+    # ------------------------------------------------------------------------ #
+
+    @staticmethod
+    def load_from_file(dsf_filepath:Path) -> Self:
+
+        dsf_filepath = check_path(dsf_filepath)
+
+        modifier_dson:dict = get_asset_dson_from_library(dsf_filepath, LibraryType.MODIFIER)
+
+        struct:Self = DsonModifier.load_from_dson(modifier_dson)
+        struct.dsf_file = dsf_filepath
 
         # Fire observer update.
-        _modifier_struct_created(struct, modifier_json)
+        _modifier_struct_created(struct, modifier_dson)
 
         return struct

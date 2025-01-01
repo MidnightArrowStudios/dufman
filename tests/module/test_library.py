@@ -7,7 +7,7 @@ from dufman.enums import LibraryType
 from dufman.library import (
     find_library_containing_asset_id,
     get_all_asset_urls_from_library,
-    get_asset_json_from_library,
+    get_asset_dson_from_library,
     get_node_hierarchy_urls_from_library,
     get_single_property_from_library,
 )
@@ -72,28 +72,28 @@ class TestLibraryModule(TestCase):
     #                                                                          #
     # ======================================================================== #
 
-    def test_get_asset_json(self:TestLibraryModule) -> None:
+    def test_get_asset_dson(self:TestLibraryModule) -> None:
 
         url_string:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf"
         asset_id:str = "Genesis8Female"
 
-        json:dict = get_asset_json_from_library(f"{url_string}#{asset_id}", LibraryType.NODE)
+        dson:dict = get_asset_dson_from_library(f"{url_string}#{asset_id}", LibraryType.NODE)
 
-        # JSON object
-        self.assertIsNotNone(json)
-        self.assertIsInstance(json, dict)
+        # DSON object
+        self.assertIsNotNone(dson)
+        self.assertIsInstance(dson, dict)
 
         # ID
-        self.assertIn("id", json)
-        self.assertEqual(json["id"], asset_id)
+        self.assertIn("id", dson)
+        self.assertEqual(dson["id"], asset_id)
 
         # Name
-        self.assertIn("name", json)
-        self.assertEqual(json["name"], asset_id)
+        self.assertIn("name", dson)
+        self.assertEqual(dson["name"], asset_id)
 
         # Type
-        self.assertIn("type", json)
-        self.assertEqual(json["type"], "figure")
+        self.assertIn("type", dson)
+        self.assertEqual(dson["type"], "figure")
 
         return
 
@@ -132,9 +132,9 @@ class TestLibraryModule(TestCase):
         url_string:str = "/data/DAZ%203D/Genesis%208/Female/Genesis8Female.dsf"
         property_path:list[str] = [ "node_library", "lThighTwist", "scale", "general" ]
 
-        json:dict = get_single_property_from_library(url_string, property_path)
+        dson:dict = get_single_property_from_library(url_string, property_path)
 
-        self.assertIsNotNone(json)
-        self.assertEqual(json["id"], "general_scale")
+        self.assertIsNotNone(dson)
+        self.assertEqual(dson["id"], "general_scale")
 
         return

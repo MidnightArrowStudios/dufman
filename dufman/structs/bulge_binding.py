@@ -4,6 +4,11 @@
 # Licensed under the MIT license.
 # ============================================================================ #
 
+"""Defines a struct which encapsulates DSON's "bulge_binding" datatype.
+
+http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/bulge_binding/start
+"""
+
 # stdlib
 from dataclasses import dataclass
 from typing import Self
@@ -13,11 +18,12 @@ from dufman.structs.channel import DsonChannelFloat
 
 
 # ============================================================================ #
-# DsonBulgeBinding                                                             #
+# DsonBulgeBinding struct                                                      #
 # ============================================================================ #
 
 @dataclass
 class DsonBulgeBinding:
+    """Legacy (pre-Genesis 3) joint deformation data."""
 
     positive_left   : DsonChannelFloat  = None
     positive_right  : DsonChannelFloat  = None
@@ -31,15 +37,18 @@ class DsonBulgeBinding:
     # ======================================================================== #
 
     @staticmethod
-    def load(bulge_json:dict) -> Self:
+    def load_from_dson(bulge_binding_dson:dict) -> Self:
         """Factory method to create and validate DsonBulgeBinding objects."""
 
-        if not bulge_json or not isinstance(bulge_json, dict):
+        if not bulge_binding_dson:
+            return None
+
+        if not isinstance(bulge_binding_dson, dict):
             raise TypeError
 
         struct:Self = DsonBulgeBinding()
 
-        bulge_axes:dict = { axis["id"]: axis for axis in bulge_json["bulges"] }
+        bulge_axes:dict = { axis["id"]: axis for axis in bulge_binding_dson["bulges"] }
 
         # -------------------------------------------------------------------- #
 
@@ -48,33 +57,33 @@ class DsonBulgeBinding:
 
         # Positive left
         if "positive-left" in bulge_axes:
-            struct.positive_left = DsonChannelFloat.load(bulge_axes["positive-left"])
+            struct.positive_left = DsonChannelFloat.load_from_dson(bulge_axes["positive-left"])
         else:
             raise ValueError("Missing required property \"positive-left\"")
 
         # Positive right
         if "positive-right" in bulge_axes:
-            struct.positive_right = DsonChannelFloat.load(bulge_axes["positive-right"])
+            struct.positive_right = DsonChannelFloat.load_from_dson(bulge_axes["positive-right"])
         else:
             raise ValueError("Missing required property \"positive-right\"")
 
         # Negative left
         if "negative-left" in bulge_axes:
-            struct.negative_left = DsonChannelFloat.load(bulge_axes["negative-left"])
+            struct.negative_left = DsonChannelFloat.load_from_dson(bulge_axes["negative-left"])
         else:
             raise ValueError("Missing required property \"negative-left\"")
 
         # Negative right
         if "negative-right" in bulge_axes:
-            struct.negative_right = DsonChannelFloat.load(bulge_axes["negative-right"])
+            struct.negative_right = DsonChannelFloat.load_from_dson(bulge_axes["negative-right"])
         else:
             raise ValueError("Missing required property \"negative-right\"")
 
         # Left map
-        struct.left_map = { entry[0]: entry[1] for entry in bulge_json["left_map"]["values"] }
+        struct.left_map = { entry[0]: entry[1] for entry in bulge_binding_dson["left_map"]["values"] }
 
         # Right map
-        struct.right_map = { entry[0]: entry[1] for entry in bulge_json["right_map"]["values"] }
+        struct.right_map = { entry[0]: entry[1] for entry in bulge_binding_dson["right_map"]["values"] }
 
         # -------------------------------------------------------------------- #
 
@@ -87,6 +96,7 @@ class DsonBulgeBinding:
 
 @dataclass
 class DsonBulgeWeights:
+    """Helper object which stores an XYZ vector of DsonBulgeBinding objects."""
 
     bulge_x     : DsonBulgeBinding = None
     bulge_y     : DsonBulgeBinding = None
@@ -96,24 +106,24 @@ class DsonBulgeWeights:
     # ======================================================================== #
 
     @staticmethod
-    def load(array:list) -> Self:
+    def load_from_dson(bulge_binding_vector:list) -> Self:
         """Factory method to create and validate DsonBulgeWeights object."""
 
-        if not array:
+        if not bulge_binding_vector:
             raise ValueError("Data array is None")
 
         struct:Self = DsonBulgeWeights()
 
         # -------------------------------------------------------------------- #
 
-        axes:dict = { axis: array[axis] for axis in array }
+        axes:dict = { axis: bulge_binding_vector[axis] for axis in bulge_binding_vector }
 
         if 'x' in axes:
-            struct.bulge_x = DsonBulgeBinding.load(axes['x'])
+            struct.bulge_x = DsonBulgeBinding.load_from_dson(axes['x'])
         if 'y' in axes:
-            struct.bulge_y = DsonBulgeBinding.load(axes['y'])
+            struct.bulge_y = DsonBulgeBinding.load_from_dson(axes['y'])
         if 'z' in axes:
-            struct.bulge_z = DsonBulgeBinding.load(axes['z'])
+            struct.bulge_z = DsonBulgeBinding.load_from_dson(axes['z'])
 
         # -------------------------------------------------------------------- #
 

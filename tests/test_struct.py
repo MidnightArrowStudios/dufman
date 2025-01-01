@@ -68,8 +68,8 @@ class TestStruct(TestCase):
         """Unit testing method for DsonAssetInfo."""
 
         url:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf"
-        json:dict = get_single_property_from_library(url, ["asset_info"])
-        struct:DsonAssetInfo = DsonAssetInfo.load(json)
+        dson:dict = get_single_property_from_library(url, ["asset_info"])
+        struct:DsonAssetInfo = DsonAssetInfo.load_from_dson(dson)
 
         self.assertIsNotNone(struct)
 
@@ -89,8 +89,8 @@ class TestStruct(TestCase):
         """Unit testing method for DsonBulgeBinding."""
 
         url:str = "/data/DAZ%203D/DAZ%20Horse%202/Base/DAZHorse2.dsf"
-        json:dict = get_single_property_from_library(url, [ "modifier_library", 0, "skin", "joints", "rHoofFore", "bulge_weights" ])
-        struct:DsonBulgeWeights = DsonBulgeWeights.load(json)
+        dson:dict = get_single_property_from_library(url, [ "modifier_library", 0, "skin", "joints", "rHoofFore", "bulge_weights" ])
+        struct:DsonBulgeWeights = DsonBulgeWeights.load_from_dson(dson)
 
         # Bulge X
         self.assertIsNotNone(struct.bulge_x)
@@ -129,8 +129,8 @@ class TestStruct(TestCase):
         """Unit testing method for DsonChannelFloat."""
 
         url:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf"
-        json:dict = get_single_property_from_library(url, [ "node_library", "Genesis8Female", "general_scale" ])
-        struct:DsonChannelFloat = DsonChannelFloat.load(json)
+        dson:dict = get_single_property_from_library(url, [ "node_library", "Genesis8Female", "general_scale" ])
+        struct:DsonChannelFloat = DsonChannelFloat.load_from_dson(dson)
 
         self.assertIsNotNone(struct)
 
@@ -154,8 +154,8 @@ class TestStruct(TestCase):
         """Unit testing method for DsonChannelVector."""
 
         url:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf"
-        json:dict = get_single_property_from_library(url, [ "node_library", "Genesis8Female", "scale" ])
-        struct:DsonChannelVector = DsonChannelVector.load(json)
+        dson:dict = get_single_property_from_library(url, [ "node_library", "Genesis8Female", "scale" ])
+        struct:DsonChannelVector = DsonChannelVector.load_from_dson(dson)
 
         self.assertIsNotNone(struct)
 
@@ -189,8 +189,8 @@ class TestStruct(TestCase):
         """Unit testing method for DsonContributor."""
 
         url:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf"
-        json:dict = get_single_property_from_library(url, ["asset_info", "contributor"])
-        struct:DsonContributor = DsonContributor.load(json)
+        dson:dict = get_single_property_from_library(url, ["asset_info", "contributor"])
+        struct:DsonContributor = DsonContributor.load_from_dson(dson)
 
         self.assertIsNotNone(struct)
 
@@ -208,8 +208,8 @@ class TestStruct(TestCase):
         """Unit testing method for DsonFormula."""
 
         url:str = "/data/DAZ 3D/Genesis 8/Female/Morphs/iSourceTextures/Evangeliya/CTRL-ISTEvangeliya.dsf"
-        json:dict = get_single_property_from_library(url, [ "modifier_library", "CTRL-ISTEvangeliya", "formulas" ])
-        structs:list[DsonFormula] = DsonFormula.load(json)
+        dson:dict = get_single_property_from_library(url, [ "modifier_library", "CTRL-ISTEvangeliya", "formulas" ])
+        structs:list[DsonFormula] = DsonFormula.load_from_dson(dson)
 
         self.assertIsNotNone(structs)
         self.assertEqual(len(structs), 2)
@@ -241,14 +241,14 @@ class TestStruct(TestCase):
     def test_geometry(self:Self) -> None:
         """Unit testing method for DsonGeometry."""
 
-        def callback(_user_data:dict, _struct:DsonGeometry, geometry_json:dict) -> None:
-            self.assertEqual(geometry_json["id"], _user_data["id"])
+        def callback(_user_data:dict, _struct:DsonGeometry, geometry_dson:dict) -> None:
+            self.assertEqual(geometry_dson["id"], _user_data["id"])
             return
 
         register_on_geometry_struct_created(callback, {"id":"geometry"})
 
         url:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf#geometry"
-        struct:DsonGeometry = DsonGeometry.load(url)
+        struct:DsonGeometry = DsonGeometry.load_from_file(url)
 
         self.assertIsNotNone(struct)
 
@@ -299,8 +299,8 @@ class TestStruct(TestCase):
         """Unit testing method for DsonGraft."""
 
         url:str = "/data/DAZ 3D/Genesis 8 Centaur/G8Female Centaur/G8FCentaur.dsf"
-        json:dict = get_single_property_from_library(url, [ "geometry_library", "G8FCentaur-1", "graft" ])
-        struct:DsonGraft = DsonGraft.load(json)
+        dson:dict = get_single_property_from_library(url, [ "geometry_library", "G8FCentaur-1", "graft" ])
+        struct:DsonGraft = DsonGraft.load_from_dson(dson)
 
         self.assertIsNotNone(struct)
 
@@ -327,14 +327,14 @@ class TestStruct(TestCase):
     def test_modifier(self:Self) -> None:
         """Unit testing method for DsonModifier."""
 
-        def callback(_user_data:dict, _struct:DsonModifier, modifier_json:dict) -> None:
-            self.assertEqual(modifier_json["id"], _user_data["id"])
+        def callback(_user_data:dict, _struct:DsonModifier, modifier_dson:dict) -> None:
+            self.assertEqual(modifier_dson["id"], _user_data["id"])
             return
 
         register_on_modifier_struct_created(callback, {"id":"CTRL-ISTEvangeliya"})
 
         url:str = "/data/DAZ 3D/Genesis 8/Female/Morphs/iSourceTextures/Evangeliya/CTRL-ISTEvangeliya.dsf#CTRL-ISTEvangeliya"
-        struct:DsonModifier = DsonModifier.load(url)
+        struct:DsonModifier = DsonModifier.load_from_file(url)
 
         self.assertIsNotNone(struct)
 
@@ -357,8 +357,8 @@ class TestStruct(TestCase):
         """Unit testing method for DsonMorph."""
 
         url:str = "/data/DAZ 3D/Genesis 8/Female/Morphs/DAZ 3D/Base Correctives/pJCMAbdomen2Fwd_40.dsf"
-        json:dict = get_single_property_from_library(url, [ "modifier_library", "pJCMAbdomen2Fwd_40", "morph" ])
-        struct:DsonMorph = DsonMorph.load(json)
+        dson:dict = get_single_property_from_library(url, [ "modifier_library", "pJCMAbdomen2Fwd_40", "morph" ])
+        struct:DsonMorph = DsonMorph.load_from_dson(dson)
 
         self.assertIsNotNone(struct)
 
@@ -386,8 +386,8 @@ class TestStruct(TestCase):
         """Unit testing method for DsonNamedStringMap."""
 
         url:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf"
-        json:dict = get_single_property_from_library(url, [ "modifier_library", "SkinBinding", "skin", "selection_map", 0 ])
-        struct:DsonNamedStringMap = DsonNamedStringMap.load(json)
+        dson:dict = get_single_property_from_library(url, [ "modifier_library", "SkinBinding", "skin", "selection_map", 0 ])
+        struct:DsonNamedStringMap = DsonNamedStringMap.load_from_dson(dson)
 
         self.assertIsNotNone(struct)
 
@@ -410,14 +410,14 @@ class TestStruct(TestCase):
     def test_node(self:Self) -> None:
         """Unit testing method for DsonNode."""
 
-        def callback(_user_data:dict, _struct:DsonGeometry, node_json:dict) -> None:
-            self.assertEqual(node_json["id"], _user_data["id"])
+        def callback(_user_data:dict, _struct:DsonGeometry, node_dson:dict) -> None:
+            self.assertEqual(node_dson["id"], _user_data["id"])
             return
 
         register_on_node_struct_created(callback, {"id":"lThighTwist"})
 
         url:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf#lThighTwist"
-        struct:DsonNode = DsonNode.load(url)
+        struct:DsonNode = DsonNode.load_from_file(url)
 
         self.assertIsNotNone(struct)
 
@@ -471,8 +471,8 @@ class TestStruct(TestCase):
         """Unit testing method for DsonPresentation."""
 
         url:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf"
-        json:dict = get_single_property_from_library(url, [ "node_library", "Genesis8Female", "presentation" ])
-        struct:DsonPresentation = DsonPresentation.load(json)
+        dson:dict = get_single_property_from_library(url, [ "node_library", "Genesis8Female", "presentation" ])
+        struct:DsonPresentation = DsonPresentation.load_from_dson(dson)
 
         self.assertIsNotNone(struct)
         self.assertEqual(struct.content_type, "Actor/Character")
@@ -501,8 +501,8 @@ class TestStruct(TestCase):
         """Unit testing method for DsonRegion."""
 
         url:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf"
-        json:dict = get_single_property_from_library(url, [ "geometry_library", "geometry", "root_region" ])
-        structs:list[DsonRegion] = DsonRegion.load(json)
+        dson:dict = get_single_property_from_library(url, [ "geometry_library", "geometry", "root_region" ])
+        structs:list[DsonRegion] = DsonRegion.load_from_dson(dson)
 
         self.assertIsNotNone(structs)
         self.assertEqual(len(structs), 16)
@@ -538,8 +538,8 @@ class TestStruct(TestCase):
         """Unit testing method for DsonRigidity."""
 
         url:str = "/data/Mada/Nyx/Nyx_Dress/V6O2_Dress.dsf"
-        json:dict = get_single_property_from_library(url, [ "geometry_library", "Nyx_Dress", "rigidity" ])
-        struct:DsonRigidity = DsonRigidity.load(json)
+        dson:dict = get_single_property_from_library(url, [ "geometry_library", "Nyx_Dress", "rigidity" ])
+        struct:DsonRigidity = DsonRigidity.load_from_dson(dson)
 
         self.assertIsNotNone(struct)
 
@@ -582,8 +582,8 @@ class TestStruct(TestCase):
     def test_skin_binding(self:Self) -> None:
 
         url:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf"
-        json:dict = get_single_property_from_library(url, [ "modifier_library", "SkinBinding", "skin" ])
-        struct:DsonSkinBinding = DsonSkinBinding.load(json)
+        dson:dict = get_single_property_from_library(url, [ "modifier_library", "SkinBinding", "skin" ])
+        struct:DsonSkinBinding = DsonSkinBinding.load_from_dson(dson)
 
         self.assertIsNotNone(struct)
 
@@ -601,14 +601,14 @@ class TestStruct(TestCase):
     def test_uv_set(self:Self) -> None:
         """Unit testing method for DsonUVSet."""
 
-        def callback(_user_data:dict, _struct:DsonUVSet, uv_set_json:dict) -> None:
-            self.assertEqual(uv_set_json["id"], _user_data["id"])
+        def callback(_user_data:dict, _struct:DsonUVSet, uv_set_dson:dict) -> None:
+            self.assertEqual(uv_set_dson["id"], _user_data["id"])
             return
 
         register_on_uv_set_struct_created(callback, {"id": "Base Female"})
 
         url:str = "/data/DAZ 3D/Genesis 8/Female/UV Sets/DAZ 3D/Base/Base Female.dsf#Base Female"
-        struct:DsonUVSet = DsonUVSet.load(url)
+        struct:DsonUVSet = DsonUVSet.load_from_file(url)
 
         self.assertIsNotNone(struct)
 
@@ -647,8 +647,8 @@ class TestStruct(TestCase):
     def test_weighted_joint(self:Self) -> None:
 
         url:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf"
-        json:list = get_single_property_from_library(url, [ "modifier_library", "SkinBinding", "skin", "joints", 0 ])
-        struct:DsonWeightedJoint = DsonWeightedJoint.load(json)
+        dson:list = get_single_property_from_library(url, [ "modifier_library", "SkinBinding", "skin", "joints", 0 ])
+        struct:DsonWeightedJoint = DsonWeightedJoint.load_from_dson(dson)
 
         self.assertIsNotNone(struct)
 

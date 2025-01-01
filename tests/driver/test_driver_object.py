@@ -91,7 +91,7 @@ class TestDriverEquation(TestCase):
 
         # node struct
         full_bone_url:str = f"{bone_url}?rotation/x"
-        bone_struct:DsonNode = DsonNode.load(full_bone_url)
+        bone_struct:DsonNode = DsonNode.load_from_file(full_bone_url)
         self.assertIsNotNone(bone_struct)
 
         # driver
@@ -106,7 +106,7 @@ class TestDriverEquation(TestCase):
 
         # modifier struct
         full_jcm_url:str = f"{jcm_url}?value"
-        jcm_struct:DsonModifier = DsonModifier.load(full_jcm_url)
+        jcm_struct:DsonModifier = DsonModifier.load_from_file(full_jcm_url)
         self.assertIsNotNone(jcm_struct)
 
         # driver

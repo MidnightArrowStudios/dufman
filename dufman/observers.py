@@ -65,9 +65,9 @@ def register_on_geometry_struct_created(callback:Callable, userdata:dict) -> Non
     _on_geometry_struct_created.append(_Callback(callback, userdata))
     return
 
-def _geometry_struct_created(struct:"DsonGeometry", geometry_json:dict) -> None:
+def _geometry_struct_created(struct:"DsonGeometry", geometry_dson:dict) -> None:
     for callback in _on_geometry_struct_created:
-        callback.function(callback.userdata, struct, geometry_json)
+        callback.function(callback.userdata, struct, geometry_dson)
     return
 
 
@@ -82,9 +82,9 @@ def register_on_modifier_struct_created(callback:Callable, userdata:dict) -> Non
     _on_modifier_struct_created.append(_Callback(callback, userdata))
     return
 
-def _modifier_struct_created(struct:"DsonModifier", modifier_json:dict) -> None:
+def _modifier_struct_created(struct:"DsonModifier", modifier_dson:dict) -> None:
     for callback in _on_modifier_struct_created:
-        callback.function(callback.userdata, struct, modifier_json)
+        callback.function(callback.userdata, struct, modifier_dson)
     return
 
 
@@ -99,9 +99,9 @@ def register_on_node_struct_created(callback:Callable, userdata:dict) -> None:
     _on_node_struct_created.append(_Callback(callback, userdata))
     return
 
-def _node_struct_created(struct:"DsonNode", node_json:dict) -> None:
+def _node_struct_created(struct:"DsonNode", node_dson:dict) -> None:
     for callback in _on_node_struct_created:
-        callback.function(callback.userdata, struct, node_json)
+        callback.function(callback.userdata, struct, node_dson)
     return
 
 
@@ -116,7 +116,7 @@ def register_on_uv_set_struct_created(callback:Callable, userdata:dict) -> None:
     _on_uv_set_struct_created.append(_Callback(callback, userdata))
     return
 
-def _uv_set_struct_created(struct:"DsonUVSet", uv_set_json:dict) -> None:
+def _uv_set_struct_created(struct:"DsonUVSet", uv_set_dson:dict) -> None:
     for callback in _on_uv_set_struct_created:
-        callback.function(callback.userdata, struct, uv_set_json)
+        callback.function(callback.userdata, struct, uv_set_dson)
     return

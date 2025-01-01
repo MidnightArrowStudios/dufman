@@ -4,7 +4,7 @@
 # Licensed under the MIT license.
 # ============================================================================ #
 
-"""Defines a struct which encapsulate DSON's "asset_info" datatype.
+"""Defines a struct which encapsulates DSON's "asset_info" datatype.
 
 http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/asset_info/start
 """
@@ -37,10 +37,13 @@ class DsonAssetInfo:
     # ======================================================================== #
 
     @staticmethod
-    def load(asset_info_dson:dict) -> Self:
+    def load_from_dson(asset_info_dson:dict) -> Self:
         """Factory method to create and validate AssetInfo object."""
 
-        if not asset_info_dson or not isinstance(asset_info_dson, dict):
+        if not asset_info_dson:
+            return None
+
+        if not isinstance(asset_info_dson, dict):
             raise TypeError
 
         struct:Self = DsonAssetInfo()
@@ -59,7 +62,7 @@ class DsonAssetInfo:
 
         # "Contributor"
         if "contributor" in asset_info_dson:
-            struct.contributor = DsonContributor.load(asset_info_dson["contributor"])
+            struct.contributor = DsonContributor.load_from_dson(asset_info_dson["contributor"])
         else:
             raise ValueError("Missing required property \"contributor\"")
 
