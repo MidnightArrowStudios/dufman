@@ -252,7 +252,7 @@ def _get_child_node_dson(node_library:list[dict], parent_id:str) -> list[dict]:
 
         if parent_address.filepath:
             node_id:str = node["id"]
-            raise Exception(f"Node \"{node_id}\" has parent with filepath")
+            raise ValueError(f"Node \"{node_id}\" has parent with filepath")
 
         if parent_address.asset_id == parent_id:
             result.append(node)
