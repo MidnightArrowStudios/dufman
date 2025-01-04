@@ -13,25 +13,25 @@ from dufman.structs.formula import DsonFormula
 from dufman.structs.modifier import DsonModifier
 from dufman.structs.node import DsonNode
 
-class TestDriverEquation(TestCase):
+class TestDriverObject(TestCase):
 
     # ======================================================================== #
 
-    def setUp(self:TestDriverEquation) -> None:
+    def setUp(self:TestDriverObject) -> None:
         add_content_directory("F:/Daz3D")
         return
 
 
     # ------------------------------------------------------------------------ #
 
-    def tearDown(self:TestDriverEquation) -> None:
+    def tearDown(self:TestDriverObject) -> None:
         remove_content_directory("F:/Daz3D")
         return
 
 
     # ======================================================================== #
 
-    def test_static_methods(self:TestDriverEquation) -> None:
+    def test_static_methods(self:TestDriverObject) -> None:
 
         # Node data
         bone_url:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf#lCollar"
@@ -72,7 +72,7 @@ class TestDriverEquation(TestCase):
 
     # ======================================================================== #
 
-    def test_driver_objects(self:TestDriverEquation) -> None:
+    def test_driver_objects(self:TestDriverObject) -> None:
 
         bone_url:str = "/data/DAZ%203D/Genesis%208/Female/Genesis8Female.dsf#abdomenLower"
         jcm_url:str = "/data/DAZ%203D/Genesis%208/Female/Morphs/DAZ%203D/Base%20Correctives/pJCMAbdomenFwd_35.dsf#pJCMAbdomenFwd_35"
