@@ -16,7 +16,7 @@ from dufman.enums import (
     LibraryType,
 )
 from dufman.library import (
-    find_library_containing_asset_id,
+    find_asset_dson_in_library,
     get_single_property_from_library,
 )
 from dufman.spline import (
@@ -107,9 +107,10 @@ class DriverTarget:
 
         # Extract asset type from DSF file.
         try:
-            library_type:LibraryType = find_library_containing_asset_id(asset_url)
+            asset_type, asson_dson = find_asset_dson_in_library(asset_url)
         except FileNotFoundError:
-            library_type:LibraryType = None
+            # TODO: Use this to look up property path
+            asset_type, asson_dson = (None, None)
 
         # If URL has no property_path and one was passed in as an argument,
         #   replace it.
@@ -118,7 +119,7 @@ class DriverTarget:
 
         # If URL still doesn't have a property_path and it is a DsonModifier,
         #   extract the channel's ID from the disk.
-        if not address.property_path and library_type == LibraryType.MODIFIER:
+        if not address.property_path and asset_type == LibraryType.MODIFIER:
             keys:list[str] = [ LibraryType.MODIFIER.value, address.asset_id, "channel", "id" ]
             channel_id:str = get_single_property_from_library(address.filepath, keys)
             address.property_path = channel_id
@@ -127,7 +128,7 @@ class DriverTarget:
         if not address.property_path:
             raise ValueError("\"property_path\" could not be deduced from URL.")
 
-        return (address.get_url_to_property(), library_type)
+        return (address.get_url_to_property(), asset_type)
 
 
     # ------------------------------------------------------------------------ #

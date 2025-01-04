@@ -13,7 +13,7 @@ from typing import Any, Self
 from dufman.driver.driver_dict import DriverDictionary
 from dufman.driver.driver_object import DriverTarget, DriverEquation
 from dufman.enums import LibraryType
-from dufman.library import find_library_containing_asset_id
+from dufman.library import find_asset_dson_in_library
 from dufman.structs.channel import DsonChannel
 from dufman.structs.formula import DsonFormula
 from dufman.structs.modifier import DsonModifier
@@ -345,8 +345,10 @@ class DriverMap:
         # Create variables to instantiate assets
         asset_url:str = address.get_url_to_asset()
 
+        # TODO: Reuse "asset_dson" to streamline this
+
         try:
-            asset_type:LibraryType = find_library_containing_asset_id(asset_url)
+            asset_type, asset_dson = find_asset_dson_in_library(asset_url)
         except FileNotFoundError:
             # FIXME: Quick and dirty hack. Should be replaced when implementing
             #   dummy properties.

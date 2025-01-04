@@ -28,13 +28,11 @@ from dufman.exceptions import LibraryNotFound
 from dufman.url import AssetAddress
 
 
-
 # ============================================================================ #
 #                                                                              #
 # ============================================================================ #
 
-def find_library_containing_asset_id(asset_path:Path) -> LibraryType:
-    """Searches all of a DSON file's libraries to verify an asset's type."""
+def find_asset_dson_in_library(asset_path:Path) -> tuple[LibraryType, dict]:
 
     # Ensure type safety
     asset_path = check_path(asset_path)
@@ -42,7 +40,7 @@ def find_library_containing_asset_id(asset_path:Path) -> LibraryType:
     # Convert URL from string to object
     asset_address:AssetAddress = AssetAddress.from_url(asset_path)
 
-    # Ensure we have something to open
+    # Ensure the URL is valid
     if not asset_address.filepath:
         raise ValueError(f"Asset URL \"{ asset_path }\" does not have a valid filepath.")
 
@@ -52,34 +50,34 @@ def find_library_containing_asset_id(asset_path:Path) -> LibraryType:
     # geometry_library
     for geometry_dson in dsf_file.get(LibraryType.GEOMETRY.value, []):
         if geometry_dson["id"] == asset_address.asset_id:
-            return LibraryType.GEOMETRY
+            return (LibraryType.GEOMETRY, geometry_dson)
 
     # image_library
     for image_dson in dsf_file.get(LibraryType.IMAGE.value, []):
         if image_dson["id"] == asset_address.asset_id:
-            return LibraryType.IMAGE
+            return (LibraryType.IMAGE, image_dson)
 
     # material_library
     for material_dson in dsf_file.get(LibraryType.MATERIAL.value, []):
         if material_dson["id"] == asset_address.asset_id:
-            return LibraryType.MATERIAL
+            return (LibraryType.MATERIAL, material_dson)
 
     # modifier_library
     for modifier_dson in dsf_file.get(LibraryType.MODIFIER.value, []):
         if modifier_dson["id"] == asset_address.asset_id:
-            return LibraryType.MODIFIER
+            return (LibraryType.MODIFIER, modifier_dson)
 
     # node_library
     for node_dson in dsf_file.get(LibraryType.NODE.value, []):
         if node_dson["id"] == asset_address.asset_id:
-            return LibraryType.NODE
+            return (LibraryType.NODE, node_dson)
 
     # uv_set_library
     for uv_set_dson in dsf_file.get(LibraryType.UV_SET.value, []):
         if uv_set_dson["id"] == asset_address.asset_id:
-            return LibraryType.UV_SET
+            return (LibraryType.UV_SET, uv_set_dson)
 
-    return None
+    return (None, None)
 
 
 # ============================================================================ #

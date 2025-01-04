@@ -5,7 +5,7 @@ from unittest import TestCase
 from dufman import file
 from dufman.enums import LibraryType
 from dufman.library import (
-    find_library_containing_asset_id,
+    find_asset_dson_in_library,
     get_all_asset_urls_from_library,
     get_asset_dson_from_library,
     get_node_hierarchy_urls_from_library,
@@ -36,15 +36,15 @@ class TestLibraryModule(TestCase):
 
         # Geometry
         geo_url:str = f"{url_string}#geometry"
-        self.assertEqual(find_library_containing_asset_id(geo_url), LibraryType.GEOMETRY)
+        self.assertEqual(find_asset_dson_in_library(geo_url)[0], LibraryType.GEOMETRY)
 
         # Node
         hip_url:str = f"{url_string}#hip"
-        self.assertEqual(find_library_containing_asset_id(hip_url), LibraryType.NODE)
+        self.assertEqual(find_asset_dson_in_library(hip_url)[0], LibraryType.NODE)
 
         # Modifier
         mod_url:str = f"{url_string}#SkinBinding"
-        self.assertEqual(find_library_containing_asset_id(mod_url), LibraryType.MODIFIER)
+        self.assertEqual(find_asset_dson_in_library(mod_url)[0], LibraryType.MODIFIER)
 
         return
 
