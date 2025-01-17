@@ -9,7 +9,7 @@
 from typing import Any, Self
 
 # dufman
-from dufman.driver2 import utils
+from dufman.driver import utils
 from dufman.enums import (
     ChannelType,
     FormulaOperator,
