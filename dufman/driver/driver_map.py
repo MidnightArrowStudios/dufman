@@ -7,11 +7,11 @@
 # stdlib
 from copy import deepcopy
 from math import isclose
-from typing import Any, Self, TypeAlias
+from typing import Any, Iterator, Self
 
 # dufman
-from dufman.driver.driver_dict import DriverDictionary
-from dufman.driver.driver_object import DriverTarget, DriverEquation
+from dufman.driver.driver_object import DriverEquation, DriverTarget
+from dufman.driver.utils import get_channel_object
 from dufman.enums import LibraryType
 from dufman.library import find_asset_dson_in_library
 from dufman.structs.channel import DsonChannel
@@ -24,187 +24,255 @@ from dufman.url import AssetAddress
 
 
 # ============================================================================ #
-# DriverTarget iterator                                                        #
-# ============================================================================ #
-
-_DriverMap:TypeAlias = 'DriverMap'
-
-class _DriverIterator:
-    def __init__(self:Self, driver_map:_DriverMap) -> Self:
-        self._driver_map:DriverMap = driver_map
-        self._index:int = 0
-        self._urls:list[str] = driver_map.get_all_driver_urls()
-        return
-
-    def __next__(self:Self) -> DriverTarget:
-        if self._index >= len(self._urls):
-            raise StopIteration
-        url:str = self._urls[self._index]
-        self._index += 1
-        return self._driver_map._drivers.get_driver_target(url)
-
-
-# ============================================================================ #
-# DriverMap                                                                    #
+# Driver Map                                                                   #
 # ============================================================================ #
 
 class DriverMap:
 
-    # ======================================================================== #
+    def __init__(self:Self, figure_name:str) -> Self:
 
-    def __init__(self:Self) -> Self:
+        # This is the name of the figure the DriverMap is meant to drive. At
+        #   the moment, it does nothing. In the future it may be used as part
+        #   of the "node path" in Daz asset addressing (i.e. "Genesis8Male:").
+        self._figure_name:str = figure_name
 
-        # Stores a hierarchical list of DriverTarget objects.
-        self._drivers:DriverDictionary = DriverDictionary()
+        # Stores all DriverTargets which have been loaded.
+        self._drivers:dict = {}
 
-        # Store nodes and modifiers in separate dictionaries, for convenience.
-        #   These are keyed by the asset_url.
+        # Caches the assets inside the DriverTargets.
         self._modifiers:dict = {}
         self._nodes:dict = {}
 
-        # Dictionary holding all formulas found per DSF file. These are keyed
-        #   by the asset_url.
-        self._equations:dict = {}
+        # Cache equations (mostly for debugging).
+        self._equations:list[DriverEquation] = []
 
         return
-
-
-    # ------------------------------------------------------------------------ #
-
-    def __iter__(self:Self) -> _DriverIterator:
-        return _DriverIterator(self)
 
 
     # ------------------------------------------------------------------------ #
 
     def __str__(self:Self) -> str:
-        return "DriverMap"
+        return f"DriverMap: \"{self._figure_name}\""
 
 
     # ------------------------------------------------------------------------ #
 
     def __repr__(self:Self) -> str:
-        return f"DriverMap(drivers={ len(self.get_all_driver_urls()) })"
-
-
-    # ======================================================================== #
-    # PUBLIC FUNCTIONALITY                                                     #
-    # ======================================================================== #
-
-    def load_invalid(self:Self, target_url:str, property_path:str) -> None:
-        return
+        return f"DriverMap(\"{self._figure_name}\")"
 
 
     # ------------------------------------------------------------------------ #
 
-    def load_modifier(self:Self, struct:DsonModifier) -> None:
-        """Add a channel-containing DsonModifier struct to the DriverMap."""
-        self._load_asset(struct, struct.channel.channel_id, LibraryType.MODIFIER)
-        return
+    def __iter__(self:Self) -> Iterator[DriverTarget]:
 
+        # -------------------------------------------------------------------- #
+        class _DriverIterator(Iterator[DriverTarget]):
+            def __init__(self:Self, driver_map:DriverMap) -> Self:
+                self._driver_map:DriverMap = driver_map
+                self._index:int = 0
+                self._urls:list[str] = driver_map.get_all_driver_keys()
+                return
 
-    # ------------------------------------------------------------------------ #
+            def __iter__(self:Self) -> Self:
+                return self
 
-    def load_node(self:Self, struct:DsonNode, property_path:str) -> None:
-        """Add a channel-containing DsonNode struct to the DriverMap."""
-        self._load_asset(struct, property_path, LibraryType.NODE)
-        return
+            def __next__(self:Self) -> DriverTarget:
+                if self._index >= len(self._urls):
+                    raise StopIteration
+                url:str = self._urls[self._index]
+                self._index += 1
+                return self._driver_map.get_driver_target(url)
+        # -------------------------------------------------------------------- #
 
-
-    # ======================================================================== #
-    # ======================================================================== #
-
-    def get_driver_value(self:Self, target_url:str) -> Any:
-        """Calculate and return a channel's current value."""
-        driver_target:DriverTarget = self._drivers.get_driver_target(target_url)
-        return driver_target.get_value()
-
-
-    # ------------------------------------------------------------------------ #
-
-    def set_driver_value(self:Self, target_url:str, new_value:Any) -> None:
-        """Update a channel's current value."""
-        driver_target:DriverTarget = self._drivers.get_driver_target(target_url)
-        driver_target.set_value(new_value)
-        return
+        return _DriverIterator(self)
 
 
     # ======================================================================== #
+    # PUBLIC LOAD METHODS                                                      #
     # ======================================================================== #
 
-    def get_all_driver_urls(self:Self) -> list[str]:
-        """Return a list of every URL that has been loaded."""
-        return self._drivers.get_all_stored_urls()
+    def load_empty_driver(self:Self, dummy_url:str) -> DriverTarget:
 
+        # -------------------------------------------------------------------- #
+        # URL type safety
+        if not dummy_url or not isinstance(dummy_url, str):
+            raise TypeError
 
-    # ========================================================================= #
-    # ========================================================================= #
+        address:AssetAddress = AssetAddress.from_url(dummy_url)
+        if not address.asset_id or not address.property_path:
+            raise ValueError
 
-    def does_filepath_have_driver(self:Self, target_url:str) -> bool:
-        """Check if a DSF file has been loaded."""
-        return self._drivers.has_filepath(target_url)
+        # -------------------------------------------------------------------- #
+        # Logic
 
+        # Convert URL object to string, in format "pJCMCorrectiveMorph_90?value"
+        driver_url:str = address.get_key_to_driver_target()
 
-    # ------------------------------------------------------------------------ #
+        # Ensure formulas are only iterated once
+        if self.get_driver_target(driver_url) is None:
+            target:DriverTarget = self.add_driver_target(driver_url)
+        else:
+            target:DriverTarget = self.get_driver_target(driver_url)
 
-    def does_asset_id_have_driver(self:Self, target_url:str) -> bool:
-        """Check if an asset inside a DSF file has been loaded."""
-        return self._drivers.has_asset_id(target_url)
-
-
-    # ------------------------------------------------------------------------ #
-
-    def does_property_path_have_driver(self:Self, target_url:str) -> bool:
-        """Check if a property inside an asset has been loaded."""
-        return self._drivers.has_property_path(target_url)
+        return target
 
 
     # ======================================================================== #
+
+    def load_modifier_driver(self:Self, modifier_url:str, struct:DsonModifier) -> DriverTarget:
+
+        # -------------------------------------------------------------------- #
+        # URL type safety
+        if not modifier_url or not isinstance(modifier_url, str):
+            raise TypeError
+
+        # Ensure URL is valid
+        address:AssetAddress = AssetAddress.from_url(modifier_url)
+        if not address.filepath or not address.asset_id:
+            raise ValueError
+
+        # -------------------------------------------------------------------- #
+        # Struct type safety
+        if not struct or not isinstance(struct, DsonModifier):
+            raise TypeError
+
+        # -------------------------------------------------------------------- #
+        # Logic
+
+        # If the URL doesn't have a property path, use the one from the struct
+        if not address.property_path:
+            address.property_path = struct.channel.channel_id
+
+        # Convert URL object to string, in format "pJCMCorrectiveMorph_90?value"
+        driver_url:str = address.get_key_to_driver_target()
+
+        # The driver object in question
+        target:DriverTarget = self.get_driver_target(driver_url)
+
+        # This is our first time, or the target does not have an asset, so
+        #   instantiate the modifier data.
+        if target is None or not target.is_valid():
+
+            # If DriverTarget already exists, this will return it. If not, it
+            #   will create it. Either way, we get what we need.
+            target = self.add_driver_target(driver_url)
+            target.set_asset(struct, LibraryType.MODIFIER)
+
+            if struct.formulas:
+                self._parse_formulas(address.filepath, struct.formulas)
+
+            # Cache struct
+            self._modifiers[address.asset_id] = struct
+
+        return target
+
+
+    # ======================================================================== #
+
+    def load_node_driver(self:Self, node_url:str, struct:DsonNode) -> DriverTarget:
+
+        # -------------------------------------------------------------------- #
+        # URL type safety
+        if not node_url or not isinstance(node_url, str):
+            raise TypeError
+
+        # Ensure URL is valid
+        address:AssetAddress = AssetAddress.from_url(node_url)
+        if not address.filepath or not address.asset_id or not address.property_path:
+            raise ValueError
+
+        # -------------------------------------------------------------------- #
+        # Struct type safety
+        if not struct or not isinstance(struct, DsonNode):
+            raise TypeError
+
+        # -------------------------------------------------------------------- #
+        # Logic
+
+        # Convert URL object to string, in format "bone_name?rotation/x"
+        driver_url:str = address.get_key_to_driver_target()
+
+        # A node has multiple channels, but only one set of formulas. We need
+        #   to ensure the formulas are only parsed once per node.
+        should_parse_formulas:bool = True
+        if address.asset_id in self._drivers:
+            for target in self._drivers[address.asset_id].values():
+                if target.is_valid():
+                    should_parse_formulas = False
+
+        # The driver target in question
+        target:DriverTarget = self.get_driver_target(driver_url)
+
+        # This is our first time, or the target does not have an asset, so
+        #   instantiate the node data
+        if target is None or not target.is_valid():
+
+            # If DriverTarget already exists, this will return it. If not, it
+            #   will create it. Either way, we get what we need.
+            target = self.add_driver_target(driver_url)
+            target.set_asset(struct, LibraryType.NODE)
+
+            if should_parse_formulas and struct.formulas:
+                self._parse_formulas(address.filepath, struct.formulas)
+
+            # cache struct
+            if address.asset_id not in self._nodes:
+                self._nodes[address.asset_id] = struct
+
+        return target
+
+
+    # ======================================================================== #
+    # GET DATA METHODS                                                         #
     # ======================================================================== #
 
     def get_current_morph_shape(self:Self, vertex_count:int) -> DsonMorph:
 
+        # Caches the vertex positions which will be applied to the mesh
         morph_deltas:dict = {}
 
-        for (name, struct) in self._modifiers.items():
+        # Loop through all cached modifiers
+        for modifier in self._modifiers.values():
 
-            # Modifier has no morph data, so skip it.
-            if not struct.morph:
+            # Ensure this modifier has a morph
+            if not modifier.morph:
                 continue
 
-            # NOTE: iSourceTextures's Evangeliya has a value of -1, so clearly
-            #   this is not checked and doesn't matter.
+            # NOTE: Some morphs (i.e. iSourceTexture's Evangeliya) have a value
+            #   of -1, so clearly this is not checked and doesn't matter.
             # if not struct.morph.expected_vertices == vertex_count:
             #     continue
 
-            # Construct URL to get DriverTarget object.
-            address:AssetAddress = AssetAddress.from_url(name)
-            address.property_path = struct.channel.channel_id
-            property_url:str = address.get_url_to_property()
+            # Format key to retrieve driver
+            ai:str = modifier.library_id
+            pp:str = modifier.channel.channel_id
+            address:AssetAddress = AssetAddress.from_components(asset_id=ai, property_path=pp)
+            driver_key:str = address.get_key_to_driver_target()
 
-            # Get wrapper object which holds channel data.
-            driver_target:DriverTarget = self._drivers.get_driver_target(property_url)
+            # Get DriverTarget object
+            target:DriverTarget = self.get_driver_target(driver_key)
 
-            # Amount of morph to apply.
-            strength:float = driver_target.get_value()
+            # How much to dial the morph in
+            strength:float = target.get_value()
 
-            # Morph will have no affect, so skip it.
+            # Morph will have no effect, so skip it
             if isclose(strength, 0.0):
                 continue
 
-            # Calculate vertex positions.
-            for (index, vertex) in struct.morph.deltas.items():
+            # Accumulate vertex positions
+            for (index, vertex) in modifier.morph.deltas.items():
 
-                # Add an empty vector if vertex hasn't been added yet.
+                # If the vertex hasn't been stored in the dictionary yet, then
+                #   add an entry
                 if index not in morph_deltas:
                     morph_deltas[index] = DsonVector(0.0, 0.0, 0.0)
 
-                # Update the vertex's positions.
+                # Add vertex positions
                 morph_deltas[index].x += (vertex.x * strength)
                 morph_deltas[index].y += (vertex.y * strength)
                 morph_deltas[index].z += (vertex.z * strength)
 
-        # Return new DsonMorph object.
+        # Assign deltas to new DsonMorph object and return it
         result:DsonMorph = DsonMorph()
         result.expected_vertices = vertex_count
         result.deltas = morph_deltas
@@ -212,208 +280,256 @@ class DriverMap:
         return result
 
 
-    # ------------------------------------------------------------------------ #
+    # ======================================================================== #
 
     def get_current_node_shape(self:Self, target_url:str) -> DsonNode:
 
-        # We want to loop through all of a node's properties and update all of
-        #   them at once, so convert it to an asset_url which will be used to
-        #   retrieve all its stored property_paths.
-        address:AssetAddress = AssetAddress.from_url(target_url)
-        asset_url:str = address.get_url_to_asset()
+        # NOTE: If passing an Asset ID in by itself as a string, it MUST have a
+        #   pound sign or it will be parsed as a filepath
 
-        # Ensure DsonNode was actually loaded.
-        if not asset_url in self._nodes:
+        # Extract the Asset ID
+        address:AssetAddress = AssetAddress.from_url(target_url)
+
+        # If there is no DsonNode, there's nothing to get
+        if address.asset_id not in self._nodes:
             # TODO: Raise an exception instead?
             return None
 
-        # Get the node stored inside the DriverMap, then copy it so we can
-        #   return a new copy with the updated values.
-        source_node:DsonNode = self._nodes[asset_url]
+        # Create a new copy of the DsonNode so we can update its values without
+        #   changing the base object
+        source_node:DsonNode = self._nodes[address.asset_id]
         copied_node:DsonNode = deepcopy(source_node)
 
-        # Get all property_path variables and loop through them.
-        for property_path in self._drivers.get_all_property_paths(asset_url):
+        # Loop through all loaded property paths
+        for (path, target) in self._drivers[address.asset_id].items():
 
-            # The URL pointing to the property stored inside the DsonNode.
-            property_url:str = AssetAddress.format_url_as_string(filepath=address.filepath, asset_id=address.asset_id, property_path=property_path)
+            # Format URL, in the format "#asset_id?rotation/x"
+            driver_key:str = AssetAddress.format_url_as_string(asset_id=address.asset_id, property_path=path)
 
-            # Use helper method to extract the nested DsonChannel object from
-            #   the DsonNode object.
-            channel:DsonChannel = DriverTarget.get_channel_object(copied_node, property_url)
+            # Get the DsonChannel object which corresponds to the property_path
+            channel:DsonChannel = get_channel_object(copied_node, driver_key)
 
-            # Update the node's properties.
-            channel.current_value = self.get_driver_value(property_url)
+            # Get the current value of this channel
+            channel.current_value = target.get_value()
 
         return copied_node
 
 
     # ======================================================================== #
+    # DRIVER TARGET METHODS                                                    #
     # ======================================================================== #
 
-    def get_joint_controlled_morphs(self:Self) -> None:
+    def add_driver_target(self:Self, target_url:str) -> DriverTarget:
+        """Return a DriverTarget, and create it if it doesn't exist."""
 
-        for property_url in self._drivers.get_all_stored_urls():
-            driver_target:DriverTarget = self._drivers.get_driver_target(property_url)
-            print(repr(driver_target))
-
-        return
-
-
-    # ======================================================================== #
-    # PRIVATE IMPLEMENTATION METHODS                                           #
-    # ======================================================================== #
-
-    def _load_asset(self:Self, struct:Any, property_path:str, library_type:LibraryType) -> None:
-
-        # TODO: How and where to implement dummy properties?
-        # TODO: Should the struct argument replace or update an earlier one?
-
-        # Format and validate URL
-        address:AssetAddress = AssetAddress.from_url(str(struct.dsf_file))
-        if not address.filepath and not address.asset_id:
+        # Format URL string for consistency
+        address:AssetAddress = AssetAddress.from_url(target_url)
+        if not address.asset_id or not address.property_path:
             raise ValueError
-        address.property_path = property_path
 
-        # Used to instantiate asset struct.
-        asset_url:str = address.get_url_to_asset()
+        # Create property_path dictionary if it hasn't been created yet
+        if address.asset_id not in self._drivers:
+            self._drivers[address.asset_id] = {}
 
-        # Create a flag to see if DsonNode/DsonModifier has been parsed already.
-        # Modifiers only have a single property, but nodes have two dozen. We
-        #   need to make sure the formulas are only parsed once per asset, or
-        #   else we will end up with many duplicate formulas stacking operations
-        #   on top of each other.
-        is_first_time:bool = False
+        # Store driver in nested dictionary by ID (i.e. "rotation/x")
+        drivers:dict = self._drivers[address.asset_id]
 
-        # This is an alias for the struct argument.
-        asset:Any = None
+        # If driver has not been added, add it
+        if not address.property_path in drivers:
 
-        # Add object to internal dictionary
-        if library_type == LibraryType.MODIFIER:
-            if not asset_url in self._modifiers:
-                self._modifiers[asset_url] = struct
-                is_first_time = True
-            asset = self._modifiers[asset_url]
+            # Create a string from formatted URL object
+            formatted_url:str = AssetAddress.format_url_as_string(asset_id=address.asset_id, property_path=address.property_path)
 
-        elif library_type == LibraryType.NODE:
-            if not asset_url in self._nodes:
-                self._nodes[asset_url] = struct
-                is_first_time = True
-            asset = self._nodes[asset_url]
+            # Add the DriverTarget to the dictionary
+            drivers[address.property_path] = DriverTarget(formatted_url)
 
-        elif not library_type:
-            pass
+        return drivers[address.property_path]
 
-        else:
-            raise NotImplementedError(library_type)
 
-        # Used as key for DriverDictionary
-        property_url:str = address.get_url_to_property()
+    # ------------------------------------------------------------------------ #
 
-        # Get DriverTarget associated with this URL, or create one if it doesn't
-        #   exist.
-        # TODO: Update the struct stored inside the DriverTarget if it already
-        #   exists?
-        driver_target:DriverTarget = self._drivers.get_driver_target(property_url)
-        if not driver_target:
-            driver_target = DriverTarget(property_url, asset, library_type)
-            self._drivers.add_driver_target(property_url, driver_target)
+    def get_driver_target(self:Self, target_url:str) -> DriverTarget:
 
-        # Create formula objects.
-        if is_first_time:
+        # Format URL string for consistency
+        address:AssetAddress = AssetAddress.from_url(target_url)
+        if not address.asset_id or not address.property_path:
+            raise ValueError
 
-            equations:list[DriverEquation] = None
+        # If the DriverTarget has not been added, return None
+        if address.asset_id not in self._drivers or address.property_path not in self._drivers[address.asset_id]:
+            return None
 
-            # DsonModifier
-            if library_type == LibraryType.MODIFIER and asset.formulas:
-                equations = self._parse_formulas(address.filepath, asset.formulas)
+        # Return the value from the nested dictionary
+        return self._drivers[address.asset_id][address.property_path]
 
-            # DsonNode
-            elif library_type == LibraryType.NODE and asset.formulas:
-                equations = self._parse_formulas(address.filepath, asset.formulas)
 
-            self._equations[asset_url] = equations
+    # ------------------------------------------------------------------------ #
 
+    def remove_all_driver_targets(self:Self) -> None:
+        self._drivers.clear()
+        self._equations.clear()
         return
 
 
     # ======================================================================== #
+    # DRIVER KEY METHODS                                                       #
     # ======================================================================== #
 
-    def _parse_formulas(self:Self, filepath:str, formula_list:list[DsonFormula]) -> list[DriverEquation]:
+    def get_all_driver_keys(self:Self) -> list[str]:
 
-        # TODO: How does "auto_follow" work for JCMs?
+        result:list[str] = []
 
-        equations:list[DriverEquation] = []
+        for (asset_id, prop_paths) in self._drivers.items():
+            for prop_path in prop_paths:
+                driver_key:str = AssetAddress.format_url_as_string(asset_id=asset_id, property_path=prop_path)
+                result.append(driver_key)
+
+        return result
+
+
+    # ------------------------------------------------------------------------ #
+
+    def get_invalid_driver_keys(self:Self) -> list[str]:
+        result:list[str] = []
+        for key in self.get_all_driver_keys():
+            target:DriverTarget = self.get_driver_target(key)
+            if not target.is_valid():
+                result.append(key)
+        return result
+
+
+    # ======================================================================== #
+    # DRIVER ASSET METHODS                                                     #
+    # ======================================================================== #
+
+    def get_driver_value(self:Self, driver_url:str) -> Any:
+
+        if not driver_url or not isinstance(driver_url, str):
+            raise TypeError
+
+        driver_target:DriverTarget = self.get_driver_target(driver_url)
+        if not driver_target:
+            raise ValueError
+
+        return driver_target.get_value()
+
+
+    # ------------------------------------------------------------------------ #
+
+    def set_driver_value(self:Self, driver_url:str, new_value:Any) -> None:
+
+        if not driver_url or not isinstance(driver_url, str):
+            raise TypeError
+
+        driver_target:DriverTarget = self.get_driver_target(driver_url)
+        if not driver_target:
+            raise ValueError
+
+        driver_target.set_value(new_value)
+        return
+
+
+    # ======================================================================== #
+    # EQUATION METHODS                                                         #
+    # ======================================================================== #
+
+    def get_equation_count(self:Self) -> int:
+        return len(self._equations)
+
+
+    # ======================================================================== #
+    # PRIVATE METHODS                                                          #
+    # ======================================================================== #
+
+    def _parse_url(self:Self, dsf_filepath:str, property_url:str, equation:DriverEquation, *, is_input:bool) -> None:
+
+        # Format URL string for consistency
+        address:AssetAddress = AssetAddress.from_url(property_url)
+        if not address.asset_id or not address.property_path:
+            raise ValueError
+
+        # property_url is the string defined in the DsonFormula object. It must
+        #   stay the same so it can be used as a dictionary key, so we create a
+        #   new URL string.
+        formatted_url = address.get_key_to_driver_target()
+
+        # -------------------------------------------------------------------- #
+        # If this DriverTarget has not been loaded from disk, try and load it
+        if self.get_driver_target(formatted_url) is None:
+
+            # NOTE: Often, if a URL doesn't have a filepath, it refers to the
+            #   containing file, but not always ("eJCMMemphisEyesClosedL"). So
+            #   we cannot assume this will always point to a valid asset.
+            if not address.filepath:
+                address.filepath = dsf_filepath
+
+            # Format URL
+            asset_url:str = address.get_url_to_asset()
+
+            # Flag to check if asset data could be loaded from disk
+            is_valid:bool = True
+
+            # Retrieve asset data from disk
+            try:
+                asset_type, asset_dson = find_asset_dson_in_library(asset_url)
+            except FileNotFoundError:
+                is_valid = False
+
+            # Asset was not found inside the DSF file
+            if not asset_dson:
+                is_valid = False
+
+            # If data could be loaded from DSF file, then instantiate an
+            #   object
+            if is_valid:
+
+                full_url:str = address.get_url_to_property()
+
+                # Load nodes and modifiers into DriverMap (which will then
+                #   recursively call this method for all their dependents)
+                if asset_type == LibraryType.MODIFIER:
+                    struct:DsonModifier = DsonModifier.load_from_file(asset_url)
+                    self.load_modifier_driver(full_url, struct)
+                elif asset_type == LibraryType.NODE:
+                    struct:DsonNode = DsonNode.load_from_file(asset_url)
+                    self.load_node_driver(full_url, struct)
+                else:
+                    # Future-proofing for new library types
+                    raise NotImplementedError(asset_type)
+
+        # The Node/Modifier properties are set in the calling function, not
+        #   here
+        target:DriverTarget = self.load_empty_driver(formatted_url)
+
+        # -------------------------------------------------------------------- #
+        # Link DriverTargets and DriverEquations
+        if is_input:
+            target._subcomponents.append(equation)
+            equation._inputs[property_url] = target
+        else:
+            target._controllers.append(equation)
+            equation._output = target
+
+        return
+
+
+    # ------------------------------------------------------------------------ #
+
+    def _parse_formulas(self:Self, dsf_filepath:str, formula_list:list[DsonFormula]) -> None:
+
+        # TODO: How does "auto-follow" work for JCMs?
 
         for formula in formula_list:
-
             equation:DriverEquation = DriverEquation(formula)
-            equations.append(equation)
+            self._equations.append(equation)
 
             # Handle input URLs
             for operation in formula.operations:
                 if not operation.url:
                     continue
-                self._parse_url(equation, operation.url, filepath, True)
+                self._parse_url(dsf_filepath, operation.url, equation, is_input=True)
 
-            # Handle output URLs
-            self._parse_url(equation, formula.output, filepath, False)
-
-        return equations
-
-
-    # ======================================================================== #
-    # ======================================================================== #
-
-    def _parse_url(self:Self, equation:DriverEquation, url_string:str, dsf_filepath:str, is_input:bool) -> None:
-
-        # Format URL
-        address:AssetAddress = AssetAddress.from_url(url_string)
-        if not address.filepath:
-            address.filepath = dsf_filepath
-
-        # Create variables to instantiate assets
-        asset_url:str = address.get_url_to_asset()
-
-        # TODO: Reuse "asset_dson" to streamline this
-        # TODO: Daz Studio has faulty logic. An AssetAddress should have a URL
-        #   unless it points to the same file. But according to
-        #   eJCMMemphisEyesClosedL.dsf, it can also refer to the Genesis8Female
-        #   file. So clearly it checks if the property exists on the figure,
-        #   and only uses the URL to load it if it doesn't.
-        #   Use the "parent" property to keep track of which object it belongs
-        #   to instead.
-
-        try:
-            asset_type, asset_dson = find_asset_dson_in_library(asset_url)
-        except FileNotFoundError:
-            # FIXME: Quick and dirty hack. Should be replaced when implementing
-            #   dummy properties.
-            return
-
-        # Recursively load any dependencies (which may call _parse_formulas()
-        #   again) this driver relies on.
-        if asset_type == LibraryType.MODIFIER:
-            struct:DsonModifier = DsonModifier.load_from_file(asset_url)
-            self.load_modifier(struct)
-        elif asset_type == LibraryType.NODE:
-            struct:DsonNode = DsonNode.load_from_file(asset_url)
-            self.load_node(struct, address.property_path)
-        else:
-            raise NotImplementedError(asset_type)
-
-        # Get the DriverTarget from the internal database. This should have
-        #   been added before _parse_formulas() was called.
-        target_url:str = address.get_url_to_property()
-        driver_target:DriverTarget = self._drivers.get_driver_target(target_url)
-
-        # Link DriverTargets and DriverEquations
-        if is_input:
-            driver_target.subcomponents.append(equation)
-            equation.inputs[url_string] = driver_target
-        else:
-            driver_target.controllers.append(equation)
-            equation.output = driver_target
+            # Handle output URL
+            self._parse_url(dsf_filepath, formula.output, equation, is_input=False)
 
         return

@@ -1,7 +1,7 @@
 from typing import Self
 from unittest import TestCase
 
-from dufman.driver2.driver_map import DriverMap
+from dufman.driver.driver_map import DriverMap
 from dufman.file import add_content_directory, remove_all_content_directories
 from dufman.structs.modifier import DsonModifier
 from dufman.structs.morph import DsonMorph

@@ -3,33 +3,29 @@
 # https://github.com/MidnightArrowStudios/dufman
 # Licensed under the MIT license.
 # ============================================================================ #
-"""This module defines classes to calculate driver values."""
+"""Defines child objects used internally by the DriverMap."""
 
 # stdlib
-from math import isclose
 from typing import Any, Self
 
 # dufman
+from dufman.driver2 import utils
 from dufman.enums import (
     ChannelType,
     FormulaOperator,
     FormulaStage,
     LibraryType,
 )
-from dufman.library import (
-    find_asset_dson_in_library,
-    get_single_property_from_library,
+from dufman.structs.channel import (
+    DsonChannel,
+    DsonChannelFloat,
+    #DsonChannelInt,
 )
 from dufman.spline import (
     calculate_linear_spline,
     calculate_tcb_spline,
     Knot,
     TcbKnot,
-)
-from dufman.structs.channel import (
-    DsonChannel,
-    DsonChannelBool,
-    DsonChannelFloat,
 )
 from dufman.structs.formula import DsonFormula
 from dufman.structs.modifier import DsonModifier
@@ -38,43 +34,44 @@ from dufman.url import AssetAddress
 
 
 # ============================================================================ #
-# DRIVER TARGET                                                                #
+# Driver Target                                                                #
 # ============================================================================ #
 
 class DriverTarget:
-    """A class containting a property used to control another property.
+    """A class representing a value which can be controlled by another value.
+    
+    DriverTarget is a wrapper around a DsonModifier/DsonNode struct and its
+    data channel. Data channels can control each other, resulting in a chain
+    of DriverTargets stored as a doubly-linked list. When the value of a 
+    channel is requested, the DriverTarget will travel up the chain and
+    compute the value of all its parent DriverTargets.
 
-    DriverTarget is a wrapper around an object which contains a channel. It can
-    be either a DsonModifier (which has a single channel) or a DsonNode (which
-    has multiple channels that define its 3D transform). When the value of the
-    channel is requested, this object will recursively travel up the chain of
-    DriverTargets and DriverEquations to compute the final value.
-
-    If the asset could not be loaded, this becomes a dummy property which stores
-    its contextual relationships so they can be inserted later.
+    If an asset could not be loaded from disk, this becomes a dummy object
+    which stores its contextual relationships so that the asset's struct can be
+    inserted later, if necessary.
     """
 
+
     # ======================================================================== #
+    # DUNDER METHODS                                                           #
+    # ------------------------------------------------------------------------ #
 
-    def __init__(self:Self, target_url:str, asset_struct:Any, library_type:LibraryType) -> Self:
+    def __init__(self:Self, target_url:str) -> Self:
 
-        # Object properties
+        # The name used to refer to this DriverTarget.
         self._target_url:str = target_url
-        self._asset:Any = asset_struct
-        self._library_type:LibraryType = library_type
 
-        # Relationship data
-        self.controllers:list[DriverEquation] = []
-        self.subcomponents:list[DriverEquation] = []
+        # The data this DriverTarget represents. Blank, until the asset data
+        #   is set.
+        self._asset_struct:Any = None
+        self._channel_struct:DsonChannel = None
+        self._library_type:LibraryType = None
+        self._raw_value = None
 
-        # This is a dummy object which stores relational data, to be fixed
-        #   later.
-        if not self._asset:
-            return
-
-        # Since the object is valid, populate the data fields.
-        self._channel:DsonChannel = DriverTarget.get_channel_object(self._asset, self._target_url)
-        self._raw_value = self._channel.get_value()
+        # Linked lists representing other DriverTargets which can control this
+        #   one.
+        self._controllers:list[DriverEquation] = []
+        self._subcomponents:list[DriverEquation] = []
 
         return
 
@@ -82,188 +79,24 @@ class DriverTarget:
     # ------------------------------------------------------------------------ #
 
     def __str__(self:Self) -> str:
-        return self._target_url
+        return str(self._target_url)
 
 
     # ------------------------------------------------------------------------ #
 
     def __repr__(self:Self) -> str:
-        return f"DriverTarget(\"{ str(self) }\")"
+        return f"DriverTarget({ str(self) })"
 
 
     # ======================================================================== #
-    #                                                                          #
-    # ======================================================================== #
-
-    @staticmethod
-    def get_asset_library_info(target_url:str, *, property_path:str=None) -> tuple[str, LibraryType]:
-        """Format the URL and the fetch the LibraryType from the DSF file."""
-
-        # Ensure URL is formatted correctly.
-        address:AssetAddress = AssetAddress.from_url(target_url)
-        if not address.filepath or not address.asset_id:
-            raise ValueError("URL argument requires both a filepath and an asset ID.")
-
-        # Get filepath for library functions.
-        asset_url:str = address.get_url_to_asset()
-
-        # Extract asset type from DSF file.
-        try:
-            asset_type, asson_dson = find_asset_dson_in_library(asset_url)
-        except FileNotFoundError:
-            # TODO: Use this to look up property path
-            asset_type, asson_dson = (None, None)
-
-        # If URL has no property_path and one was passed in as an argument,
-        #   replace it.
-        if not address.property_path and property_path:
-            address.property_path = property_path
-
-        # If URL still doesn't have a property_path and it is a DsonModifier,
-        #   extract the channel's ID from the disk.
-        if not address.property_path and asset_type == LibraryType.MODIFIER:
-            keys:list[str] = [ LibraryType.MODIFIER.value, address.asset_id, "channel", "id" ]
-            channel_id:str = get_single_property_from_library(address.filepath, keys)
-            address.property_path = channel_id
-
-        # If we still don't have a property_path, we can't do anything.
-        if not address.property_path:
-            raise ValueError("\"property_path\" could not be deduced from URL.")
-
-        return (address.get_url_to_property(), asset_type)
-
-
+    # PUBLIC QUERY METHODS                                                     #
     # ------------------------------------------------------------------------ #
-
-    @staticmethod
-    def load_asset(target_url:str, library_type:LibraryType) -> Any:
-        """Load an asset containing a channel from disk."""
-
-        # Validate URL.
-        address:AssetAddress = AssetAddress.from_url(target_url)
-        if not address.filepath and not address.asset_id and not address.property_path:
-            raise ValueError("URL does not contain enough info to locate channel.")
-
-        # The path to an asset inside a DSF file.
-        asset_url:str = address.get_url_to_asset()
-
-        # The struct which will hold the data extracted with the asset_url.
-        struct:Any = None
-
-        # If the DSF file could not be loaded, the null pointer will flag it
-        #   as invalid.
-        if library_type:
-            match library_type:
-
-                # DsonModifier
-                case LibraryType.MODIFIER:
-                    struct = DsonModifier.load_from_file(asset_url)
-
-                # DsonNode
-                case LibraryType.NODE:
-                    struct = DsonNode.load_from_file(asset_url)
-
-                # Unknown
-                case _:
-                    raise NotImplementedError(library_type)
-
-        return struct
-
-
-    # ------------------------------------------------------------------------ #
-
-    @staticmethod
-    def get_channel_object(asset:Any, property_url:str) -> DsonChannel:
-        """Return the DsonChannel object from an asset struct."""
-
-        # Validate URL
-        address:AssetAddress = AssetAddress.from_url(property_url)
-        if not address.filepath and not address.asset_id and not address.property_path:
-            raise ValueError("URL does not contain enough info to locate channel.")
-
-        # DsonModifier
-        if isinstance(asset, DsonModifier):
-            if address.property_path == asset.channel.channel_id:
-                return asset.channel
-            raise NotImplementedError(address.property_path)
-
-        # DsonNode
-        elif isinstance(asset, DsonNode):
-            match address.property_path:
-
-                # Center point
-                case "center_point/x":
-                    return asset.center_point.x
-                case "center_point/y":
-                    return asset.center_point.y
-                case "center_point/z":
-                    return asset.center_point.z
-
-                # End point
-                case "end_point/x":
-                    return asset.end_point.x
-                case "end_point/y":
-                    return asset.end_point.y
-                case "end_point/z":
-                    return asset.end_point.z
-
-                # Translation
-                case "translation/x":
-                    return asset.translation.x
-                case "translation/y":
-                    return asset.translation.y
-                case "translation/z":
-                    return asset.translation.z
-
-                # Orientation
-                case "orientation/x":
-                    return asset.orientation.x
-                case "orientation/y":
-                    return asset.orientation.y
-                case "orientation/z":
-                    return asset.orientation.z
-
-                # Rotation
-                case "rotation/x":
-                    return asset.rotation.x
-                case "rotation/y":
-                    return asset.rotation.y
-                case "rotation/z":
-                    return asset.rotation.z
-
-                # Scale
-                case "scale/general":
-                    return asset.general_scale
-                case "scale/x":
-                    return asset.scale.x
-                case "scale/y":
-                    return asset.scale.y
-                case "scale/z":
-                    return asset.scale.z
-
-                # Unknown
-                case _:
-                    raise NotImplementedError(address.property_path)
-
-        return None
-
-
-    # ======================================================================== #
-    #                                                                          #
-    # ======================================================================== #
 
     def get_channel_type(self:Self) -> ChannelType:
-        """Return the ChannelType of the underlying DsonChannel object."""
         if not self.is_valid():
             return None
-        return self._channel.channel_type
-
-
-    # ------------------------------------------------------------------------ #
-
-    def get_driver_name(self:Self) -> str:
-        address:AssetAddress = AssetAddress.from_url(self._target_url)
-        return address.format_url_as_string(asset_id=address.asset_id, property_path=address.property_path)
+        channel:DsonChannel = utils.get_channel_object(self._asset_struct, self._target_url)
+        return channel.channel_type
 
 
     # ------------------------------------------------------------------------ #
@@ -274,11 +107,50 @@ class DriverTarget:
 
     # ------------------------------------------------------------------------ #
 
+    def has_morph(self:Self) -> bool:
+        return (self._library_type == LibraryType.MODIFIER) and (self._asset_struct.morph is not None)
+
+
+    # ------------------------------------------------------------------------ #
+
+    def is_valid(self:Self) -> bool:
+        return self._asset_struct is not None
+
+
+    # ======================================================================== #
+    # PUBLIC ASSET METHODS                                                     #
+    # ------------------------------------------------------------------------ #
+
+    def get_asset(self:Self) -> tuple[Any, LibraryType]:
+        return (self._asset_struct, self._library_type)
+
+
+    # ------------------------------------------------------------------------ #
+
+    def set_asset(self:Self, asset:Any, library_type:LibraryType) -> None:
+
+        if asset is None:
+            raise TypeError
+
+        if not isinstance(asset, DsonModifier) and not isinstance(asset, DsonNode):
+            raise TypeError
+
+        self._asset_struct = asset
+        self._channel_struct = utils.get_channel_object(asset, self._target_url)
+        self._library_type = library_type
+        self._raw_value = self._channel_struct.get_value()
+
+        return
+
+
+    # ======================================================================== #
+    # PUBLIC VALUE METHODS                                                     #
+    # ------------------------------------------------------------------------ #
+
     def get_value(self:Self) -> Any:
-        """Return the current value of this DriverTarget."""
 
         if not self.is_valid():
-            raise RuntimeError("Attempted to get a dummy DriverTarget's value.")
+            raise RuntimeError
 
         channel_type:ChannelType = self.get_channel_type()
         match channel_type:
@@ -286,55 +158,113 @@ class DriverTarget:
                 return self._get_bool_value()
             case ChannelType.FLOAT:
                 return self._get_float_value()
+            case ChannelType.INT:
+                return self._get_int_value()
             case _:
                 raise NotImplementedError(channel_type)
 
 
     # ------------------------------------------------------------------------ #
 
-    def has_morph(self:Self) -> bool:
-        return (self._library_type == LibraryType.MODIFIER) and (self._asset.morph is not None)
-
-
-    # ------------------------------------------------------------------------ #
-
-    def is_valid(self:Self) -> bool:
-        """Check if this DriverTarget has a DsonChannel."""
-        return self._asset is not None
-
-
-    # ------------------------------------------------------------------------ #
-
     def set_value(self:Self, new_value:Any) -> None:
-        """Update the current value of this DriverTarget."""
 
         if not self.is_valid():
-            raise RuntimeError("Attempted to set a dummy DriverTarget's value.")
+            raise RuntimeError
 
-        # TODO: Is get_value() robust enough to recursively compute the value,
-        #   or do we need to propagate and cache an update from this method?
         channel_type:ChannelType = self.get_channel_type()
         match channel_type:
             case ChannelType.BOOL:
                 self._raw_value = bool(new_value)
             case ChannelType.FLOAT:
                 self._raw_value = float(new_value)
+            case ChannelType.INT:
+                self._raw_value = int(new_value)
             case _:
-                raise NotImplementedError
-
-        return
+                raise NotImplementedError(channel_type)
 
 
     # ======================================================================== #
     #                                                                          #
+    # ------------------------------------------------------------------------ #
+
+    def _get_bool_value(self:Self) -> bool:
+        # TODO: Experiment with how adding and multiplying a bool works in Daz
+        return bool(self._raw_value)
+
+
+    # ------------------------------------------------------------------------ #
+
+    def _get_float_value(self:Self) -> float:
+
+        # Sort DriverEquations by stage
+        summed, multiplied = self._sort_by_stage()
+
+        # Value we will be working with
+        result:float = float(self._raw_value)
+
+        # FormulaStage.SUM
+        for equation in summed:
+            result += float(equation.get_value())
+
+        # FormulaStage.MULTIPLY
+        multiply:float = 1.0
+        for equation in multiplied:
+            multiply *= float(equation.get_value())
+        result *= multiply
+
+        # For convenience
+        channel:DsonChannelFloat = self._channel_struct
+
+        # Clamp value
+        if channel.clamp_values:
+            result = max(channel.minimum_value, min(result, channel.maximum_value))
+
+        return result
+
+
+    # ------------------------------------------------------------------------ #
+
+    def _get_int_value(self:Self) -> int:
+
+        # Sort DriverEquations by stage
+        summed, multiplied = self._sort_by_stage()
+
+        # Value we will be working with
+        result:int = int(self._raw_value)
+
+        # FormulaStage.SUM
+        for equation in summed:
+            result += equation.get_value()
+
+        # FormulaStage.MULTIPLY
+        # TODO: Should multiplication be int or float?
+        multiply:float = 1.0
+        for equation in multiplied:
+            multiply *= equation.get_value()
+        result *= int(multiply)
+
+        # For convenience
+        # FIXME: Implement DsonChannelInt struct
+        #channel:DsonChannelInt = self._channel_struct
+        channel = self._channel_struct
+
+        # Clamp value
+        if channel.clamp_values:
+            result = max(channel.minimum_value, min(result, channel.maximum_value))
+
+        return result
+
+
     # ======================================================================== #
+    #                                                                          #
+    # ------------------------------------------------------------------------ #
 
     def _sort_by_stage(self:Self) -> tuple[list, list]:
-        
+
         summed:list[DriverEquation] = []
         multiplied:list[DriverEquation] = []
 
-        for controller in self.controllers:
+        for controller in self._controllers:
             stage:FormulaStage = controller.get_stage()
             match stage:
                 case FormulaStage.SUM:
@@ -343,72 +273,38 @@ class DriverTarget:
                     multiplied.append(controller)
                 case _:
                     raise NotImplementedError(stage)
-        
-        return summed, multiplied
 
-
-    # ======================================================================== #
-
-    def _get_bool_value(self:Self) -> Any:
-
-        _summed, _multiplied = self._sort_by_stage()
-
-        # TODO: Experiment with how adding and multiplying a bool works?
-
-        return bool(self._raw_value)
-
-
-    # ------------------------------------------------------------------------ #
-
-    def _get_float_value(self:Self) -> Any:
-
-        summed, multiplied = self._sort_by_stage()
-
-        # Convenience variable.
-        channel:DsonChannelFloat = self._channel
-
-        # Return value.
-        value:float = float(self._raw_value)
-
-        # Sum equations.
-        for equation in summed:
-            value += float(equation.get_value())
-
-        # Multiply equations.
-        multiply:float = 1.0
-        for equation in multiplied:
-            multiply *= float(equation.get_value())
-        value *= multiply
-
-        # Clamp value.
-        if channel.clamp_values:
-            value = max(channel.minimum_value, min(value, channel.maximum_value))
-
-        return value
+        return (summed, multiplied)
 
 
 # ============================================================================ #
-# DRIVER EQUATION                                                              #
+# Driver Equation                                                              #
 # ============================================================================ #
 
 class DriverEquation:
-    """A class that handles calculating driver values.
+    """A class storing a formula used by one DriverTarget to control another.
 
-    DriverEquation is a wrapper around a DsonFormula node. It stores the node
-    itself along with contextual data pointing to the DriverTarget objects it
-    needs to derive the equation's result.
+    DriverEquation is a wrapper around a DsonFormula struct, storing the struct
+    itself along with the contextual data necessary to refer to its parent and
+    child DriverTargets so values can be computed as necessary.
     """
 
     # ======================================================================== #
+    #                                                                          #
+    # ------------------------------------------------------------------------ #
 
     def __init__(self:Self, struct:DsonFormula) -> Self:
 
+        # Type safety
         if not struct or not isinstance(struct, DsonFormula):
             raise TypeError
 
-        self.struct:DsonFormula = struct
-        self.inputs:dict = {}
-        self.output:DriverTarget = None
+        # The data this object is a wrapper for
+        self._formula_struct:DsonFormula = struct
+
+        # Linked lists
+        self._inputs:dict = {}
+        self._output:DriverTarget = None
 
         return
 
@@ -441,7 +337,7 @@ class DriverEquation:
 
         stack:list[Any] = []
 
-        for operation in self.struct.operations:
+        for operation in self._formula_struct.operations:
             match operation.operator:
 
                 case FormulaOperator.PUSH:
@@ -473,7 +369,7 @@ class DriverEquation:
                 case _:
                     raise NotImplementedError(operation.operator)
 
-        output:str = self._strip_url(self.struct.output)
+        output:str = self._strip_url(self._formula_struct.output)
         return f"{output} = {stack[0]}"
 
 
@@ -481,7 +377,7 @@ class DriverEquation:
 
     def get_stage(self:Self) -> FormulaStage:
         """Return the FormulaStage of the underlying DsonFormula struct."""
-        return self.struct.stage
+        return self._formula_struct.stage
 
 
     # ------------------------------------------------------------------------ #
@@ -495,7 +391,7 @@ class DriverEquation:
 
         stack:list[Any] = []
 
-        for operation in self.struct.operations:
+        for operation in self._formula_struct.operations:
             match operation.operator:
 
                 # ------------------------------------------------------------ #
@@ -510,7 +406,7 @@ class DriverEquation:
                         #   a method of the same name on DriverTarget, which
                         #   will then call this method on all its equations,
                         #   until the top of the hierarchy has been reached.
-                        input_property:DriverTarget = self.inputs[operation.url]
+                        input_property:DriverTarget = self._inputs[operation.url]
                         stack.append(input_property.get_value())
 
                 # ------------------------------------------------------------ #
@@ -586,44 +482,3 @@ class DriverEquation:
             raise RuntimeError
 
         return stack[0]
-
-
-    # ------------------------------------------------------------------------ #
-
-    def is_driven_by_node(self:Self, properties:set[str], *, recursive:bool=True) -> bool:
-
-        # Return value
-        is_driven:bool = False
-        
-        # -------------------------------------------------------------------- #
-        # Loop through all DriverTarget objects to see if one is a node with
-        #   the requested properties (i.e. "rotation/x").
-
-        for target in self.inputs.values():
-
-            # Parse URL to get property_path.
-            address:AssetAddress = AssetAddress.from_url(target._target_url)
-
-            # Node or modifier?
-            input_type:LibraryType = target._library_type
-            match input_type:
-
-                # Modifier
-                case LibraryType.MODIFIER:
-                    if recursive and target.is_driven_by_node(properties, recursive=recursive):
-                        is_driven = True
-                
-                # Node
-                case LibraryType.NODE:
-                    if address.property_path in properties:
-                        is_driven = True
-                
-                case _:
-                    raise NotImplementedError(input_type)
-
-        # -------------------------------------------------------------------- #
-
-        return is_driven
-
-
-    # ======================================================================== #
