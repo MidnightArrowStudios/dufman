@@ -13,19 +13,22 @@ from dufman.structs.formula import DsonFormula
 from dufman.structs.modifier import DsonModifier
 from dufman.structs.node import DsonNode
 
+from tests import DEFAULT_CONTENT_DIRECTORY
+
+
 class TestDriverObject(TestCase):
 
     # ======================================================================== #
 
     def setUp(self:TestDriverObject) -> None:
-        add_content_directory("F:/Daz3D")
+        add_content_directory(DEFAULT_CONTENT_DIRECTORY)
         return
 
 
     # ------------------------------------------------------------------------ #
 
     def tearDown(self:TestDriverObject) -> None:
-        remove_content_directory("F:/Daz3D")
+        remove_content_directory(DEFAULT_CONTENT_DIRECTORY)
         return
 
 

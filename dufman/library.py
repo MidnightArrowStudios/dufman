@@ -85,7 +85,7 @@ def find_asset_dson_in_library(asset_path:Path) -> tuple[LibraryType, dict]:
 # ============================================================================ #
 
 def get_all_asset_urls_from_library(asset_path:Path, library_type:LibraryType) -> list[str]:
-    """Returns a list of all IDs from a designated DSF file's library."""
+    """Returns a list of all URLs from a DSF file's library."""
 
     # Ensure type safety
     asset_path = check_path(asset_path)

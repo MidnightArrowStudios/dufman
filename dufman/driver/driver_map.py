@@ -7,7 +7,7 @@
 # stdlib
 from copy import deepcopy
 from math import isclose
-from typing import Any, Self
+from typing import Any, Self, TypeAlias
 
 # dufman
 from dufman.driver.driver_dict import DriverDictionary
@@ -22,6 +22,31 @@ from dufman.structs.node import DsonNode
 from dufman.types import DsonVector
 from dufman.url import AssetAddress
 
+
+# ============================================================================ #
+# DriverTarget iterator                                                        #
+# ============================================================================ #
+
+_DriverMap:TypeAlias = 'DriverMap'
+
+class _DriverIterator:
+    def __init__(self:Self, driver_map:_DriverMap) -> Self:
+        self._driver_map:DriverMap = driver_map
+        self._index:int = 0
+        self._urls:list[str] = driver_map.get_all_driver_urls()
+        return
+
+    def __next__(self:Self) -> DriverTarget:
+        if self._index >= len(self._urls):
+            raise StopIteration
+        url:str = self._urls[self._index]
+        self._index += 1
+        return self._driver_map._drivers.get_driver_target(url)
+
+
+# ============================================================================ #
+# DriverMap                                                                    #
+# ============================================================================ #
 
 class DriverMap:
 
@@ -42,6 +67,12 @@ class DriverMap:
         self._equations:dict = {}
 
         return
+
+
+    # ------------------------------------------------------------------------ #
+
+    def __iter__(self:Self) -> _DriverIterator:
+        return _DriverIterator(self)
 
 
     # ------------------------------------------------------------------------ #
@@ -346,6 +377,13 @@ class DriverMap:
         asset_url:str = address.get_url_to_asset()
 
         # TODO: Reuse "asset_dson" to streamline this
+        # TODO: Daz Studio has faulty logic. An AssetAddress should have a URL
+        #   unless it points to the same file. But according to
+        #   eJCMMemphisEyesClosedL.dsf, it can also refer to the Genesis8Female
+        #   file. So clearly it checks if the property exists on the figure,
+        #   and only uses the URL to load it if it doesn't.
+        #   Use the "parent" property to keep track of which object it belongs
+        #   to instead.
 
         try:
             asset_type, asset_dson = find_asset_dson_in_library(asset_url)

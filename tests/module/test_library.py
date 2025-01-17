@@ -12,17 +12,18 @@ from dufman.library import (
     get_single_property_from_library,
 )
 
+from tests import DEFAULT_CONTENT_DIRECTORY
+
 
 class TestLibraryModule(TestCase):
     """Unit testing for DUFMan's library querying functions."""
 
     def setUp(self:TestLibraryModule) -> None:
-        self.content_directory = Path("F:/Daz3D")
-        file.add_content_directory(self.content_directory)
+        file.add_content_directory(DEFAULT_CONTENT_DIRECTORY)
         return
 
     def tearDown(self:TestLibraryModule) -> None:
-        file.remove_content_directory(self.content_directory)
+        file.remove_all_content_directories()
         return
 
 

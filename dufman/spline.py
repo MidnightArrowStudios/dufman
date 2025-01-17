@@ -7,6 +7,8 @@
 # stblib
 from dataclasses import dataclass
 
+# TODO: Which axis should drivers go on? X or Y? See which would be more
+#   convenient for Blender.
 
 # ============================================================================ #
 # Knot Objects                                                                 #

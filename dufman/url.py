@@ -88,30 +88,6 @@ class AssetAddress:
 
 
     # ======================================================================== #
-    # STRING GENERATION METHODS                                                #
-    # ======================================================================== #
-
-    @staticmethod
-    def generate_asset_url(url_string:str, *, filepath:str=None) -> str:
-        address:AssetAddress = AssetAddress.from_url(url_string)
-        if not address.filepath and filepath:
-            address.filepath = filepath
-        return address.get_url_to_asset()
-
-
-    # ------------------------------------------------------------------------ #
-
-    @staticmethod
-    def generate_property_url(url_string:str, *, filepath:str=None, property_path:str=None) -> str:
-        address:AssetAddress = AssetAddress.from_url(url_string)
-        if not address.filepath and filepath:
-            address.filepath = filepath
-        if not address.property_path and property_path:
-            address.property_path = property_path
-        return address.get_url_to_property()
-
-
-    # ======================================================================== #
     # FACTORY METHODS                                                          #
     # ======================================================================== #
 
@@ -198,6 +174,12 @@ class AssetAddress:
 
     def get_url_to_property(self:Self) -> str:
         return self.format_url_as_string(filepath=self.filepath, asset_id=self.asset_id, property_path=self.property_path)
+
+
+    # ------------------------------------------------------------------------ #
+
+    def get_key_to_driver_target(self:Self) -> str:
+        return self.format_url_as_string(asset_id=self.asset_id, property_path=self.property_path)
 
 
     # ======================================================================== #

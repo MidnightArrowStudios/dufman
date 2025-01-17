@@ -6,19 +6,22 @@ from dufman.driver.driver_map import DriverMap
 from dufman.structs.modifier import DsonModifier
 from dufman.structs.node import DsonNode
 
+from tests import DEFAULT_CONTENT_DIRECTORY
+
+
 class TestDriverMap(TestCase):
 
     # ======================================================================== #
 
     def setUp(self:TestDriverMap) -> None:
-        add_content_directory("F:/Daz3D")
+        add_content_directory(DEFAULT_CONTENT_DIRECTORY)
         return
 
 
     # ------------------------------------------------------------------------ #
 
     def tearDown(self:TestDriverMap) -> None:
-        remove_content_directory("F:/Daz3D")
+        remove_content_directory(DEFAULT_CONTENT_DIRECTORY)
         return
 
 

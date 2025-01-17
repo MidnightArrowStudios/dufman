@@ -8,10 +8,15 @@ from urllib.parse import unquote
 from dufman import file
 from dufman import observers
 
+from tests import DEFAULT_CONTENT_DIRECTORY
+
 class TestFileModule(TestCase):
 
     def setUp(self:TestFileModule) -> None:
-        self.content_directory:Path = Path("F:/Daz3D")
+        self.content_directory:Path = Path(DEFAULT_CONTENT_DIRECTORY)
+        return
+    
+    def tearDown(self:TestFileModule) -> None:
         file.remove_all_content_directories()
         file.clear_dsf_cache()
         return

@@ -6,6 +6,7 @@
 """This module defines classes to calculate driver values."""
 
 # stdlib
+from math import isclose
 from typing import Any, Self
 
 # dufman
@@ -27,6 +28,7 @@ from dufman.spline import (
 )
 from dufman.structs.channel import (
     DsonChannel,
+    DsonChannelBool,
     DsonChannelFloat,
 )
 from dufman.structs.formula import DsonFormula
@@ -259,6 +261,19 @@ class DriverTarget:
 
     # ------------------------------------------------------------------------ #
 
+    def get_driver_name(self:Self) -> str:
+        address:AssetAddress = AssetAddress.from_url(self._target_url)
+        return address.format_url_as_string(asset_id=address.asset_id, property_path=address.property_path)
+
+
+    # ------------------------------------------------------------------------ #
+
+    def get_library_type(self:Self) -> LibraryType:
+        return self._library_type
+
+
+    # ------------------------------------------------------------------------ #
+
     def get_value(self:Self) -> Any:
         """Return the current value of this DriverTarget."""
 
@@ -267,10 +282,18 @@ class DriverTarget:
 
         channel_type:ChannelType = self.get_channel_type()
         match channel_type:
+            case ChannelType.BOOL:
+                return self._get_bool_value()
             case ChannelType.FLOAT:
                 return self._get_float_value()
             case _:
                 raise NotImplementedError(channel_type)
+
+
+    # ------------------------------------------------------------------------ #
+
+    def has_morph(self:Self) -> bool:
+        return (self._library_type == LibraryType.MODIFIER) and (self._asset.morph is not None)
 
 
     # ------------------------------------------------------------------------ #
@@ -306,24 +329,40 @@ class DriverTarget:
     #                                                                          #
     # ======================================================================== #
 
-    def _get_float_value(self:Self) -> Any:
+    def _sort_by_stage(self:Self) -> tuple[list, list]:
+        
+        summed:list[DriverEquation] = []
+        multiplied:list[DriverEquation] = []
 
-        # Sort equations which contribute to the final value.
-        stage_sum:list[DriverEquation] = []
-        stage_mult:list[DriverEquation] = []
-
-        # Gather up equation objects.
         for controller in self.controllers:
             stage:FormulaStage = controller.get_stage()
             match stage:
                 case FormulaStage.SUM:
-                    stage_sum.append(controller)
+                    summed.append(controller)
                 case FormulaStage.MULTIPLY:
-                    stage_mult.append(controller)
+                    multiplied.append(controller)
                 case _:
-                    # NOTE: According to the DSON specs, more stage types may
-                    #   be introduced in the future.
                     raise NotImplementedError(stage)
+        
+        return summed, multiplied
+
+
+    # ======================================================================== #
+
+    def _get_bool_value(self:Self) -> Any:
+
+        _summed, _multiplied = self._sort_by_stage()
+
+        # TODO: Experiment with how adding and multiplying a bool works?
+
+        return bool(self._raw_value)
+
+
+    # ------------------------------------------------------------------------ #
+
+    def _get_float_value(self:Self) -> Any:
+
+        summed, multiplied = self._sort_by_stage()
 
         # Convenience variable.
         channel:DsonChannelFloat = self._channel
@@ -332,12 +371,12 @@ class DriverTarget:
         value:float = float(self._raw_value)
 
         # Sum equations.
-        for equation in stage_sum:
+        for equation in summed:
             value += float(equation.get_value())
 
         # Multiply equations.
         multiply:float = 1.0
-        for equation in stage_mult:
+        for equation in multiplied:
             multiply *= float(equation.get_value())
         value *= multiply
 
@@ -424,8 +463,8 @@ class DriverEquation:
                     for _ in range(number_of_knots):
                         data:list = stack.pop()
                         knot:Knot = Knot()
-                        knot.x = data[0]
-                        knot.y = data[1]
+                        knot.x = data[1]
+                        knot.y = data[0]
                         knots.append(knot)
 
                     _value:Any = stack.pop()
@@ -494,8 +533,8 @@ class DriverEquation:
                         knot:Knot = Knot()
                         knot_list:list = stack.pop()
 
-                        knot.x = knot_list[0]
-                        knot.y = knot_list[1]
+                        knot.x = knot_list[1]
+                        knot.y = knot_list[0]
 
                         knots.append(knot)
 
@@ -524,8 +563,8 @@ class DriverEquation:
                         knot:TcbKnot = TcbKnot()
                         knot_list:list = stack.pop()
 
-                        knot.x=knot_list[0]
-                        knot.y=knot_list[1]
+                        knot.x=knot_list[1]
+                        knot.y=knot_list[0]
                         knot.tension=knot_list[2]
                         knot.continuity=knot_list[3]
                         knot.bias=knot_list[4]
@@ -547,5 +586,44 @@ class DriverEquation:
             raise RuntimeError
 
         return stack[0]
+
+
+    # ------------------------------------------------------------------------ #
+
+    def is_driven_by_node(self:Self, properties:set[str], *, recursive:bool=True) -> bool:
+
+        # Return value
+        is_driven:bool = False
+        
+        # -------------------------------------------------------------------- #
+        # Loop through all DriverTarget objects to see if one is a node with
+        #   the requested properties (i.e. "rotation/x").
+
+        for target in self.inputs.values():
+
+            # Parse URL to get property_path.
+            address:AssetAddress = AssetAddress.from_url(target._target_url)
+
+            # Node or modifier?
+            input_type:LibraryType = target._library_type
+            match input_type:
+
+                # Modifier
+                case LibraryType.MODIFIER:
+                    if recursive and target.is_driven_by_node(properties, recursive=recursive):
+                        is_driven = True
+                
+                # Node
+                case LibraryType.NODE:
+                    if address.property_path in properties:
+                        is_driven = True
+                
+                case _:
+                    raise NotImplementedError(input_type)
+
+        # -------------------------------------------------------------------- #
+
+        return is_driven
+
 
     # ======================================================================== #

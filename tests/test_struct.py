@@ -19,7 +19,7 @@ from dufman.enums import (
     RigidScale,
     RotationOrder,
 )
-from dufman.file import add_content_directory, remove_content_directory
+from dufman.file import add_content_directory, remove_all_content_directories
 from dufman.library import get_single_property_from_library
 from dufman.observers import (
     register_on_geometry_struct_created,
@@ -46,17 +46,19 @@ from dufman.structs.uv_set import DsonUVSet, _Hotswap, _Coordinate
 from dufman.structs.weighted_joint import DsonWeightedJoint
 from dufman.types import DsonColor
 
+from tests import DEFAULT_CONTENT_DIRECTORY
+
 
 class TestStruct(TestCase):
     """Unit testing for the DUFMan package's data structs."""
 
     def setUp(self:Self) -> None:
-        add_content_directory("F:/Daz3D")
+        add_content_directory(DEFAULT_CONTENT_DIRECTORY)
         return
 
 
     def tearDown(self:Self) -> None:
-        remove_content_directory("F:/Daz3D")
+        remove_all_content_directories()
         return
 
 
