@@ -352,7 +352,16 @@ class DriverMap:
 
         # Format URL string for consistency
         address:AssetAddress = AssetAddress.from_url(target_url)
-        if not address.asset_id or not address.property_path:
+        if not address.asset_id:
+            raise ValueError
+
+        # If there is not property_path and the target is a modifier, then get
+        #   the name of the channel from the DsonModifier
+        if not address.property_path and address.asset_id in self._modifiers:
+            modifier:DsonModifier = self._modifiers[address.asset_id]
+            address.property_path = modifier.channel.channel_id
+
+        if not address.property_path:
             raise ValueError
 
         # If the DriverTarget has not been added, return None
@@ -476,7 +485,7 @@ class DriverMap:
                 is_valid = False
 
             # Asset was not found inside the DSF file
-            if not asset_dson:
+            if is_valid and not asset_dson:
                 is_valid = False
 
             # If data could be loaded from DSF file, then instantiate an
