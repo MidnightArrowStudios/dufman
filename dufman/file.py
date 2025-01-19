@@ -290,25 +290,6 @@ def get_property_from_dson_file(root_dson:dict, property_path:list[Any]) -> Any:
 
 # ============================================================================ #
 
-def get_relative_filepaths_from_directory(directory:Path, *, filter_dsf:bool=True) -> list[Path]:
-
-    directory = check_path(directory)
-
-    if not directory.is_absolute():
-        directory = get_absolute_filepath(directory)
-
-    result:list[Path] = []
-
-    for filepath in directory.iterdir():
-        if filter_dsf and not filepath.suffix.lower() == ".dsf":
-            continue
-        relative:Path = get_relative_filepath(filepath)
-        result.append(relative)
-
-    return result
-
-# ============================================================================ #
-
 def get_relative_filepath(absolute_path:Path) -> Path:
 
     # Ensure type safety
@@ -334,6 +315,26 @@ def get_relative_filepath(absolute_path:Path) -> Path:
         return relative_filepaths[0]
     else:
         raise MultipleDsfFiles
+
+# ============================================================================ #
+
+def get_relative_filepaths_from_directory(directory:Path, *, filter_dsf:bool=True) -> list[Path]:
+
+    directory = check_path(directory)
+
+    if not directory.is_absolute():
+        directory = get_absolute_filepath(directory)
+
+    result:list[Path] = []
+
+    for filepath in directory.iterdir():
+        if filter_dsf and not filepath.suffix.lower() == ".dsf":
+            continue
+        relative:Path = get_relative_filepath(filepath)
+        result.append(relative)
+
+    return result
+
 
 # ============================================================================ #
 
