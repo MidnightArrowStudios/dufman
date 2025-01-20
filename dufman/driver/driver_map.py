@@ -377,6 +377,8 @@ class DriverMap:
     def remove_all_driver_targets(self:Self) -> None:
         self._drivers.clear()
         self._equations.clear()
+        self._modifiers.clear()
+        self._nodes.clear()
         return
 
 
