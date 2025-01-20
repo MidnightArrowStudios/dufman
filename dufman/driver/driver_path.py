@@ -214,7 +214,7 @@ def _build_controller_path(result:list[DriverPath], working_path:list[PathSegmen
 
 def get_jcm_paths_for_target(target:DriverTarget) -> list[DriverPath]:
 
-    # Get all of target's DriverPaths, regardless of whether they're JCMs.
+    # Get all target's DriverPaths (regardless of whether they're JCMs).
     paths:list[DriverPath] = []
     _build_controller_path(paths, [], PathSegment(None, target))
 
