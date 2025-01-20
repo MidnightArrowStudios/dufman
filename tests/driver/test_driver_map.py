@@ -309,3 +309,27 @@ class TestDriverMap(TestCase):
         self.assertIs(list(equation._inputs.values())[0], invalid_morph)
 
         return
+
+
+    # ======================================================================== #
+
+    def test_folder_loading(self:Self) -> None:
+
+        url:str = "/data/DAZ 3D/Genesis 8/Female/Morphs/DAZ 3D/Base/"
+
+        # Create DriverMap
+        driver_map:DriverMap = DriverMap("Genesis8Female")
+        self.assertIsNotNone(driver_map)
+
+        # Load folder
+        driver_map.load_modifier_folder(url)
+        driver_keys:str = driver_map.get_all_driver_keys()
+        self.assertIn("#BaseFlexions?value", driver_keys)
+        self.assertIn("#JCMs On?value", driver_keys)
+        self.assertIn("#PBMNailsLength?value", driver_keys)
+        self.assertIn("#PBMNavel?value", driver_keys)
+        self.assertIn("#PBMNipples?value", driver_keys)
+        self.assertIn("#PHMEyeRimRefineHD_div2?value", driver_keys)
+        self.assertIn("#PHMMouthRealism_HD_div2?value", driver_keys)
+
+        return

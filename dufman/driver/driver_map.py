@@ -7,13 +7,18 @@
 # stdlib
 from copy import deepcopy
 from math import isclose
+from pathlib import Path
 from typing import Any, Iterator, Self
 
 # dufman
 from dufman.driver.driver_object import DriverEquation, DriverTarget
 from dufman.driver.utils import get_channel_object
 from dufman.enums import LibraryType
-from dufman.library import find_asset_dson_in_library
+from dufman.file import get_relative_filepaths_from_directory
+from dufman.library import (
+    find_asset_dson_in_library,
+    get_all_asset_urls_from_library,
+)
 from dufman.structs.channel import DsonChannel
 from dufman.structs.formula import DsonFormula
 from dufman.structs.modifier import DsonModifier
@@ -165,6 +170,19 @@ class DriverMap:
             self._modifiers[address.asset_id] = struct
 
         return target
+
+
+    # ======================================================================== #
+
+    def load_modifier_folder(self:Self, directory_url:str) -> None:
+
+        filepaths:list[Path] = get_relative_filepaths_from_directory(directory_url)
+        for filepath in filepaths:
+            for asset_url in get_all_asset_urls_from_library(filepath, LibraryType.MODIFIER):
+                struct:DsonModifier = DsonModifier.load_from_file(asset_url)
+                self.load_modifier_driver(asset_url, struct)
+
+        return
 
 
     # ======================================================================== #
