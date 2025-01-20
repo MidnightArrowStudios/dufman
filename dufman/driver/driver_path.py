@@ -194,6 +194,9 @@ def _build_controller_path(result:list[DriverPath], working_path:list[PathSegmen
     #   make adjustments without affecting the overall traversal.
     working_path.append(segment)
 
+    # TODO: Should we check for type (i.e. LibraryType.NODE) here or get the
+    #   whole path and do the type-checking in the calling function?
+
     # If there's nothing controlling this target, we've reached the top of
     #   the hierarchy.
     if not segment.target._controllers:
