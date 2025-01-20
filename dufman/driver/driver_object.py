@@ -79,7 +79,7 @@ class DriverTarget:
     # ------------------------------------------------------------------------ #
 
     def __str__(self:Self) -> str:
-        return str(self._target_url)
+        return self.get_target_url()
 
 
     # ------------------------------------------------------------------------ #
@@ -97,6 +97,24 @@ class DriverTarget:
             return None
         channel:DsonChannel = utils.get_channel_object(self._asset_struct, self._target_url)
         return channel.channel_type
+
+
+    # ------------------------------------------------------------------------ #
+
+    def get_target_name(self:Self) -> str:
+        match self._library_type:
+            case LibraryType.MODIFIER:
+                return self._asset_struct.library_id
+            case LibraryType.NODE:
+                return self._asset_struct.library_id
+            case _:
+                return "Empty DriverTarget"
+
+
+    # ------------------------------------------------------------------------ #
+
+    def get_target_url(self:Self) -> str:
+        return self._target_url
 
 
     # ------------------------------------------------------------------------ #
