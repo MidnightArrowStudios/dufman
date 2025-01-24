@@ -512,44 +512,6 @@ class DriverMap:
             target._controllers.append(equation)
             equation._output = target
 
-        #     # Format URL
-        #     #asset_url:str = daz_url.get_url_to_asset()
-
-        #     # Flag to check if asset data could be loaded from disk
-        #     is_valid:bool = True
-
-        #     # Retrieve asset data from disk
-        #     try:
-        #         asset_type, asset_dson = find_asset_dson_in_library(asset_url)
-        #     except FileNotFoundError:
-        #         is_valid = False
-
-        #     # Asset was not found inside the DSF file
-        #     if is_valid and not asset_dson:
-        #         is_valid = False
-
-        #     # If data could be loaded from DSF file, then instantiate an
-        #     #   object
-        #     if is_valid:
-
-        #         full_url:str = daz_url.get_url_to_channel()
-
-        #         # Load nodes and modifiers into DriverMap (which will then
-        #         #   recursively call this method for all their dependents)
-        #         if asset_type == LibraryType.MODIFIER:
-        #             struct:DsonModifier = DsonModifier.load_from_file(asset_url)
-        #             self.load_modifier_driver(full_url, struct)
-        #         elif asset_type == LibraryType.NODE:
-        #             struct:DsonNode = DsonNode.load_from_file(asset_url)
-        #             self.load_node_driver(full_url, struct)
-        #         else:
-        #             # Future-proofing for new library types
-        #             raise NotImplementedError(asset_type)
-
-        # # The Node/Modifier properties are set in the calling function, not
-        # #   here
-        # target:DriverTarget = self.load_empty_driver(formatted_url)
-
         return
 
 
