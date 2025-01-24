@@ -6,10 +6,8 @@
 
 from __future__ import annotations
 from pathlib import Path
-from platform import system
 from typing import Any
 from unittest import TestCase
-from urllib.parse import unquote
 
 from dufman import file
 from dufman import observers
