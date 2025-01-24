@@ -6,6 +6,7 @@
 """Defines child objects used internally by the DriverMap."""
 
 # stdlib
+from copy import copy
 from typing import Any, Self
 
 # dufman
@@ -27,10 +28,10 @@ from dufman.spline import (
     Knot,
     TcbKnot,
 )
-from dufman.structs.formula import DsonFormula
+from dufman.structs.formula import DsonFormula, DsonOperation
 from dufman.structs.modifier import DsonModifier
 from dufman.structs.node import DsonNode
-from dufman.url import AssetAddress
+from dufman.url import DazUrl
 
 
 # ============================================================================ #
@@ -56,10 +57,10 @@ class DriverTarget:
     # DUNDER METHODS                                                           #
     # ------------------------------------------------------------------------ #
 
-    def __init__(self:Self, target_url:str) -> Self:
+    def __init__(self:Self, target_url:DazUrl) -> Self:
 
         # The name used to refer to this DriverTarget.
-        self._target_url:str = target_url
+        self._target_url:DazUrl = copy(target_url)
 
         # The data this DriverTarget represents. Blank, until the asset data
         #   is set.
@@ -79,7 +80,7 @@ class DriverTarget:
     # ------------------------------------------------------------------------ #
 
     def __str__(self:Self) -> str:
-        return self.get_target_url()
+        return self._target_url.get_key_to_driver_target()
 
 
     # ------------------------------------------------------------------------ #
@@ -113,7 +114,7 @@ class DriverTarget:
 
     # ------------------------------------------------------------------------ #
 
-    def get_target_url(self:Self) -> str:
+    def get_target_url(self:Self) -> DazUrl:
         return self._target_url
 
 
@@ -344,8 +345,105 @@ class DriverEquation:
     @staticmethod
     def _strip_url(url_string:str) -> str:
         """Format a URL so it consists of an asset ID and a property path."""
-        address:AssetAddress = AssetAddress.from_url(url_string)
-        return AssetAddress.format_url_as_string(asset_id=address.asset_id, property_path=address.property_path)
+        daz_url:DazUrl = DazUrl.from_url(url_string)
+        return DazUrl.format_url(asset_id=daz_url.asset_id, channel=daz_url.channel)
+
+
+    # ======================================================================== #
+
+    def _get_operation_url_id(self:Self, index:int) -> str:
+
+        operation:DsonOperation = self._formula_struct.operations[index]
+        if not operation.url:
+            raise ValueError
+        
+        daz_url:DazUrl = DazUrl.from_url(operation.url)
+        return daz_url.asset_id
+
+
+    # ------------------------------------------------------------------------ #
+
+    def _get_operation_suffix(self:Self, index:int) -> str:
+
+        operation:DsonOperation = self._formula_struct.operations[index]
+        if not operation.url:
+            raise ValueError
+
+        daz_url:DazUrl = DazUrl.from_url(operation.url)
+        suffix:str = None
+
+        match daz_url.channel:
+            case "rotation/x":
+                suffix = "rot_x"
+            case "rotation/y":
+                suffix = "rot_y"
+            case "rotation/z":
+                suffix = "rot_z"
+            case _:
+                raise NotImplementedError(daz_url.channel)
+
+        return suffix
+
+
+    # ======================================================================== #
+
+    def get_blender_expression(self:Self) -> str:
+
+        operations:list[DsonOperation] = self._formula_struct.operations
+
+        # Preparse the operation list to format PUSH operations correctly.
+        push_strings:dict = {}
+        for (index, operation) in enumerate(operations):
+            if not operation.operator == FormulaOperator.PUSH:
+                continue
+
+            # Format URLs
+            if operation.url:
+
+                asset_id:str = self._get_operation_url_id(index)
+                suffix:str = self._get_operation_suffix(index)
+                push_strings[index] = f"{asset_id}_{suffix}"
+
+            # Format values
+            if operation.value:
+
+                in_radians:bool = False
+                if index > 0:
+                    if self._get_operation_suffix(index-1) in [ "rot_x", "rot_y", "rot_z" ]:
+                        in_radians = True
+
+
+        return ""
+
+        # stack:list[Any] = []
+
+        # for operation in self._formula_struct.operations:
+        #     match operation.operator:
+
+        #         # Push
+        #         case FormulaOperator.PUSH:
+        #             if operation.url:
+        #                 target_name:str = self._inputs[operation.url].get_target_name()
+        #                 stack.append(target_name)
+        #             elif operation.value:
+        #                 stack.append(str(operation.value))
+
+        #         # Multiply
+        #         case FormulaOperator.MULT:
+        #             value2:str = str(stack.pop())
+        #             value1:str = str(stack.pop())
+        #             result:str = f"({value1} * {value2})"
+        #             stack.append(result)
+
+        #         # Unknown
+        #         case _:
+        #             raise NotImplementedError(operation.operator)
+
+        # # Stack should only have one value left on it.
+        # if len(stack) != 1:
+        #     raise RuntimeError
+
+        #return stack[0]
 
 
     # ======================================================================== #
