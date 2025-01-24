@@ -11,13 +11,10 @@ http://docs.daz3d.com/doku.php/public/dson_spec/object_definitions/modifier/star
 
 # stdlib
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Self
 
 # dufman
 from dufman.enums import LibraryType
-from dufman.file import check_path
-from dufman.library import get_asset_dson_from_library
 from dufman.observers import _modifier_struct_created
 
 from dufman.structs.channel import DsonChannel
@@ -25,6 +22,7 @@ from dufman.structs.formula import DsonFormula
 from dufman.structs.morph import DsonMorph
 from dufman.structs.presentation import DsonPresentation
 from dufman.structs.skin_binding import DsonSkinBinding
+from dufman.url import DazUrl
 
 
 # ============================================================================ #
@@ -34,7 +32,7 @@ from dufman.structs.skin_binding import DsonSkinBinding
 @dataclass
 class DsonModifier:
 
-    dsf_file                : Path                  = None
+    dsf_file                : str                   = None
     library_id              : str                   = None
 
     name                    : str                   = ""
@@ -127,14 +125,12 @@ class DsonModifier:
     # ------------------------------------------------------------------------ #
 
     @staticmethod
-    def load_from_file(dsf_filepath:Path) -> Self:
+    def load_from_file(daz_url:DazUrl) -> Self:
 
-        dsf_filepath = check_path(dsf_filepath)
-
-        modifier_dson:dict = get_asset_dson_from_library(dsf_filepath, LibraryType.MODIFIER)
+        modifier_dson, _ = daz_url.get_asset_dson(LibraryType.MODIFIER)
 
         struct:Self = DsonModifier.load_from_dson(modifier_dson)
-        struct.dsf_file = dsf_filepath
+        struct.dsf_file = daz_url.get_url_to_asset()
 
         # Fire observer update.
         _modifier_struct_created(struct, modifier_dson)

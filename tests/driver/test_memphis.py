@@ -2,10 +2,10 @@ from typing import Self
 from unittest import TestCase
 
 from dufman.driver.driver_map import DriverMap
-from dufman.file import add_content_directory, remove_all_content_directories
 from dufman.structs.modifier import DsonModifier
 from dufman.structs.morph import DsonMorph
 from dufman.structs.node import DsonNode
+from dufman.url import DazUrl
 
 from tests import DEFAULT_CONTENT_DIRECTORY
 
@@ -13,12 +13,12 @@ from tests import DEFAULT_CONTENT_DIRECTORY
 class TestCharacterMemphis(TestCase):
 
     def setUp(self:Self) -> None:
-        add_content_directory(DEFAULT_CONTENT_DIRECTORY)
+        DazUrl.add_content_directory(DEFAULT_CONTENT_DIRECTORY)
         return
 
 
     def tearDown(self:Self) -> None:
-        remove_all_content_directories()
+        DazUrl.remove_all_content_directories()
         return
 
 
@@ -26,7 +26,8 @@ class TestCharacterMemphis(TestCase):
 
     def test_character_memphis(self:Self) -> None:
 
-        memphis_url:str = "/data/DAZ 3D/Genesis 8/Female/Morphs/Mousso/Memphis/Memphis.dsf#Memphis"
+        url_string:str = "/data/DAZ 3D/Genesis 8/Female/Morphs/Mousso/Memphis/Memphis.dsf#Memphis"
+        memphis_url:DazUrl = DazUrl.from_url(url_string)
 
         # Create character morph
         struct:DsonModifier = DsonModifier.load_from_file(memphis_url)
@@ -40,7 +41,7 @@ class TestCharacterMemphis(TestCase):
         driver_map.load_modifier_driver(memphis_url, struct)
 
         # Dial in character morph
-        driver_map.set_driver_value("#Memphis?value", 1.0)
+        driver_map.set_driver_value(memphis_url, 1.0)
 
         # -------------------------------------------------------------------- #
         # Morph
@@ -68,7 +69,8 @@ class TestCharacterMemphis(TestCase):
         # -------------------------------------------------------------------- #
         # Node
 
-        node:DsonNode = driver_map.get_current_node_shape("#lShldr")
+        shoulder_url:DazUrl = DazUrl.from_parts(asset_id="lShldr")
+        node:DsonNode = driver_map.get_current_node_shape(shoulder_url)
         self.assertIsNotNone(node)
 
         # center_point

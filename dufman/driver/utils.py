@@ -5,26 +5,25 @@ from typing import Any
 from dufman.structs.channel import DsonChannel
 from dufman.structs.modifier import DsonModifier
 from dufman.structs.node import DsonNode
-from dufman.url import AssetAddress
+from dufman.url import DazUrl
 
 
-def get_channel_object(asset:Any, property_url:str) -> DsonChannel:
+def get_channel_object(asset:Any, channel_url:DazUrl) -> DsonChannel:
     """Return the DsonChannel object from an asset struct."""
 
     # Validate URL
-    address:AssetAddress = AssetAddress.from_url(property_url)
-    if not address.property_path:
+    if not channel_url.channel:
         raise ValueError("URL does not contain enough info to locate channel.")
 
     # DsonModifier
     if isinstance(asset, DsonModifier):
-        if address.property_path == asset.channel.channel_id:
+        if channel_url.channel == asset.channel.channel_id:
             return asset.channel
-        raise NotImplementedError(address.property_path)
+        raise NotImplementedError(channel_url.channel)
 
     # DsonNode
     elif isinstance(asset, DsonNode):
-        match address.property_path:
+        match channel_url.channel:
 
             # Center point
             case "center_point/x":
@@ -78,6 +77,6 @@ def get_channel_object(asset:Any, property_url:str) -> DsonChannel:
 
             # Unknown
             case _:
-                raise NotImplementedError(address.property_path)
+                raise NotImplementedError(channel_url.channel)
 
     return None

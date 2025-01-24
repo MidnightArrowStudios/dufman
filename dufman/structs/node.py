@@ -9,14 +9,8 @@ from pathlib import Path
 from typing import Any, Self
 
 from dufman.enums import LibraryType, NodeType, RotationOrder
-from dufman.file import check_path
-
-from dufman.library import (
-    get_asset_dson_from_library,
-    get_single_property_from_library,
-)
 from dufman.observers import _node_struct_created
-from dufman.url import AssetAddress
+from dufman.url import DazUrl
 
 from dufman.structs.channel import DsonChannelFloat, DsonChannelVector
 from dufman.structs.formula import DsonFormula
@@ -169,15 +163,12 @@ class DsonNode:
     # ------------------------------------------------------------------------ #
 
     @staticmethod
-    def load_from_file(dsf_filepath:Path) -> Self:
+    def load_from_file(daz_url:DazUrl) -> Self:
 
-        # Ensure type safety
-        dsf_filepath = check_path(dsf_filepath)
-
-        node_dson:dict = get_asset_dson_from_library(dsf_filepath, LibraryType.NODE)
+        node_dson, _ = daz_url.get_asset_dson(LibraryType.NODE)
 
         struct:Self = DsonNode.load_from_dson(node_dson)
-        struct.dsf_file = dsf_filepath
+        struct.dsf_file = daz_url.get_url_to_asset()
 
         # Fire observer update.
         _node_struct_created(struct, node_dson)
@@ -197,11 +188,11 @@ def _inherits_scale_default(struct:DsonNode) -> bool:
         return True
 
     # Create variables to access property.
-    address:AssetAddress = AssetAddress.from_url(struct.parent)
-    property_path:list[Any] = [ "node_library", address.asset_id, "type" ]
+    daz_url:DazUrl = DazUrl.from_url(struct.parent)
+    value_path:list[Any] = [ "node_library", daz_url.asset_id, "type" ]
 
     # Get type as string
-    parent_type:str = get_single_property_from_library(address.filepath, property_path)
+    parent_type:str = daz_url.get_value(value_path)
 
     # Convert string to enum and compare. If bone w/ bone parent, then
     #   inherits scale is false.

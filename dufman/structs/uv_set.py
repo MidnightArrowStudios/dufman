@@ -11,9 +11,8 @@ from typing import NamedTuple, Self
 
 # dufman
 from dufman.enums import LibraryType
-from dufman.file import check_path
-from dufman.library import get_asset_dson_from_library
 from dufman.observers import _uv_set_struct_created
+from dufman.url import DazUrl
 
 
 # ============================================================================ #
@@ -131,15 +130,12 @@ class DsonUVSet:
     # ------------------------------------------------------------------------ #
 
     @staticmethod
-    def load_from_file(dsf_filepath:Path) -> Self:
+    def load_from_file(daz_url:DazUrl) -> Self:
 
-        # Ensure type safety
-        dsf_filepath = check_path(dsf_filepath)
-
-        uv_set_dson:dict = get_asset_dson_from_library(dsf_filepath, LibraryType.UV_SET)
+        uv_set_dson, _ = daz_url.get_asset_dson(LibraryType.UV_SET)
 
         struct:Self = DsonUVSet.load_from_dson(uv_set_dson)
-        struct.dsf_file = dsf_filepath
+        struct.dsf_file = daz_url.get_url_to_asset()
 
         # Fire observer update.
         _uv_set_struct_created(struct, uv_set_dson)

@@ -19,8 +19,6 @@ from dufman.enums import (
     RigidScale,
     RotationOrder,
 )
-from dufman.file import add_content_directory, remove_all_content_directories
-from dufman.library import get_single_property_from_library
 from dufman.observers import (
     register_on_geometry_struct_created,
     register_on_modifier_struct_created,
@@ -45,6 +43,7 @@ from dufman.structs.skin_binding import DsonSkinBinding
 from dufman.structs.uv_set import DsonUVSet, _Hotswap, _Coordinate
 from dufman.structs.weighted_joint import DsonWeightedJoint
 from dufman.types import DsonColor
+from dufman.url import DazUrl
 
 from tests import DEFAULT_CONTENT_DIRECTORY
 
@@ -53,12 +52,12 @@ class TestStruct(TestCase):
     """Unit testing for the DUFMan package's data structs."""
 
     def setUp(self:Self) -> None:
-        add_content_directory(DEFAULT_CONTENT_DIRECTORY)
+        DazUrl.add_content_directory(DEFAULT_CONTENT_DIRECTORY)
         return
 
 
     def tearDown(self:Self) -> None:
-        remove_all_content_directories()
+        DazUrl.remove_all_content_directories()
         return
 
 
@@ -69,8 +68,9 @@ class TestStruct(TestCase):
     def test_asset_info(self:Self) -> None:
         """Unit testing method for DsonAssetInfo."""
 
-        url:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf"
-        dson:dict = get_single_property_from_library(url, ["asset_info"])
+        url_string:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf"
+        daz_url:DazUrl = DazUrl.from_url(url_string)
+        dson:dict = daz_url.get_value(["asset_info"])
         struct:DsonAssetInfo = DsonAssetInfo.load_from_dson(dson)
 
         self.assertIsNotNone(struct)
@@ -90,8 +90,9 @@ class TestStruct(TestCase):
     def test_bulge_binding(self:Self) -> None:
         """Unit testing method for DsonBulgeBinding."""
 
-        url:str = "/data/DAZ%203D/DAZ%20Horse%202/Base/DAZHorse2.dsf"
-        dson:dict = get_single_property_from_library(url, [ "modifier_library", 0, "skin", "joints", "rHoofFore", "bulge_weights" ])
+        url_string:str = "/data/DAZ%203D/DAZ%20Horse%202/Base/DAZHorse2.dsf"
+        daz_url:DazUrl = DazUrl.from_url(url_string)
+        dson:dict = daz_url.get_value([ "modifier_library", 0, "skin", "joints", "rHoofFore", "bulge_weights" ])
         struct:DsonBulgeWeights = DsonBulgeWeights.load_from_dson(dson)
 
         # Bulge X
@@ -130,8 +131,9 @@ class TestStruct(TestCase):
     def test_channel_float(self:Self) -> None:
         """Unit testing method for DsonChannelFloat."""
 
-        url:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf"
-        dson:dict = get_single_property_from_library(url, [ "node_library", "Genesis8Female", "general_scale" ])
+        url_string:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf"
+        daz_url:DazUrl = DazUrl.from_url(url_string)
+        dson:dict = daz_url.get_value([ "node_library", "Genesis8Female", "general_scale" ])
         struct:DsonChannelFloat = DsonChannelFloat.load_from_dson(dson)
 
         self.assertIsNotNone(struct)
@@ -155,8 +157,9 @@ class TestStruct(TestCase):
     def test_channel_vector(self:Self) -> None:
         """Unit testing method for DsonChannelVector."""
 
-        url:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf"
-        dson:dict = get_single_property_from_library(url, [ "node_library", "Genesis8Female", "scale" ])
+        url_string:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf"
+        daz_url:DazUrl = DazUrl.from_url(url_string)
+        dson:dict = daz_url.get_value([ "node_library", "Genesis8Female", "scale" ])
         struct:DsonChannelVector = DsonChannelVector.load_from_dson(dson)
 
         self.assertIsNotNone(struct)
@@ -190,8 +193,9 @@ class TestStruct(TestCase):
     def test_contributor(self:Self) -> None:
         """Unit testing method for DsonContributor."""
 
-        url:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf"
-        dson:dict = get_single_property_from_library(url, ["asset_info", "contributor"])
+        url_string:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf"
+        daz_url:DazUrl = DazUrl.from_url(url_string)
+        dson:dict = daz_url.get_value(["asset_info", "contributor"])
         struct:DsonContributor = DsonContributor.load_from_dson(dson)
 
         self.assertIsNotNone(struct)
@@ -209,8 +213,9 @@ class TestStruct(TestCase):
     def test_formula(self:Self) -> None:
         """Unit testing method for DsonFormula."""
 
-        url:str = "/data/DAZ 3D/Genesis 8/Female/Morphs/iSourceTextures/Evangeliya/CTRL-ISTEvangeliya.dsf"
-        dson:dict = get_single_property_from_library(url, [ "modifier_library", "CTRL-ISTEvangeliya", "formulas" ])
+        url_string:str = "/data/DAZ 3D/Genesis 8/Female/Morphs/iSourceTextures/Evangeliya/CTRL-ISTEvangeliya.dsf"
+        daz_url:DazUrl = DazUrl.from_url(url_string)
+        dson:dict = daz_url.get_value([ "modifier_library", "CTRL-ISTEvangeliya", "formulas" ])
         structs:list[DsonFormula] = DsonFormula.load_from_dson(dson)
 
         self.assertIsNotNone(structs)
@@ -249,8 +254,9 @@ class TestStruct(TestCase):
 
         register_on_geometry_struct_created(callback, {"id":"geometry"})
 
-        url:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf#geometry"
-        struct:DsonGeometry = DsonGeometry.load_from_file(url)
+        url_string:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf#geometry"
+        daz_url:DazUrl = DazUrl.from_url(url_string)
+        struct:DsonGeometry = DsonGeometry.load_from_file(daz_url)
 
         self.assertIsNotNone(struct)
 
@@ -300,8 +306,9 @@ class TestStruct(TestCase):
     def test_graft(self:Self) -> None:
         """Unit testing method for DsonGraft."""
 
-        url:str = "/data/DAZ 3D/Genesis 8 Centaur/G8Female Centaur/G8FCentaur.dsf"
-        dson:dict = get_single_property_from_library(url, [ "geometry_library", "G8FCentaur-1", "graft" ])
+        url_string:str = "/data/DAZ 3D/Genesis 8 Centaur/G8Female Centaur/G8FCentaur.dsf"
+        daz_url:DazUrl = DazUrl.from_url(url_string)
+        dson:dict = daz_url.get_value([ "geometry_library", "G8FCentaur-1", "graft" ])
         struct:DsonGraft = DsonGraft.load_from_dson(dson)
 
         self.assertIsNotNone(struct)
@@ -335,8 +342,9 @@ class TestStruct(TestCase):
 
         register_on_modifier_struct_created(callback, {"id":"CTRL-ISTEvangeliya"})
 
-        url:str = "/data/DAZ 3D/Genesis 8/Female/Morphs/iSourceTextures/Evangeliya/CTRL-ISTEvangeliya.dsf#CTRL-ISTEvangeliya"
-        struct:DsonModifier = DsonModifier.load_from_file(url)
+        url_string:str = "/data/DAZ 3D/Genesis 8/Female/Morphs/iSourceTextures/Evangeliya/CTRL-ISTEvangeliya.dsf#CTRL-ISTEvangeliya"
+        daz_url:DazUrl = DazUrl.from_url(url_string)
+        struct:DsonModifier = DsonModifier.load_from_file(daz_url)
 
         self.assertIsNotNone(struct)
 
@@ -358,8 +366,9 @@ class TestStruct(TestCase):
     def test_morph(self:Self) -> None:
         """Unit testing method for DsonMorph."""
 
-        url:str = "/data/DAZ 3D/Genesis 8/Female/Morphs/DAZ 3D/Base Correctives/pJCMAbdomen2Fwd_40.dsf"
-        dson:dict = get_single_property_from_library(url, [ "modifier_library", "pJCMAbdomen2Fwd_40", "morph" ])
+        url_string:str = "/data/DAZ 3D/Genesis 8/Female/Morphs/DAZ 3D/Base Correctives/pJCMAbdomen2Fwd_40.dsf"
+        daz_url:DazUrl = DazUrl.from_url(url_string)
+        dson:dict = daz_url.get_value([ "modifier_library", "pJCMAbdomen2Fwd_40", "morph" ])
         struct:DsonMorph = DsonMorph.load_from_dson(dson)
 
         self.assertIsNotNone(struct)
@@ -387,8 +396,9 @@ class TestStruct(TestCase):
     def test_named_string_map(self:Self) -> None:
         """Unit testing method for DsonNamedStringMap."""
 
-        url:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf"
-        dson:dict = get_single_property_from_library(url, [ "modifier_library", "SkinBinding", "skin", "selection_map", 0 ])
+        url_string:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf"
+        daz_url:DazUrl = DazUrl.from_url(url_string)
+        dson:dict = daz_url.get_value([ "modifier_library", "SkinBinding", "skin", "selection_map", 0 ])
         struct:DsonNamedStringMap = DsonNamedStringMap.load_from_dson(dson)
 
         self.assertIsNotNone(struct)
@@ -418,8 +428,9 @@ class TestStruct(TestCase):
 
         register_on_node_struct_created(callback, {"id":"lThighTwist"})
 
-        url:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf#lThighTwist"
-        struct:DsonNode = DsonNode.load_from_file(url)
+        url_string:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf#lThighTwist"
+        daz_url:DazUrl = DazUrl.from_url(url_string)
+        struct:DsonNode = DsonNode.load_from_file(daz_url)
 
         self.assertIsNotNone(struct)
 
@@ -472,8 +483,9 @@ class TestStruct(TestCase):
     def test_presentation(self:Self) -> None:
         """Unit testing method for DsonPresentation."""
 
-        url:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf"
-        dson:dict = get_single_property_from_library(url, [ "node_library", "Genesis8Female", "presentation" ])
+        url_string:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf"
+        daz_url:DazUrl = DazUrl.from_url(url_string)
+        dson:dict = daz_url.get_value([ "node_library", "Genesis8Female", "presentation" ])
         struct:DsonPresentation = DsonPresentation.load_from_dson(dson)
 
         self.assertIsNotNone(struct)
@@ -502,8 +514,9 @@ class TestStruct(TestCase):
     def test_region(self:Self) -> None:
         """Unit testing method for DsonRegion."""
 
-        url:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf"
-        dson:dict = get_single_property_from_library(url, [ "geometry_library", "geometry", "root_region" ])
+        url_string:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf"
+        daz_url:DazUrl = DazUrl.from_url(url_string)
+        dson:dict = daz_url.get_value([ "geometry_library", "geometry", "root_region" ])
         structs:list[DsonRegion] = DsonRegion.load_from_dson(dson)
 
         self.assertIsNotNone(structs)
@@ -539,8 +552,9 @@ class TestStruct(TestCase):
     def test_rigidity(self:Self) -> None:
         """Unit testing method for DsonRigidity."""
 
-        url:str = "/data/Mada/Nyx/Nyx_Dress/V6O2_Dress.dsf"
-        dson:dict = get_single_property_from_library(url, [ "geometry_library", "Nyx_Dress", "rigidity" ])
+        url_string:str = "/data/Mada/Nyx/Nyx_Dress/V6O2_Dress.dsf"
+        daz_url:DazUrl = DazUrl.from_url(url_string)
+        dson:dict = daz_url.get_value([ "geometry_library", "Nyx_Dress", "rigidity" ])
         struct:DsonRigidity = DsonRigidity.load_from_dson(dson)
 
         self.assertIsNotNone(struct)
@@ -583,8 +597,9 @@ class TestStruct(TestCase):
 
     def test_skin_binding(self:Self) -> None:
 
-        url:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf"
-        dson:dict = get_single_property_from_library(url, [ "modifier_library", "SkinBinding", "skin" ])
+        url_string:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf"
+        daz_url:DazUrl = DazUrl.from_url(url_string)
+        dson:dict = daz_url.get_value([ "modifier_library", "SkinBinding", "skin" ])
         struct:DsonSkinBinding = DsonSkinBinding.load_from_dson(dson)
 
         self.assertIsNotNone(struct)
@@ -609,8 +624,9 @@ class TestStruct(TestCase):
 
         register_on_uv_set_struct_created(callback, {"id": "Base Female"})
 
-        url:str = "/data/DAZ 3D/Genesis 8/Female/UV Sets/DAZ 3D/Base/Base Female.dsf#Base Female"
-        struct:DsonUVSet = DsonUVSet.load_from_file(url)
+        url_string:str = "/data/DAZ 3D/Genesis 8/Female/UV Sets/DAZ 3D/Base/Base Female.dsf#Base Female"
+        daz_url:DazUrl = DazUrl.from_url(url_string)
+        struct:DsonUVSet = DsonUVSet.load_from_file(daz_url)
 
         self.assertIsNotNone(struct)
 
@@ -648,8 +664,9 @@ class TestStruct(TestCase):
 
     def test_weighted_joint(self:Self) -> None:
 
-        url:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf"
-        dson:list = get_single_property_from_library(url, [ "modifier_library", "SkinBinding", "skin", "joints", 0 ])
+        url_string:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf"
+        daz_url:DazUrl = DazUrl.from_url(url_string)
+        dson:list = daz_url.get_value([ "modifier_library", "SkinBinding", "skin", "joints", 0 ])
         struct:DsonWeightedJoint = DsonWeightedJoint.load_from_dson(dson)
 
         self.assertIsNotNone(struct)

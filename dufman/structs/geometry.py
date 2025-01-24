@@ -16,8 +16,6 @@ from typing import Self
 
 # dufman
 from dufman.enums import EdgeInterpolation, GeometryType, LibraryType
-from dufman.file import check_path
-from dufman.library import get_asset_dson_from_library
 from dufman.observers import _geometry_struct_created
 
 from dufman.structs.graft import DsonGraft
@@ -25,6 +23,7 @@ from dufman.structs.region import DsonRegion
 from dufman.structs.rigidity import DsonRigidity
 
 from dufman.types import DsonVector, DsonPolygon
+from dufman.url import DazUrl
 
 
 # ============================================================================ #
@@ -128,15 +127,12 @@ class DsonGeometry:
     # ------------------------------------------------------------------------ #
 
     @staticmethod
-    def load_from_file(dsf_filepath:Path) -> Self:
+    def load_from_file(daz_url:DazUrl) -> Self:
 
-        # Ensure type safety
-        dsf_filepath = check_path(dsf_filepath)
-
-        geometry_dson:dict = get_asset_dson_from_library(dsf_filepath, LibraryType.GEOMETRY)
+        geometry_dson, _ = daz_url.get_asset_dson(LibraryType.GEOMETRY)
 
         struct:Self = DsonGeometry.load_from_dson(geometry_dson)
-        struct.dsf_file = dsf_filepath
+        struct.dsf_file = daz_url.get_url_to_asset()
 
         # Fire observer update.
         _geometry_struct_created(struct, geometry_dson)
