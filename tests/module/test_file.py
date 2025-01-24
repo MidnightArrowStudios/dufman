@@ -1,3 +1,9 @@
+# ============================================================================ #
+# Copyright (c) 2024, Midnight Arrow.
+# https://github.com/MidnightArrowStudios/dufman
+# Licensed under the MIT license.
+# ============================================================================ #
+
 from __future__ import annotations
 from pathlib import Path
 from platform import system

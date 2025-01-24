@@ -1,3 +1,9 @@
+# ============================================================================ #
+# Copyright (c) 2024, Midnight Arrow.
+# https://github.com/MidnightArrowStudios/dufman
+# Licensed under the MIT license.
+# ============================================================================ #
+
 from typing import Self
 from unittest import TestCase
 
