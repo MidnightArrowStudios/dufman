@@ -72,4 +72,8 @@ class TestDriverPath(TestCase):
         self.assertFalse(path.is_strength_zero())
         self.assertTrue(path.is_useful_for_jcm())
 
+        # Check Blender driver expression
+        expression:str = path.get_blender_expression()
+        self.assertEqual(expression, "(chest * 1.6370223536534656)")
+
         return

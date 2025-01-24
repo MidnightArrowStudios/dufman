@@ -5,12 +5,12 @@
 # ============================================================================ #
 
 # stdlib
-from math import isclose
+from math import degrees, isclose
 from typing import Any, NamedTuple, Self
 
 # dufman
 from dufman.driver.driver_object import DriverEquation, DriverTarget
-from dufman.enums import FormulaStage, LibraryType
+from dufman.enums import FormulaOperator, FormulaStage, LibraryType
 
 
 # ============================================================================ #
@@ -55,10 +55,6 @@ class DriverPath:
         if not all(isinstance(segment, PathSegment) for segment in segments):
             raise ValueError
 
-        # Equation of first segment should be None
-        if not segments[0].equation is None:
-            raise ValueError
-
         self._path_segments = list(segments)
 
         return
@@ -80,30 +76,59 @@ class DriverPath:
     #                                                                          #
     # ======================================================================== #
 
+    def get_blender_expression(self:Self) -> str:
+
+        # TODO: Need to rewrite this so sum and multiply stages are separate.
+
+        stack:Any = []
+
+        for segment in self._path_segments:
+            for operation in segment.equation._formula_struct.operations:
+
+                match operation.operator:
+
+                    # Push
+                    case FormulaOperator.PUSH:
+
+                        # TODO: Need to inspect the node type, both to avoid
+                        #   name clashes by including "_rot_x", etc. and to
+                        #   check if we should multiply value by degrees.
+                        if operation.url:
+                            value:str = segment.target.get_target_name()
+                            stack.append(value)
+                        elif operation.value:
+                            value:str = str(degrees(operation.value))
+                            stack.append(value)
+
+                    # Multiply
+                    case FormulaOperator.MULT:
+                        value2:str = stack.pop()
+                        value1:str = stack.pop()
+                        result:str = f"({value1} * {value2})"
+                        stack.append(result)
+
+                    # Unknown
+                    case _:
+                        raise NotImplementedError(operation.operator)
+
+        if len(stack) > 1:
+            raise RuntimeError
+
+        return stack[0]
+
+
+    # ------------------------------------------------------------------------ #
+
     def get_equation_stage(self:Self) -> FormulaStage:
         """Get the FormulaStage determining how this path influences the target."""
-
-        # If the number of path segments is only 1, then it is a standalone
-        #   morph (i.e. PBMNavel) and we don't care since it isn't driven by
-        #   anything.
-        if len(self._path_segments) > 1:
-            return self._path_segments[1].equation.get_stage()
-        else:
-            return None
+        return self._path_segments[0].equation.get_stage()
 
 
     # ------------------------------------------------------------------------ #
 
     def get_equation_value(self:Self) -> Any:
         """Compute the current value influencing this target."""
-
-        # If the number of path segments is only 1, then it is a standalone
-        #   morph (i.e. PBMNavel) and we don't care since it isn't driven by
-        #   anything.
-        if len(self._path_segments) > 1:
-            return self._path_segments[1].equation.get_value()
-        else:
-            return None
+        return self._path_segments[0].equation.get_value()
 
 
     # ------------------------------------------------------------------------ #
@@ -187,28 +212,25 @@ class DriverPath:
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
 # ============================================================================ #
 
-def _build_controller_path(result:list[DriverPath], working_path:list[PathSegment], segment:PathSegment) -> None:
-
-    # Add the segment we are currently traversing to the path we're
-    #   building. Path is duplicated before being passed in, so we can
-    #   make adjustments without affecting the overall traversal.
-    working_path.append(segment)
+def _build_controller_path(result:list[DriverPath], working_path:list[PathSegment], target:DriverTarget) -> None:
 
     # TODO: Should we check for type (i.e. LibraryType.NODE) here or get the
     #   whole path and do the type-checking in the calling function?
 
     # If there's nothing controlling this target, we've reached the top of
     #   the hierarchy.
-    if not segment.target._controllers:
+    if not target._controllers:
         result.append(DriverPath(working_path))
         return
 
-    # Loop through all equations driving this one.
-    # Create a new segment to recursively load into this function and a
-    #   copy of the current path.
-    for equation in segment.target._controllers:
-        for target in equation._inputs.values():
-            _build_controller_path(result, list(working_path), PathSegment(equation, target))
+    # Loop through all equations driving this one, create a new segment
+    #   (DriverEquation + DriverTarget), and recursively pass it into this
+    #   function.
+    for equation in target._controllers:
+        for input_target in equation._inputs.values():
+            segment:PathSegment = PathSegment(equation, input_target)
+            working_path.append(segment)
+            _build_controller_path(result, list(working_path), input_target)
 
     return
 
@@ -219,7 +241,7 @@ def get_jcm_paths_for_target(target:DriverTarget) -> list[DriverPath]:
 
     # Get all target's DriverPaths (regardless of whether they're JCMs).
     paths:list[DriverPath] = []
-    _build_controller_path(paths, [], PathSegment(None, target))
+    _build_controller_path(paths, [], target)
 
     # If none of the DriverPaths have a node, it can't be a JCM.
     has_node:bool = False
