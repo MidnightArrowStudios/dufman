@@ -36,6 +36,22 @@ class TestFileModule(TestCase):
 
     # ======================================================================== #
 
+    def test_check_path(self:Self) -> None:
+
+        self.assertRaises(TypeError, file.check_path, None)
+        self.assertRaises(TypeError, file.check_path, 5.0)
+        self.assertRaises(TypeError, file.check_path,10)
+
+        canonical:str = "/data/DAZ 3D/Genesis 8/Female/Genesis8Female.dsf"
+        canon_obj:Path = Path(canonical)
+        self.assertEqual(file.check_path(canonical), canon_obj)
+        self.assertEqual(file.check_path(canon_obj), canon_obj)
+
+        return
+
+
+    # ======================================================================== #
+
     def test_open_dson(self:Self) -> None:
 
         # Setup
