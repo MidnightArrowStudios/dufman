@@ -5,7 +5,7 @@
 # ============================================================================ #
 
 # stdlib
-from copy import deepcopy
+from copy import copy, deepcopy
 from math import isclose
 from typing import Any, Iterator, Self
 
@@ -93,9 +93,15 @@ class DriverMap:
     def add_driver_target(self:Self, target_url:DazUrl) -> DriverTarget:
         """Return a DriverTarget, and create it if it doesn't exist."""
 
+        # -------------------------------------------------------------------- #
+        # Type safety
+
         # Format URL string for consistency
         if not target_url.asset_id or not target_url.channel:
             raise ValueError
+
+        # -------------------------------------------------------------------- #
+        target_url = copy(target_url)
 
         # Create channel dictionary if it hasn't been created yet
         if target_url.asset_id not in self._drivers:
@@ -117,9 +123,14 @@ class DriverMap:
 
     def get_driver_target(self:Self, target_url:DazUrl) -> DriverTarget:
 
+        # -------------------------------------------------------------------- #
+        # Type safety
+
         # Format URL string for consistency
         if not target_url.asset_id:
             raise ValueError
+
+        target_url = copy(target_url)
 
         # If there is no channel and the target is a modifier, get the channel
         #   name of the channel from the DsonModifier.
@@ -154,6 +165,7 @@ class DriverMap:
 
     def load_empty_driver(self:Self, empty_url:DazUrl) -> DriverTarget:
 
+
         # -------------------------------------------------------------------- #
         # Type safety
 
@@ -165,6 +177,8 @@ class DriverMap:
 
         # -------------------------------------------------------------------- #
         # Logic
+
+        empty_url = copy(empty_url)
 
         # Ensure formulas are only iterated once
         if self.get_driver_target(empty_url) is None:
@@ -195,6 +209,8 @@ class DriverMap:
 
         # -------------------------------------------------------------------- #
         # Logic
+
+        modifier_url = copy(modifier_url)
 
         # If the URL doesn't have a property path, use the one from the struct
         if not modifier_url.channel:
@@ -255,6 +271,8 @@ class DriverMap:
 
         # -------------------------------------------------------------------- #
         # Logic
+
+        node_url = copy(node_url)
 
         # A node has multiple channels, but only one set of formulas. We need
         #   to ensure the formulas are only parsed once per node.
@@ -346,9 +364,6 @@ class DriverMap:
     # ======================================================================== #
 
     def get_current_node_shape(self:Self, target_url:DazUrl) -> DsonNode:
-
-        # NOTE: If passing an Asset ID in by itself as a string, it MUST have a
-        #   pound sign or it will be parsed as a filepath
 
         # If there is no DsonNode, there's nothing to get
         if target_url.asset_id not in self._nodes:
