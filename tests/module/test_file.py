@@ -6,7 +6,7 @@
 
 from __future__ import annotations
 from pathlib import Path
-from typing import Any
+from typing import Any, Self
 from unittest import TestCase
 
 from dufman import file
@@ -22,13 +22,13 @@ from tests import DEFAULT_CONTENT_DIRECTORY
 
 class TestFileModule(TestCase):
 
-    def setUp(self:TestFileModule) -> None:
+    def setUp(self:Self) -> None:
         DazUrl.clear_dsf_cache()
         DazUrl.remove_all_content_directories()
         DazUrl.add_content_directory(DEFAULT_CONTENT_DIRECTORY)
         return
 
-    def tearDown(self:TestFileModule) -> None:
+    def tearDown(self:Self) -> None:
         DazUrl.clear_dsf_cache()
         DazUrl.remove_all_content_directories()
         return
@@ -36,7 +36,7 @@ class TestFileModule(TestCase):
 
     # ======================================================================== #
 
-    def test_open_dson(self:TestFileModule) -> None:
+    def test_open_dson(self:Self) -> None:
 
         # Setup
         # DSON files uses leading slashes, but they interfere with pathlib, so
