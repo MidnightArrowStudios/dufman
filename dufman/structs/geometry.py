@@ -134,6 +134,9 @@ class DsonGeometry:
     @staticmethod
     def load_from_file(daz_url:DazUrl) -> Self:
 
+        if not daz_url or not isinstance(daz_url, DazUrl):
+            raise TypeError
+
         geometry_dson, _ = daz_url.get_asset_dson(LibraryType.GEOMETRY)
 
         struct:Self = DsonGeometry.load_from_dson(geometry_dson)

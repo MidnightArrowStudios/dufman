@@ -170,6 +170,9 @@ class DsonNode:
     @staticmethod
     def load_from_file(daz_url:DazUrl) -> Self:
 
+        if not daz_url or not isinstance(daz_url, DazUrl):
+            raise TypeError
+
         node_dson, _ = daz_url.get_asset_dson(LibraryType.NODE)
 
         struct:Self = DsonNode.load_from_dson(node_dson)

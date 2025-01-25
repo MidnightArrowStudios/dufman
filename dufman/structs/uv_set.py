@@ -137,6 +137,9 @@ class DsonUVSet:
     @staticmethod
     def load_from_file(daz_url:DazUrl) -> Self:
 
+        if not daz_url or not isinstance(daz_url, DazUrl):
+            raise TypeError
+
         uv_set_dson, _ = daz_url.get_asset_dson(LibraryType.UV_SET)
 
         struct:Self = DsonUVSet.load_from_dson(uv_set_dson)

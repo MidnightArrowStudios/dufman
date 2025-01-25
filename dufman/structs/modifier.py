@@ -132,6 +132,9 @@ class DsonModifier:
     @staticmethod
     def load_from_file(daz_url:DazUrl) -> Self:
 
+        if not daz_url or not isinstance(daz_url, DazUrl):
+            raise TypeError
+
         modifier_dson, _ = daz_url.get_asset_dson(LibraryType.MODIFIER)
 
         struct:Self = DsonModifier.load_from_dson(modifier_dson)
