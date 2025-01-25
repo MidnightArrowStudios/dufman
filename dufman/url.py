@@ -727,10 +727,21 @@ class DazUrl:
     # ------------------------------------------------------------------------ #
 
     def is_dsf_valid(self:Self) -> bool:
+
         if not self.filepath:
             return False
-        afp:Path = self.get_absolute_filepath()
-        return afp.exists() and afp.is_file() and afp.suffix.lower() == ".dsf"
+
+        # Get content directory.
+        try:
+            content_directory:Path = self.get_content_directory()
+        except FileNotFoundError:
+            return False
+
+        # Get path to DSF file in file system.
+        absolute:Path = content_directory.joinpath(self.get_relative_filepath())
+
+        # Return True if DSF file is valid.
+        return absolute.exists() and absolute.is_file() and absolute.suffix.lower() == ".dsf"
 
 
     # ======================================================================== #
