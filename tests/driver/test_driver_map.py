@@ -63,7 +63,7 @@ class TestDriverMap(TestCase):
         driver_target = driver_map.get_driver_target(driver_urls[0])
         self.assertIsNotNone(driver_target)
         self.assertIsInstance(driver_target, DriverTarget)
-        self.assertEqual(str(driver_target), driver_urls[0].get_key_to_driver_target())
+        self.assertEqual(str(driver_target), "PBMNavel_value")
         self.assertTrue(driver_target.is_valid())
         self.assertEqual(driver_target.get_library_type(), LibraryType.MODIFIER)
 
@@ -84,7 +84,7 @@ class TestDriverMap(TestCase):
         driver_target = driver_map.get_driver_target(driver_urls[0])
         self.assertIsNotNone(driver_target)
         self.assertIsInstance(driver_target, DriverTarget)
-        self.assertEqual(str(driver_target), driver_urls[0].get_key_to_driver_target())
+        self.assertEqual(str(driver_target), "PBMNavel_empty")
         self.assertFalse(driver_target.is_valid())
         self.assertIsNone(driver_target.get_library_type())
 
@@ -141,7 +141,7 @@ class TestDriverMap(TestCase):
         driver_target = driver_map.get_driver_target(driver_urls[0])
         self.assertIsNotNone(driver_target)
         self.assertIsInstance(driver_target, DriverTarget)
-        self.assertEqual(str(driver_target), driver_urls[0].get_key_to_driver_target())
+        self.assertEqual(str(driver_target), "abdomenLower_rot_x")
         self.assertTrue(driver_target.is_valid())
         self.assertEqual(driver_target.get_library_type(), LibraryType.NODE)
 
@@ -158,7 +158,7 @@ class TestDriverMap(TestCase):
         driver_target = driver_map.get_driver_target(driver_urls[0])
         self.assertIsNotNone(driver_target)
         self.assertIsInstance(driver_target, DriverTarget)
-        self.assertEqual(str(driver_target), driver_urls[0].get_key_to_driver_target())
+        self.assertEqual(str(driver_target), "abdomenLower_empty")
         self.assertFalse(driver_target.is_valid())
         self.assertIsNone(driver_target.get_library_type())
 

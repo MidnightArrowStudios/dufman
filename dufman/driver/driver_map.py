@@ -226,7 +226,7 @@ class DriverMap:
             # If DriverTarget already exists, this will return it. If not, it
             #   will create it. Either way, we get what we need.
             target = self.add_driver_target(modifier_url)
-            target.set_asset(struct, LibraryType.MODIFIER)
+            target.set_asset(struct)
 
             if struct.formulas:
                 self._parse_formulas(modifier_url, struct.formulas)
@@ -292,7 +292,7 @@ class DriverMap:
             # If DriverTarget already exists, this will return it. If not, it
             #   will create it. Either way, we get what we need.
             target = self.add_driver_target(node_url)
-            target.set_asset(struct, LibraryType.NODE)
+            target.set_asset(struct)
 
             if should_parse_formulas and struct.formulas:
                 self._parse_formulas(node_url, struct.formulas)
@@ -409,6 +409,7 @@ class DriverMap:
     # ------------------------------------------------------------------------ #
 
     def get_invalid_driver_keys(self:Self) -> list[DazUrl]:
+        # TODO: Change method name
         result:list[str] = []
         for url in self.get_all_driver_urls():
             target:DriverTarget = self.get_driver_target(url)

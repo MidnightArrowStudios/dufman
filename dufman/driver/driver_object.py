@@ -28,14 +28,15 @@ from dufman.spline import (
     Knot,
     TcbKnot,
 )
-from dufman.structs.formula import DsonFormula, DsonOperation
+from dufman.structs.formula import DsonFormula
 from dufman.structs.modifier import DsonModifier
 from dufman.structs.node import DsonNode
 from dufman.url import DazUrl
 
 
 # ============================================================================ #
-# Driver Target                                                                #
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
 # ============================================================================ #
 
 class DriverTarget:
@@ -66,7 +67,6 @@ class DriverTarget:
         #   is set.
         self._asset_struct:Any = None
         self._channel_struct:DsonChannel = None
-        self._library_type:LibraryType = None
         self._raw_value = None
 
         # Linked lists representing other DriverTargets which can control this
@@ -80,73 +80,28 @@ class DriverTarget:
     # ------------------------------------------------------------------------ #
 
     def __str__(self:Self) -> str:
-        return self._target_url.get_key_to_driver_target()
+        return self.format_expression_name()
 
 
     # ------------------------------------------------------------------------ #
 
     def __repr__(self:Self) -> str:
-        return f"DriverTarget({ str(self) })"
+        return f"DriverTarget(\"{ str(self) }\")"
 
 
     # ======================================================================== #
-    # PUBLIC QUERY METHODS                                                     #
-    # ------------------------------------------------------------------------ #
-
-    def get_channel_type(self:Self) -> ChannelType:
-        if not self.is_valid():
-            return None
-        channel:DsonChannel = utils.get_channel_object(self._asset_struct, self._target_url)
-        return channel.channel_type
-
-
-    # ------------------------------------------------------------------------ #
-
-    def get_target_name(self:Self) -> str:
-        match self._library_type:
-            case LibraryType.MODIFIER:
-                return self._asset_struct.library_id
-            case LibraryType.NODE:
-                return self._asset_struct.library_id
-            case _:
-                return "Empty DriverTarget"
-
-
-    # ------------------------------------------------------------------------ #
-
-    def get_target_url(self:Self) -> DazUrl:
-        return self._target_url
-
-
-    # ------------------------------------------------------------------------ #
-
-    def get_library_type(self:Self) -> LibraryType:
-        return self._library_type
-
-
-    # ------------------------------------------------------------------------ #
-
-    def has_morph(self:Self) -> bool:
-        return (self._library_type == LibraryType.MODIFIER) and (self._asset_struct.morph is not None)
-
-
-    # ------------------------------------------------------------------------ #
-
-    def is_valid(self:Self) -> bool:
-        return self._asset_struct is not None
-
-
+    # ASSET METHODS                                                            #
     # ======================================================================== #
-    # PUBLIC ASSET METHODS                                                     #
+
+    def get_asset(self:Self) -> Any:
+        """Return the DsonModifier/DsonNode this DriverTarget targets."""
+        return self._asset_struct
+
+
     # ------------------------------------------------------------------------ #
 
-    def get_asset(self:Self) -> tuple[Any, LibraryType]:
-        return (self._asset_struct, self._library_type)
-
-
-    # ------------------------------------------------------------------------ #
-
-    def set_asset(self:Self, asset:Any, library_type:LibraryType) -> None:
+    def set_asset(self:Self, asset:Any) -> None:
+        """Assign a DsonModifier/DsonNode this object should target."""
 
         if asset is None:
             raise TypeError
@@ -156,17 +111,17 @@ class DriverTarget:
 
         self._asset_struct = asset
         self._channel_struct = utils.get_channel_object(asset, self._target_url)
-        self._library_type = library_type
         self._raw_value = self._channel_struct.get_value()
 
         return
 
 
     # ======================================================================== #
-    # PUBLIC VALUE METHODS                                                     #
-    # ------------------------------------------------------------------------ #
+    # VALUE METHODS                                                            #
+    # ======================================================================== #
 
     def get_value(self:Self) -> Any:
+        """Return the value of the asset/channel this object targets."""
 
         if not self.is_valid():
             raise RuntimeError
@@ -186,6 +141,7 @@ class DriverTarget:
     # ------------------------------------------------------------------------ #
 
     def set_value(self:Self, new_value:Any) -> None:
+        """Set the value of the asset/channel this object targets."""
 
         if not self.is_valid():
             raise RuntimeError
@@ -203,8 +159,133 @@ class DriverTarget:
 
 
     # ======================================================================== #
-    #                                                                          #
+    # EXPRESSION STRINGS                                                       #
+    # ======================================================================== #
+
+    def get_asset_name(self:Self) -> str:
+        """Return the name of the asset ID this object points to."""
+
+        if self.get_library_type() in { LibraryType.MODIFIER, LibraryType.NODE }:
+            return self._asset_struct.library_id
+
+        return self._target_url.asset_id
+
+
     # ------------------------------------------------------------------------ #
+
+    def get_channel_suffix(self:Self) -> str:
+        """Return a sanitized version of the channel name for use in expressions."""
+
+        if self.get_library_type() == LibraryType.MODIFIER:
+            return "value"
+
+        if self.get_library_type() == LibraryType.NODE:
+
+            daz_channel_name:str = self._target_url.channel
+
+            match daz_channel_name:
+
+                # Rotation
+                case "rotation/x":
+                    return 'rot_x'
+                case "rotation/y":
+                    return 'rot_y'
+                case "rotation/z":
+                    return 'rot_z'
+
+                # Unknown
+                case _:
+                    raise NotImplementedError(daz_channel_name)
+
+        return "empty"
+
+
+    # ------------------------------------------------------------------------ #
+
+    def format_expression_name(self:Self) -> str:
+        """Return a formatted name suitable for usage in an expression."""
+
+        asset:str = self.get_asset_name()
+        channel:str = self.get_channel_suffix()
+        return f"{asset}_{channel}"
+
+
+    # ======================================================================== #
+    # BOOLEAN METHODS                                                          #
+    # ======================================================================== #
+
+    def has_morph(self:Self) -> bool:
+        """Return True if this object points to a DsonModifier with valid morph data."""
+        return (self.get_library_type() == LibraryType.MODIFIER) and (self._asset_struct.morph is not None)
+
+
+    # ------------------------------------------------------------------------ #
+
+    def is_driven_by_node(self:Self) -> bool:
+
+        found_node:bool = False
+
+        for controller in self._controllers:
+            if controller.is_driven_by_node():
+                found_node = True
+
+        return found_node
+
+
+    # ------------------------------------------------------------------------ #
+
+    def is_rotation(self:Self) -> bool:
+        """Return True if the target value should be converted to degrees/radians."""
+        return self.get_channel_suffix() in { "rot_x", "rot_y", "rot_z" }
+
+
+    # ------------------------------------------------------------------------ #
+
+    def is_valid(self:Self) -> bool:
+        """Return True if this object has a DsonModifier/DsonNode assigned."""
+        return self._asset_struct is not None
+
+
+    # ======================================================================== #
+    # QUERY STATE INFORMATION                                                  #
+    # ======================================================================== #
+
+    def get_channel_type(self:Self) -> ChannelType:
+        """Return the ChannelType of the asset this object targets."""
+        if not self.is_valid():
+            return None
+        channel:DsonChannel = utils.get_channel_object(self._asset_struct, self._target_url)
+        return channel.channel_type
+
+
+    # ------------------------------------------------------------------------ #
+
+    def get_library_type(self:Self) -> LibraryType:
+        """Return the LibraryType of the asset this object targets."""
+
+        if not self.is_valid():
+            return None
+
+        asset:Any = self._asset_struct
+
+        if isinstance(asset, DsonModifier):
+            return LibraryType.MODIFIER
+        elif isinstance(asset, DsonNode):
+            return LibraryType.NODE
+
+        raise NotImplementedError(type(asset))
+
+
+    # ------------------------------------------------------------------------ #
+
+    def get_target_url(self:Self) -> DazUrl:
+        """Return a DazUrl pointing to the asset this object targets."""
+        return copy(self._target_url)
+
+
+    # ======================================================================== #
+    # PRIVATE VALUE GETTER METHODS                                             #
+    # ======================================================================== #
 
     def _get_bool_value(self:Self) -> bool:
         # TODO: Experiment with how adding and multiplying a bool works in Daz
@@ -297,7 +378,8 @@ class DriverTarget:
 
 
 # ============================================================================ #
-# Driver Equation                                                              #
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
 # ============================================================================ #
 
 class DriverEquation:
@@ -308,9 +390,6 @@ class DriverEquation:
     child DriverTargets so values can be computed as necessary.
     """
 
-    # ======================================================================== #
-    #                                                                          #
-    # ------------------------------------------------------------------------ #
 
     def __init__(self:Self, struct:DsonFormula) -> Self:
 
@@ -331,7 +410,9 @@ class DriverEquation:
     # ------------------------------------------------------------------------ #
 
     def __str__(self:Self) -> str:
-        return self.get_equation_as_string()
+        output:str = self._output.format_expression_name()
+        inputs:str = self.format_expression()
+        return f"{output} = {inputs}"
 
 
     # ------------------------------------------------------------------------ #
@@ -341,169 +422,34 @@ class DriverEquation:
 
 
     # ======================================================================== #
+    # BOOLEAN METHODS                                                          #
+    # ======================================================================== #
 
-    @staticmethod
-    def _strip_url(url_string:str) -> str:
-        """Format a URL so it consists of an asset ID and a property path."""
-        daz_url:DazUrl = DazUrl.from_url(url_string)
-        return DazUrl.format_url(asset_id=daz_url.asset_id, channel=daz_url.channel)
+    def is_driven_by_node(self:Self) -> bool:
+
+        found_node:bool = False
+
+        # Loop through all nodes/modifiers contributing to this equation.
+        for input_target in self._inputs.values():
+
+            asset_type:LibraryType = input_target.get_library_type()
+
+            # If the asset struct is a node, set flag. If it's not, but it is
+            #   indirectly driven, also set the flag.
+            if asset_type == LibraryType.NODE:
+                found_node = True
+            else:
+                if input_target.is_driven_by_node():
+                    found_node = True
+
+        return found_node
 
 
     # ======================================================================== #
-
-    def _get_operation_url_id(self:Self, index:int) -> str:
-
-        operation:DsonOperation = self._formula_struct.operations[index]
-        if not operation.url:
-            raise ValueError
-        
-        daz_url:DazUrl = DazUrl.from_url(operation.url)
-        return daz_url.asset_id
-
-
-    # ------------------------------------------------------------------------ #
-
-    def _get_operation_suffix(self:Self, index:int) -> str:
-
-        operation:DsonOperation = self._formula_struct.operations[index]
-        if not operation.url:
-            raise ValueError
-
-        daz_url:DazUrl = DazUrl.from_url(operation.url)
-        suffix:str = None
-
-        match daz_url.channel:
-            case "rotation/x":
-                suffix = "rot_x"
-            case "rotation/y":
-                suffix = "rot_y"
-            case "rotation/z":
-                suffix = "rot_z"
-            case _:
-                raise NotImplementedError(daz_url.channel)
-
-        return suffix
-
-
+    # PUBLIC QUERY METHODS                                                     #
     # ======================================================================== #
 
-    def get_blender_expression(self:Self) -> str:
-
-        operations:list[DsonOperation] = self._formula_struct.operations
-
-        # Preparse the operation list to format PUSH operations correctly.
-        push_strings:dict = {}
-        for (index, operation) in enumerate(operations):
-            if not operation.operator == FormulaOperator.PUSH:
-                continue
-
-            # Format URLs
-            if operation.url:
-
-                asset_id:str = self._get_operation_url_id(index)
-                suffix:str = self._get_operation_suffix(index)
-                push_strings[index] = f"{asset_id}_{suffix}"
-
-            # Format values
-            if operation.value:
-
-                in_radians:bool = False
-                if index > 0:
-                    if self._get_operation_suffix(index-1) in [ "rot_x", "rot_y", "rot_z" ]:
-                        in_radians = True
-
-
-        return ""
-
-        # stack:list[Any] = []
-
-        # for operation in self._formula_struct.operations:
-        #     match operation.operator:
-
-        #         # Push
-        #         case FormulaOperator.PUSH:
-        #             if operation.url:
-        #                 target_name:str = self._inputs[operation.url].get_target_name()
-        #                 stack.append(target_name)
-        #             elif operation.value:
-        #                 stack.append(str(operation.value))
-
-        #         # Multiply
-        #         case FormulaOperator.MULT:
-        #             value2:str = str(stack.pop())
-        #             value1:str = str(stack.pop())
-        #             result:str = f"({value1} * {value2})"
-        #             stack.append(result)
-
-        #         # Unknown
-        #         case _:
-        #             raise NotImplementedError(operation.operator)
-
-        # # Stack should only have one value left on it.
-        # if len(stack) != 1:
-        #     raise RuntimeError
-
-        #return stack[0]
-
-
-    # ======================================================================== #
-
-    def get_equation_as_string(self:Self) -> str:
-        """Create a user-readable string identifying how the equation works."""
-
-        stack:list[Any] = []
-
-        for operation in self._formula_struct.operations:
-            match operation.operator:
-
-                case FormulaOperator.PUSH:
-                    if operation.value:
-                        stack.append(operation.value)
-                    elif operation.url:
-                        stack.append(self._strip_url(operation.url))
-
-                case FormulaOperator.MULT:
-                    value1:Any = stack.pop()
-                    value2:Any = stack.pop()
-                    result:str = f"({value1} * {value2})"
-                    stack.append(result)
-
-                case FormulaOperator.SPL_TCB | FormulaOperator.SPL_LINEAR:
-                    number_of_knots:int = stack.pop()
-                    knots:list[Knot] = []
-
-                    for _ in range(number_of_knots):
-                        data:list = stack.pop()
-                        knot:Knot = Knot()
-                        knot.x = data[1]
-                        knot.y = data[0]
-                        knots.append(knot)
-
-                    _value:Any = stack.pop()
-                    stack.append("IMPLEMENT SPLINE PRINTING")
-
-                case _:
-                    raise NotImplementedError(operation.operator)
-
-        output:str = self._strip_url(self._formula_struct.output)
-        return f"{output} = {stack[0]}"
-
-
-    # ------------------------------------------------------------------------ #
-
-    def get_stage(self:Self) -> FormulaStage:
-        """Return the FormulaStage of the underlying DsonFormula struct."""
-        return self._formula_struct.stage
-
-
-    # ------------------------------------------------------------------------ #
-
-    def get_value(self:Self) -> Any:
-        """Return the final value of the equation.
-        
-        This is equivalent to calculating the "output" property of a DsonFormula
-        struct.
-        """
+    def format_expression(self:Self) -> str:
 
         stack:list[Any] = []
 
@@ -513,40 +459,156 @@ class DriverEquation:
                 # ------------------------------------------------------------ #
                 # Push
                 case FormulaOperator.PUSH:
+                    if operation.value is not None:
+                        stack.append(str(operation.value))
+                    elif operation.url is not None:
+                        target:DriverTarget = self._inputs[operation.url]
+                        stack.append(target.format_expression_name())
 
-                    if operation.value:
-                        stack.append(operation.value)
+                # ------------------------------------------------------------ #
+                # Add
+                case FormulaOperator.ADD:
+                    value2:str = str(stack.pop())
+                    value1:str = str(stack.pop())
+                    stack.append(f"({value1} + {value2})")
 
-                    elif operation.url:
-                        # NOTE: This code is indirectly recursive. It will call
-                        #   a method of the same name on DriverTarget, which
-                        #   will then call this method on all its equations,
-                        #   until the top of the hierarchy has been reached.
-                        input_property:DriverTarget = self._inputs[operation.url]
-                        stack.append(input_property.get_value())
+                # ------------------------------------------------------------ #
+                # Subtract
+                case FormulaOperator.SUB:
+                    value2:str = str(stack.pop())
+                    value1:str = str(stack.pop())
+                    stack.append(f"({value1} - {value2})")
 
                 # ------------------------------------------------------------ #
                 # Multiply
                 case FormulaOperator.MULT:
-                    value1:Any = stack.pop()
+                    value2:str = str(stack.pop())
+                    value1:str = str(stack.pop())
+                    stack.append(f"({value1} * {value2})")
+
+                # ------------------------------------------------------------ #
+                # Divide
+                case FormulaOperator.DIV:
+                    value2:str = str(stack.pop())
+                    value1:str = str(stack.pop())
+                    stack.append(f"({value1} / {value2})")
+
+                # ------------------------------------------------------------ #
+                # Invert
+                case FormulaOperator.INV:
+                    value:str = str(stack.pop())
+                    stack.append(f"(1.0 / {value})")
+
+                # ------------------------------------------------------------ #
+                # Negate
+                case FormulaOperator.NEG:
+                    value:str = str(stack.pop())
+                    stack.append(f"({value} * -1.0)")
+
+                # ------------------------------------------------------------ #
+                # Unknown
+                case _:
+                    # NOTE: Future-proofing for expansion of the DSON format.
+                    raise NotImplementedError(operation.operator)
+
+        # Stack should have one element left on it, no more and no less.
+        if len(stack) != 1:
+            raise RuntimeError
+
+        return stack[0]
+
+
+    # ------------------------------------------------------------------------ #
+
+    def get_stage(self:Self) -> FormulaStage:
+        """Return if this equation should be added or multiplied to the result."""
+        return self._formula_struct.stage
+
+
+    # ------------------------------------------------------------------------ #
+
+    def get_value(self:Self) -> Any:
+        """Compute the equation this object represents and return the value."""
+
+        stack:list[Any] = []
+
+        for op in self._formula_struct.operations:
+            match op.operator:
+
+                # ------------------------------------------------------------ #
+                # Push
+                case FormulaOperator.PUSH:
+
+                    if op.value:
+                        stack.append(op.value)
+
+                    # NOTE: This code is indirectly recursive. get_value() will
+                    #   call the equivalent method on DriverTarget, which will
+                    #   call this method on its controller equation.
+                    elif op.url:
+                        input_target:DriverTarget = self._inputs[op.url]
+                        stack.append(input_target.get_value())
+
+                # ------------------------------------------------------------ #
+                # Add
+                case FormulaOperator.ADD:
                     value2:Any = stack.pop()
+                    value1:Any = stack.pop()
+                    result:Any = value1 + value2
+                    stack.append(result)
+
+                # ------------------------------------------------------------ #
+                # Subtract
+                case FormulaOperator.SUB:
+                    value2:Any = stack.pop()
+                    value1:Any = stack.pop()
+                    result:Any = value1 - value2
+                    stack.append(result)
+
+                # ------------------------------------------------------------ #
+                # Multiply
+                case FormulaOperator.MULT:
+                    value2:Any = stack.pop()
+                    value1:Any = stack.pop()
                     result:Any = value1 * value2
+                    stack.append(result)
+
+                # ------------------------------------------------------------ #
+                # Divide
+                case FormulaOperator.DIV:
+                    value2:Any = stack.pop()
+                    value1:Any = stack.pop()
+                    result:Any = value1 / value2
+                    stack.append(result)
+
+                # ------------------------------------------------------------ #
+                # Invert
+                case FormulaOperator.INV:
+                    value:Any = stack.pop()
+                    result:Any = 1.0 / value
+                    stack.append(result)
+
+                # ------------------------------------------------------------ #
+                # Negate
+                case FormulaOperator.NEG:
+                    value:Any = stack.pop()
+                    result:Any = value * -1.0
                     stack.append(result)
 
                 # ------------------------------------------------------------ #
                 # Spline (Linear)
                 case FormulaOperator.SPL_LINEAR:
 
-                    number_of_knots:int = int(stack.pop())
+                    knot_count:int = int(stack.pop())
                     knots:list[Knot] = []
 
-                    for _ in range(number_of_knots):
+                    for _ in range(knot_count):
 
                         knot:Knot = Knot()
-                        knot_list:list = stack.pop()
+                        knot_data:list[Any] = stack.pop()
 
-                        knot.x = knot_list[1]
-                        knot.y = knot_list[0]
+                        knot.x = knot_data[1]
+                        knot.y = knot_data[0]
 
                         knots.append(knot)
 
@@ -556,43 +618,32 @@ class DriverEquation:
 
                 # ------------------------------------------------------------ #
                 # Spline (TCB)
-
-                # The following JCMs use TCB spline interpolation:
-                #   pJCMForeArmFwd_75_L
-                #   pJCMThighFwd_57_L
-                #   pJCMThighFwd_115_L
-                #   pJCMShinBend_90_L
-                #   pJCMShinBend_155_L
-
-                # NOTE: Currently, this is an alias for linear interpolation.
                 case FormulaOperator.SPL_TCB:
 
-                    number_of_splines:int = int(stack.pop())
+                    knot_count:int = int(stack.pop())
                     knots:list[TcbKnot] = []
 
-                    for _ in range(number_of_splines):
+                    for _ in range(knot_count):
 
                         knot:TcbKnot = TcbKnot()
-                        knot_list:list = stack.pop()
+                        knot_data:list[Any] = stack.pop()
 
-                        knot.x=knot_list[1]
-                        knot.y=knot_list[0]
-                        knot.tension=knot_list[2]
-                        knot.continuity=knot_list[3]
-                        knot.bias=knot_list[4]
+                        knot.x = knot_data[1]
+                        knot.y = knot_data[0]
+                        knot.tension = knot_data[2]
+                        knot.continuity = knot_data[3]
+                        knot.bias = knot_data[4]
 
                         knots.append(knot)
 
                     value:Any = stack.pop()
                     result:Any = calculate_tcb_spline(knots, value)
-                    stack.append(result)
 
                 # ------------------------------------------------------------ #
                 # Unknown
                 case _:
-                    raise NotImplementedError(operation.operator)
-
-                # ------------------------------------------------------------ #
+                    # NOTE: Future-proofing for additions to the DSON format.
+                    raise NotImplementedError(op.operator)
 
         if len(stack) != 1:
             raise RuntimeError
