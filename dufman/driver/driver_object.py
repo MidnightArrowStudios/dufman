@@ -638,6 +638,7 @@ class DriverEquation:
 
                     value:Any = stack.pop()
                     result:Any = calculate_tcb_spline(knots, value)
+                    stack.append(result)
 
                 # ------------------------------------------------------------ #
                 # Unknown
