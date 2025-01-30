@@ -226,7 +226,7 @@ def _parse_equation(equation:DriverEquation, nodes:list[DriverTarget]) -> str:
                     k1:Knot = all_knots[0]
                     k2:Knot = all_knots[1]
 
-                    result:str = f"lerp({k1.x}, {k2.x}, clamp(({value} - {k1.y}) / ({k2.y} - {k1.y}))"
+                    result:str = f"lerp({k1.x}, {k2.x}, clamp(({value} - {k1.y}) / ({k2.y} - {k1.y})))"
                     stack.append(result)
 
                 else:
