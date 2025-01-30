@@ -124,7 +124,9 @@ class DriverTarget:
         """Return the value of the asset/channel this object targets."""
 
         if not self.is_valid():
-            raise RuntimeError
+            # TODO: Proper logging
+            # TODO: Correct return value?
+            return 0
 
         channel_type:ChannelType = self.get_channel_type()
         match channel_type:
@@ -144,7 +146,8 @@ class DriverTarget:
         """Set the value of the asset/channel this object targets."""
 
         if not self.is_valid():
-            raise RuntimeError
+            # TODO: Proper logging
+            return
 
         channel_type:ChannelType = self.get_channel_type()
         match channel_type:
